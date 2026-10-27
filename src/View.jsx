@@ -2654,7 +2654,7 @@ export default function View({ v }) {
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 <div style={css("font-weight:800;font-size:calc(19px*var(--fs,1))")}>Foto kegiatan</div>
                 <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);line-height:1.45")}>
-                  Foto disimpan di folder <b>Foto Kegiatan · (nama Sheet)</b> di Google Drive pemilik Sheet, per kegiatan lalu per tanggal. Setelah terunggah, HP hanya menyimpan gambar kecilnya.
+                  {v.pakaiAkun ? <>Foto disimpan di <b>penyimpanan kloter</b> (tertutup, hanya petugas kloter ini). Setelah terunggah, HP hanya menyimpan gambar kecilnya.</> : <>Foto disimpan di folder <b>Foto Kegiatan · (nama Sheet)</b> di Google Drive pemilik Sheet, per kegiatan lalu per tanggal. Setelah terunggah, HP hanya menyimpan gambar kecilnya.</>}
                 </div>
                 {v.galeri.kosong ? <div style={css("padding:20px;text-align:center;color:var(--color-neutral-700);font-size:calc(14px*var(--fs,1))")}>Belum ada foto.</div> : null}
                 {v.galeri.adaAntre ? <button className="btn btn-secondary" onClick={v.galeri.unggah} style={css("height:44px")}>Unggah sekarang</button> : null}
@@ -2665,7 +2665,7 @@ export default function View({ v }) {
                       <b style={css("font-size:calc(13.5px*var(--fs,1))")}>{txt(f.judul)}</b>
                       {f.sub ? <span style={css("font-size:calc(12px*var(--fs,1));color:var(--color-neutral-700)")}>{txt(f.sub)}</span> : null}
                       <span style={css(`font-size:calc(12px*var(--fs,1));font-weight:700;color:${f.stFg}`)}>
-                        {txt(f.st)}{f.link ? <> · <a href={f.link} target="_blank" rel="noopener">buka</a></> : null}
+                        {txt(f.st)}{f.link ? <> · <a href={f.link} onClick={f.buka} target="_blank" rel="noopener">buka</a></> : null}
                       </span>
                     </div>
                     <button onClick={f.hapus} aria-label="Hapus foto dari HP" style={css("border:0;background:transparent;color:var(--color-neutral-600);cursor:pointer;font-size:calc(12px*var(--fs,1));font-weight:700;flex:none")}>Hapus</button>
@@ -3130,6 +3130,11 @@ export default function View({ v }) {
                     <span style={css("font-size:calc(12px*var(--fs,1));font-weight:500;color:var(--color-neutral-700)")}>{txt(v.suGelombangNote)}</span>
                   </div>
                 </div>
+                {v.suSb ? (
+                  <div style={css("background:var(--color-accent-100);color:var(--color-accent-800);border-radius:16px;padding:12px 14px;font-size:calc(13.5px*var(--fs,1));line-height:1.5")}>
+                    <b>Data dari akun Anda.</b> Jamaah dan semua centang kloter {txt(v.su?.kloter)} diambil dari server aplikasi. Tidak perlu alamat Sheet atau kode rahasia.
+                  </div>
+                ) : (<>
                 <b style={css("font-size:calc(15px*var(--fs,1));margin-top:4px")}>Koneksi Google Sheet</b>
                 <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
                   Web App URL
@@ -3140,6 +3145,7 @@ export default function View({ v }) {
                   Kode rahasia
                   <input className="input" type="password" autoComplete="off" value={v.su?.key ?? ''} onChange={v.suKey} placeholder="Angka, sama dengan kode di menu Atur kode rahasia" inputMode="numeric" style={css("height:46px;font-size:calc(14px*var(--fs,1))")} />
                 </label>
+                </>)}
                 {" "}
                 <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
                   Perangkat ini{" "}
@@ -3159,7 +3165,7 @@ export default function View({ v }) {
                   PIN aplikasi (4 angka · terkunci 5 menit setelah 5 kali salah)
                   <input className="input" value={v.su?.pin ?? ''} onChange={v.suPin} inputMode="numeric" maxLength="4" placeholder="••••" style={css("height:46px;font-size:calc(18px*var(--fs,1));letter-spacing:.3em")} />
                 </label>
-                {v.suLive ? (
+                {v.suLive && v.suSheet ? (
                   <div style={css("background:var(--color-surface);border-radius:22px;padding:14px 16px;display:grid;gap:12px;box-shadow:0 1px 2px rgba(16,40,30,.05),0 8px 20px -14px rgba(16,40,30,.22)")}>
                     <b style={css("font-size:calc(15px*var(--fs,1))")}>Pengaturan Sheet</b>
                     <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
@@ -3201,9 +3207,11 @@ export default function View({ v }) {
                   {txt(v.suCta)}
                 </button>
                 {" "}
+                {v.suSheet ? (
                 <button className="btn btn-ghost" onClick={v.suDemo} style={css("font-size:calc(14px*var(--fs,1))")}>
                   Coba dulu dengan data contoh
                 </button>
+                ) : null}
                 {" "}
                 {v.suCanClose ? (<>
                   <button className="btn btn-secondary" onClick={v.suClose} style={css("height:44px")}>

@@ -1,7 +1,8 @@
 // Logika aplikasi (state, sinkron, perhitungan). Tampilan ada di View.jsx.
 import React from 'react';
 import { DCLogic } from './dc/runtime.js';
-import { ambilSemua, kirimPerubahan, gantiKunci, unggahFoto } from './data/sheetsApi.js';
+import { ambilSemua, kirimPerubahan, gantiKunci, unggahFoto, tautanFoto, SB_URL } from './data/server.js';
+import { keadaan as akunKeadaan, dengar as dengarAkun } from './data/akun.js';
 import { kompres, keBase64, simpanFoto, hapusFoto, semuaFoto } from './data/fotoStore.js';
 import { TUSI, EMBARKASI, CATATAN_GELOMBANG, MIQAT, miqatBawaan, kurangIdentitas, pesanKurang, dariPengaturan, kePengaturan } from './identitas.js';
 import { bacaCfg, simpanCfg, bacaSnap, simpanSnap, bacaAntrean, simpanAntrean, bacaAntreanCadangan, mintaPenyimpananTetap } from './data/localStore.js';
@@ -88,8 +89,8 @@ export default class AppLogic extends DCLogic {
     ex['umrah|' + Uk('Thawaf Umrah') + '|6'] = { ulangKe: 2, stUlang: 'Selesai diulang', pend: 'p2' };
     const cur = this.data[mode].cur;
     return { tab: p.startTab || 'beranda', mode, udz, mq: {}, done, sel: null, tg: {}, ex, safDlg: null, ulDlg: null, susDlg: null, slotDlg: null, confirm: null, toast: null, picker: null, undo: null, notes: { 13: 'Kursi roda', 77: 'Dirawat di KKHI', 141: 'Lansia, ikut murur' }, noteDraft: '',
-      locked: !!(this.cfg && this.cfg.pin), pin: '', pinErr: false, setup: !this.cfg,
-      su: { url: (this.cfg && this.cfg.url) || '', key: (this.cfg && this.cfg.key) || '', kloter: (this.cfg && this.cfg.kloter) || '', device: (this.cfg && this.cfg.device) || 'HP', pin: (this.cfg && this.cfg.pin) || '', ppih: (this.cfg && this.cfg.ppih) || '', embarkasi: (this.cfg && this.cfg.embarkasi) || '', gelombang: (this.cfg && this.cfg.gelombang) || '', err: '', busy: false },
+      locked: !!(this.cfg && this.cfg.pin) && !this.perluPindahAkun(), pin: '', pinErr: false, setup: !this.cfg || this.perluPindahAkun(),
+      su: { url: (this.cfg && this.cfg.url) || '', key: (this.cfg && this.cfg.key) || '', kloter: (this.cfg && this.cfg.kloter) || '', device: (this.cfg && this.cfg.device) || 'HP', pin: (this.cfg && this.cfg.pin) || '', ppih: (this.cfg && this.cfg.ppih) || '', embarkasi: (this.cfg && this.cfg.embarkasi) || '', gelombang: (this.cfg && this.cfg.gelombang) || '', err: '', busy: false, ...this.suDariAkun() },
       sync: { pending: this.queue.length, last: '—', err: '' }, syncOpen: false,
       badal: { haji: { [Hk('Badal Jumroh Aqobah')]: { 13: 'p2', 77: 'p2' } }, umrah: {}, madinah: {} },
       jl: { q: '', f: 'semua', r: 0, v: 'semua', kf: 'semua' }, bd: { v: 'jamaah', q: '', day: 0 }, pp: null,
@@ -114,6 +115,18 @@ export default class AppLogic extends DCLogic {
       const n = this.mergeQueue(d.antrean, 'file cadangan'); if (!n) this.flash('Tidak ada perubahan baru di file cadangan'); }).catch(() => this.flash('File cadangan tidak dikenali')); };
     inp.click(); }
   live() { return !!(this.cfg && this.cfg.url && !this.cfg.demo); }
+  // Profil akun yang sudah disetujui dan punya kloter (null bila belum/tanpa Supabase)
+  akunSb() { const p = akunKeadaan().profil; return p && p.status === 'aktif' && p.kloter_id && p.kloter ? p : null; }
+  pakaiAkun() { return !!(this.cfg && this.cfg.url === SB_URL); }
+  // HP yang masih memakai Sheet (atau mode contoh) dipindah ke akun saat akun sudah aktif
+  perluPindahAkun() { return !!this.akunSb() && !this.pakaiAkun(); }
+  suDariAkun() { const p = this.akunSb(); if (!p) return {};
+    return { url: SB_URL, key: 'akun', ppih: p.nama || '', kloter: p.kloter.kode, embarkasi: p.kloter.embarkasi || p.embarkasi || '', gelombang: String(p.kloter.gelombang || p.gelombang || '') }; }
+  namaServer() { return this.pakaiAkun() ? 'server' : 'Google Sheet'; }
+  tempatFoto() { return this.pakaiAkun() ? 'penyimpanan kloter' : 'Google Drive'; }
+  // Foto di Supabase dibuka lewat tautan sementara; foto lama di Drive langsung dibuka
+  async bukaFoto(e, link) { if (!String(link).startsWith('supabase:')) return; e.preventDefault();
+    try { window.open(await tautanFoto(link.slice(9)), '_blank', 'noopener'); } catch (er) { this.flash(er.message || 'Foto tidak bisa dibuka'); } }
   kloter() { return (this.cfg && this.cfg.kloter) || ''; }
   klLabel() { const K = this.kloter(); return !K ? 'Kloter' : /^kloter/i.test(K) ? K : 'Kloter ' + K; }
   tz(zone) { try { return new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: zone }).format(new Date()).replace(':', '.'); } catch (e) { return this.hhmm(new Date()); } }
@@ -128,14 +141,17 @@ export default class AppLogic extends DCLogic {
     this._lk = setInterval(() => { const lu = (this.cfg && this.cfg.lockUntil) || 0; if (this.state.locked && lu && Date.now() < lu + 1500) this.forceUpdate(); }, 1000);
     this._iv = setInterval(() => { if (this.live() && !document.hidden && (this.queue.length || Date.now() - (this._lp || 0) > 300000)) this.syncNow(true); }, 60000); this._clk = setInterval(() => { this.checkReminder(); const mn = new Date().getMinutes(); if (!document.hidden && mn !== this._lm) { this._lm = mn; this.forceUpdate(); } }, 5000); setTimeout(() => this.checkReminder(), 3000);
     Object.keys(this.data).forEach(m => { this.data[m].cur = this.curOf(m); });
-    if (this.live()) { const snap = this.readSnap(); if (snap) this.build(snap); this.syncNow(true); }
+    // Saat pindah ke akun, antrean ditahan dulu supaya terkirim ke akun, bukan ke Sheet lama
+    if (this.live()) { const snap = this.readSnap(); if (snap) this.build(snap); if (!this.perluPindahAkun()) this.syncNow(true); }
+    // Profil akun bisa baru selesai dimuat setelah layar tampil: tawarkan pindah ke akun saat itu juga
+    this._lepasAkun = dengarAkun(() => { if (this.perluPindahAkun() && !this.state.setup) this.setState(s => ({ setup: true, locked: false, su: { ...s.su, ...this.suDariAkun(), err: '' } })); });
     mintaPenyimpananTetap();
     this.refreshFoto().then(() => this.unggahAntre());
     bacaAntreanCadangan(items => this.mergeQueue(items, 'salinan cadangan di perangkat'));
     this._onInstall = e => { e.preventDefault(); this._installEvt = e; this.forceUpdate(); }; window.addEventListener('beforeinstallprompt', this._onInstall);
     this._onVis = () => { if (!document.hidden && this.live() && (this.queue.length || Date.now() - (this._lp || 0) > 60000)) this.syncNow(true); }; document.addEventListener('visibilitychange', this._onVis);
   }
-  componentWillUnmount() { window.removeEventListener('beforeinstallprompt', this._onInstall); window.removeEventListener('resize', this._onResize); window.removeEventListener('online', this._onOnline); document.removeEventListener('visibilitychange', this._onVis); window.removeEventListener('offline', this._onResize); clearInterval(this._iv); clearInterval(this._clk); clearInterval(this._lk); }
+  componentWillUnmount() { if (this._lepasAkun) this._lepasAkun(); window.removeEventListener('beforeinstallprompt', this._onInstall); window.removeEventListener('resize', this._onResize); window.removeEventListener('online', this._onOnline); document.removeEventListener('visibilitychange', this._onVis); window.removeEventListener('offline', this._onResize); clearInterval(this._iv); clearInterval(this._clk); clearInterval(this._lk); }
   build(snap) {
     const ord = { 'Ketua Rombongan': 0, 'Ketua Regu': 1 };
     const rows = (snap.jamaah || []).filter(r => r['Nama'] && r['Nomor Porsi']).map(r => ({ r: Number(r['Rombongan']) || 0, g: Number(r['Regu']) || 0,
@@ -264,8 +280,8 @@ export default class AppLogic extends DCLogic {
     this._fotoBusy = false; this.forceUpdate();
   }
   async buangFoto(f) {
-    if (f.status === 'antre' && !window.confirm('Foto ini belum terunggah ke Drive. Hapus dari HP?')) return;
-    await hapusFoto(f.id); await this.refreshFoto(); this.flash(f.status === 'terkirim' ? 'Dihapus dari HP · tetap ada di Drive' : 'Foto dihapus');
+    if (f.status === 'antre' && !window.confirm('Foto ini belum terunggah. Hapus dari HP?')) return;
+    await hapusFoto(f.id); await this.refreshFoto(); this.flash(f.status === 'terkirim' ? 'Dihapus dari HP · tetap ada di ' + this.tempatFoto() : 'Foto dihapus');
   }
   miqatKloter() { const r = this.data.umrah.rites.find(r => r.miqat); return (r && r.place) || ''; }
   miqatOf(j) { return (this.state.mq || {})[j.id] || this.miqatKloter(); }
@@ -397,7 +413,7 @@ export default class AppLogic extends DCLogic {
   }
   async syncNow(quiet) {
     if (!this.live()) { if (!quiet) this.flash('Mode contoh · belum terhubung ke Google Sheet'); this.setState(s => ({ sync: { ...s.sync, pending: 0, last: this.hhmm(new Date()) } })); return; }
-    if (this._busy) return;
+    if (this._busy || this.perluPindahAkun()) return;
     if (!navigator.onLine) { this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, err: '' } })); if (!quiet) this.flash('Tidak ada sinyal · data aman di perangkat'); return; }
     this._busy = true; this.setState(s => ({ sync: { ...s.sync, busy: true } }));
     const { url, key } = this.cfg;
@@ -406,7 +422,7 @@ export default class AppLogic extends DCLogic {
       const data = await this.fetchAll(url, key);
       simpanSnap(data); this.build(data); this._lp = Date.now();
       this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, last: this.hhmm(new Date()), err: '', busy: false } }));
-      if (!quiet) this.flash('Tersinkron dengan Google Sheet');
+      if (!quiet) this.flash('Tersinkron dengan ' + this.namaServer());
       this.unggahAntre();
     } catch (e) {
       this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, err: 'Gagal sinkron: ' + (e.message || e), busy: false } }));
@@ -417,7 +433,7 @@ export default class AppLogic extends DCLogic {
   }
   async connect() {
     const su = this.state.su, url = su.url.trim(), key = su.key.trim();
-    const err = !/^https:\/\/script\.google\.com\/.+\/exec/.test(url) ? 'URL harus diawali https://script.google.com/ dan berakhiran /exec' : !key ? 'Kode rahasia belum diisi' : !/^\d{4,}$/.test(key) ? 'Kode rahasia minimal 4 angka' : !/^\d{4}$/.test(su.pin) ? 'PIN harus 4 angka' : '';
+    const akun = url === SB_URL, err = akun ? (!/^\d{4}$/.test(su.pin) ? 'PIN harus 4 angka' : '') : !/^https:\/\/script\.google\.com\/.+\/exec/.test(url) ? 'URL harus diawali https://script.google.com/ dan berakhiran /exec' : !key ? 'Kode rahasia belum diisi' : !/^\d{4,}$/.test(key) ? 'Kode rahasia minimal 4 angka' : !/^\d{4}$/.test(su.pin) ? 'PIN harus 4 angka' : '';
     if (err) { this.patch('su', { err }); return; }
     // Sheet sama, hanya identitas/PIN berubah: simpan langsung, tidak perlu internet
     if (this.live() && url === this.cfg.url && key === this.cfg.key) {
@@ -431,12 +447,12 @@ export default class AppLogic extends DCLogic {
     try {
       const old = this.cfg && !this.cfg.demo && this.cfg.url, changed = !!old && old !== url;
       // Ganti sheet: antrean milik sheet lama wajib terkirim dulu, jangan pernah dibuang.
-      if (changed && this.queue.length) {
+      if (changed && this.queue.length && !akun) {
         try { await this.flushQueue(old, this.cfg.key); }
         catch (e) { throw new Error(`Masih ada ${this.queue.length} perubahan yang belum terkirim ke sheet lama (${e.message || e}). Sambungkan internet dan sinkronkan dulu, atau pilih "Simpan cadangan" sebelum mengganti sheet.`); }
       }
       const data = await this.fetchAll(url, key);
-      if (!(data.jamaah || []).length) throw new Error('Sheet "Jamaah" masih kosong');
+      if (!(data.jamaah || []).length) throw new Error(akun ? 'Data jamaah kloter ini masih kosong. Hubungi admin.' : 'Sheet "Jamaah" masih kosong');
       // HP baru: kolom identitas yang kosong diisi dari tab Pengaturan di Sheet
       const dariSheet = dariPengaturan(data.pengaturan), isi = { ...su };
       Object.keys(dariSheet).forEach(k => { if (!String(isi[k] || '').trim() && dariSheet[k]) isi[k] = dariSheet[k]; });
@@ -447,7 +463,8 @@ export default class AppLogic extends DCLogic {
       if (Object.keys(id).some(k => String(id[k]) !== String(dariSheet[k] || ''))) this.pushPengaturan(kePengaturan(id));
       simpanSnap(data); this.build(data);
       this.setState(s => ({ setup: false, locked: false, su: { ...s.su, ...id, busy: false }, sync: { pending: this.queue.length, last: this.hhmm(new Date()), err: '' }, tab: 'beranda' }));
-      this.flash(this.jm.length + ' jamaah dibaca dari Google Sheet');
+      this.flash(this.jm.length + ' jamaah dibaca dari ' + (akun ? 'akun kloter' : 'Google Sheet'));
+      if (akun && this.queue.length) this.syncNow(true);
     } catch (e) { this.patch('su', { busy: false, err: (e.message || e) }); }
   }
   todayKey() { return this.tz('Asia/Riyadh') && new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh' }).format(new Date()); }
@@ -1247,13 +1264,13 @@ export default class AppLogic extends DCLogic {
       tglJadwal, tgJ, openTgl: () => this.setState({ tglOpen: true }),
       fotoInput: this.fotoInput, onFotoFile: e => this.pilihFoto(e), ambilFoto: () => this.fotoInput.current && this.fotoInput.current.click(),
       fotoCard: (() => { const n = this.fotoList.length, a = this.fotoList.filter(f => f.status === 'antre').length;
-        return { judul: n ? n + ' foto di HP ini' : 'Belum ada foto', sub: a ? a + ' menunggu diunggah ke Google Drive' + (off ? ' · saat ada internet' : this._fotoBusy ? ' · mengunggah…' : '') : n ? (this.live() ? 'Semua sudah di Google Drive' : 'Mode contoh · tidak diunggah') : 'Foto tersimpan di HP dulu, lalu otomatis ke Google Drive',
+        return { judul: n ? n + ' foto di HP ini' : 'Belum ada foto', sub: a ? a + ' menunggu diunggah ke ' + this.tempatFoto() + (off ? ' · saat ada internet' : this._fotoBusy ? ' · mengunggah…' : '') : n ? (this.live() ? 'Semua sudah di ' + this.tempatFoto() : 'Mode contoh · tidak diunggah') : 'Foto tersimpan di HP dulu, lalu otomatis ke ' + this.tempatFoto(),
           err: S.fotoErr || '', adaFoto: n > 0 }; })(),
       bukaGaleri: () => this.setState({ galeri: true }),
       galeri: S.galeri ? { tutup: () => this.setState({ galeri: false }), kosong: !this.fotoList.length, unggah: () => this.unggahAntre(), adaAntre: this.fotoList.some(f => f.status === 'antre'),
         items: this.fotoList.slice(0, 80).map(f => ({ src: this._thumbs[f.id] || '', judul: f.kegiatan + ' · ' + this.fmtHari(f.tanggal), sub: [f.cakupan, f.keterangan].filter(Boolean).join(' · '),
-          st: f.status === 'terkirim' ? 'Di Google Drive' : f.status === 'lokal' ? 'Hanya di HP (mode contoh)' : 'Menunggu diunggah', stFg: f.status === 'terkirim' ? 'var(--color-accent-800)' : '#7a5200',
-          link: f.link || '', hapus: () => this.buangFoto(f) })) } : null,
+          st: f.status === 'terkirim' ? 'Di ' + this.tempatFoto() : f.status === 'lokal' ? 'Hanya di HP (mode contoh)' : 'Menunggu diunggah', stFg: f.status === 'terkirim' ? 'var(--color-accent-800)' : '#7a5200',
+          link: f.link || '', buka: e => this.bukaFoto(e, f.link), hapus: () => this.buangFoto(f) })) } : null,
       fotoDlg: S.fotoDlg ? (() => { const d = S.fotoDlg, upd = p => this.patch('fotoDlg', p), romb = [...new Set(this.jm.map(j => j.r))].sort((a, b) => a - b), regu = [...new Set(this.jm.filter(j => j.r === d.r).map(j => j.g))].sort((a, b) => a - b);
         return { prev: d.prev, kb: d.kb + ' KB setelah diperkecil',
           rites: X.rites.map((r, k) => ({ l: r.miqat ? r.p : r.n, ...pill(d.rite === k), on: () => upd({ rite: k }) })),
@@ -1286,23 +1303,23 @@ export default class AppLogic extends DCLogic {
         return /iphone|ipad|ipod/i.test(navigator.userAgent) ? 'Di iPhone: buka di Safari, ketuk Bagikan lalu “Tambah ke Layar Utama” agar data tidak terhapus otomatis.' : 'Pasang aplikasi ke layar utama HP agar bisa dibuka tanpa internet dan datanya lebih aman.'; })(),
       daysRef: this.daysRef, exportCsv: () => this.exportCsv(), bakSave: () => this.backupSave(), bakLoad: () => this.backupLoad(), exportWa: () => this.setState({ syncOpen: false, wa: true }),
       suTest: () => this.testConn(), suTestCta: S.su.testing ? 'Menguji…' : 'Tes koneksi', suHasOk: !!S.su.okMsg,
-      syncLabel: !this.live() ? 'Mode contoh · belum terhubung' : S.sync.err ? 'Gagal sinkron · ketuk untuk detail' : S.sync.pending ? (off ? `${S.sync.pending} perubahan di perangkat · menunggu sinyal` : 'Mengirim ke Google Sheet…') : off ? 'Offline · data tersimpan di perangkat' : 'Tersinkron ke Google Sheet · ' + S.sync.last,
+      syncLabel: !this.live() ? 'Mode contoh · belum terhubung' : S.sync.err ? 'Gagal sinkron · ketuk untuk detail' : S.sync.pending ? (off ? `${S.sync.pending} perubahan di perangkat · menunggu sinyal` : 'Mengirim ke ' + this.namaServer() + '…') : off ? 'Offline · data tersimpan di perangkat' : 'Tersinkron ke Google Sheet · ' + S.sync.last,
       syncDot: !this.live() ? 'var(--color-neutral-400)' : S.sync.err ? 'var(--red-600)' : S.sync.pending ? (off ? '#e0a100' : 'var(--color-accent-300)') : 'var(--color-accent)',
       openSync: () => this.setState({ syncOpen: true }), closeSync: () => this.setState({ syncOpen: false }), hasSync: !!S.syncOpen,
       syncNow: () => this.syncNow(), syncPending: S.sync.pending, syncLast: S.sync.last, syncOffline: off, hasSyncErr: !!S.sync.err, syncErr: S.sync.err || '',
       syncTag: this.live() ? 'Terhubung' : 'Mode contoh', ppihName: this.ppih(), logoSrc: this._logo || 'icon-192.png',
       pf: { title: !this.live() ? 'Mode contoh' : S.sync.err ? 'Gagal sinkron' : S.sync.pending ? (off ? 'Menunggu sinyal' : 'Mengirim…') : 'Tersinkron ✓', deg: (this.live() && !S.sync.pending && !S.sync.err ? 360 : Math.max(18, 360 - Math.min(342, S.sync.pending * 6))) + 'deg' }, syncTagCls: this.live() ? 'tag-accent-2' : 'tag-neutral',
-      syncSource: this.live() ? 'Sheet “Jamaah” · ' + (this.cfg.device || 'Perangkat') + ' · ' + this.petugas.length + ' petugas' : 'Data contoh · buka Pengaturan untuk menghubungkan Google Sheet',
+      syncSource: this.live() ? (this.pakaiAkun() ? 'Akun · kloter ' + this.klLabel() + ' · ' : 'Sheet “Jamaah” · ') + (this.cfg.device || 'Perangkat') + ' · ' + this.petugas.length + ' petugas' : 'Data contoh · buka Pengaturan untuk menghubungkan Google Sheet',
       openSetup: () => this.setState(s => ({ setup: true, syncOpen: false, su: { ...s.su, err: '' } })), hasSetup: !!S.setup || (!!this.cfg && !S.locked && !this.idLengkap()), su: S.su,
       suUrl: e => this.patch('su', { url: e.target.value, err: '', okMsg: '' }), suKey: e => this.patch('su', { key: e.target.value, err: '', okMsg: '' }), suKloter: e => this.patch('su', { kloter: e.target.value }),
-      suPin: e => this.patch('su', { pin: e.target.value.replace(/\D/g, '').slice(0, 4) }), suHasErr: !!S.su.err, suCta: S.su.busy ? 'Menghubungkan…' : this.live() && S.su.url.trim() === this.cfg.url && S.su.key.trim() === this.cfg.key ? 'Simpan' : 'Hubungkan ke Google Sheet',
+      suPin: e => this.patch('su', { pin: e.target.value.replace(/\D/g, '').slice(0, 4) }), suHasErr: !!S.su.err, suCta: S.su.busy ? 'Menghubungkan…' : this.live() && S.su.url.trim() === this.cfg.url && S.su.key.trim() === this.cfg.key ? 'Simpan' : S.su.url === SB_URL ? 'Mulai' : 'Hubungkan ke Google Sheet',
       idLine: [TUSI, this.klLabel(), this.cfg && this.cfg.embarkasi, this.cfg && this.cfg.gelombang ? 'Gelombang ' + this.cfg.gelombang : ''].filter(Boolean).join(' · '),
       suDevices: ['HP', 'Tablet'].map(l => ({ l, ...pill(S.su.device === l), on: () => this.patch('su', { device: l }) })),
       suConnect: () => this.connect(), suCanClose: this.idLengkap(), suClose: () => this.setState({ setup: false }),
       suDemo: () => { const k = kurangIdentitas(S.su); if (k.length) { this.patch('su', { err: pesanKurang(k) }); return; }
         this.saveCfg({ demo: true, ...this.identitas(S.su), device: S.su.device, pin: /^\d{4}$/.test(S.su.pin) ? S.su.pin : '1234' }); this.applyJadwal([]); this.setState({ setup: false, locked: false }); this.flash('Mode contoh · PIN ' + this.cfg.pin); },
       suEmbarkasi: e => this.patch('su', { embarkasi: e.target.value, err: '' }), embarkasiList: EMBARKASI,
-      suLive: this.live(), suJam: S.su.jam ?? (this.live() ? (this.aturSheet()['Jam Pengingat'] || '21') : ''), suJamIn: e => this.patch('su', { jam: e.target.value.replace(/\D/g, '').slice(0, 2), okMsg: '' }), suJamSave: () => this.simpanJam(),
+      suLive: this.live(), suSb: S.su.url === SB_URL, suSheet: S.su.url !== SB_URL, pakaiAkun: this.pakaiAkun(), bukanAkun: !this.pakaiAkun(), suJam: S.su.jam ?? (this.live() ? (this.aturSheet()['Jam Pengingat'] || '21') : ''), suJamIn: e => this.patch('su', { jam: e.target.value.replace(/\D/g, '').slice(0, 2), okMsg: '' }), suJamSave: () => this.simpanJam(),
       suKodeBaru: S.su.kodeBaru || '', suKodeIn: e => this.patch('su', { kodeBaru: e.target.value.replace(/\D/g, '').slice(0, 12), okMsg: '' }), suKodeSave: () => this.gantiKode(), suKodeCta: S.su.gantiBusy ? 'Mengganti…' : 'Ganti kode',
       suGelombang: ['1', '2'].map(g => ({ l: 'Gelombang ' + g, ...pill(String(S.su.gelombang) === g), on: () => this.patch('su', { gelombang: g, err: '' }) })),
       suGelombangNote: CATATAN_GELOMBANG[S.su.gelombang] || 'Dipakai untuk usulan miqat umrah.',
