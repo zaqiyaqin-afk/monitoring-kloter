@@ -1815,20 +1815,48 @@ export default function View({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <div style={css(`display:flex;gap:10px;align-items:center;justify-content:space-between;background:${v.sel?.udzBg ?? ''};border-radius:22px;padding:12px 14px`)}>
-                  {" "}
-                  <div style={css("font-size:13px;line-height:1.4;color:var(--color-neutral-900)")}>
-                    <b>
-                      {txt(v.sel?.udzTitle)}
-                    </b>
-                    <br />
-                    {txt(v.sel?.udzSub)}
+                <div style={css(`display:grid;gap:10px;background:${v.sel?.udzBg ?? ''};border-radius:22px;padding:14px`)}>
+                  <div style={css("display:flex;gap:10px;align-items:flex-start")}>
+                    <span style={css(`flex:none;margin-top:2px;font-size:12px;font-weight:800;letter-spacing:.04em;padding:4px 10px;border-radius:999px;color:#fff;background:${v.sel?.udz ? 'var(--red-600)' : 'var(--color-accent)'}`)}>
+                      {v.sel?.udz ? 'UDZUR' : 'SEHAT'}
+                    </span>
+                    <div style={css("font-size:13px;line-height:1.4;color:var(--color-neutral-900);min-width:0")}>
+                      <b>{txt(v.sel?.udzTitle)}</b>
+                      <br />
+                      {txt(v.sel?.udzSub)}
+                    </div>
                   </div>
-                  {" "}
-                  <button className="btn btn-secondary" onClick={v.sel?.toggleUdz} style={css("flex:none;height:40px;padding:0 14px")}>
-                    {txt(v.sel?.udzCta)}
-                  </button>
-                  {" "}
+                  {v.sel?.udzForm ? (
+                    <div style={css("display:grid;gap:10px;background:var(--color-bg);border-radius:18px;padding:12px")}>
+                      <b style={css("font-size:14px")}>{txt(v.sel.udzForm.title)}</b>
+                      <div style={css("font-size:12.5px;color:var(--color-neutral-700)")}>Alasan (boleh kosong) · pilih atau ketik sendiri</div>
+                      <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>
+                        {arr(v.sel.udzForm.chips).map((c, i0) => (
+                          <button key={i0} onClick={c.on} style={css(`border:1px solid var(--color-divider);border-radius:999px;padding:7px 12px;font:600 12.5px var(--font-body);cursor:pointer;background:${c.bg};color:${c.fg}`)}>{txt(c.l)}</button>
+                        ))}
+                      </div>
+                      <input className="input" value={v.sel.udzForm.alasan} onChange={v.sel.udzForm.onAlasan} placeholder="Tulis alasan lain…" style={css("height:44px;font-size:14px")} />
+                      <div style={css("display:grid;grid-template-columns:1fr 1.6fr;gap:8px")}>
+                        <button className="btn btn-secondary" onClick={v.sel.udzForm.batal} style={css("height:44px")}>Batal</button>
+                        <button className="btn btn-primary" onClick={v.sel.udzForm.ok} style={css("height:44px;" + v.sel.udzForm.okStyle)}>{txt(v.sel.udzForm.okLabel)}</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button className={v.sel?.udzBtnCls} onClick={v.sel?.toggleUdz} style={css(v.sel?.udzBtnStyle)}>
+                      {txt(v.sel?.udzCta)}
+                    </button>
+                  )}
+                  {arr(v.sel?.riwayatUdz).length ? (
+                    <div style={css("display:grid;gap:6px;border-top:1px solid rgba(0,0,0,.08);padding-top:10px")}>
+                      <div style={css("font-size:12px;font-weight:700;color:var(--color-neutral-700)")}>Riwayat udzur</div>
+                      {arr(v.sel.riwayatUdz).map((r, i0) => (
+                        <div key={i0} style={css("display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.35")}>
+                          <span style={css(`width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none;background:${r.dot}`)}></span>
+                          <span>{txt(r.teks)}{r.oleh ? <span style={css("color:var(--color-neutral-700)")}>{' · ' + r.oleh}</span> : null}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
                 {" "}
                 <div style={css("display:grid;gap:8px")}>

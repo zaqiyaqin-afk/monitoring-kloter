@@ -70,7 +70,8 @@ const KOLOM = {
   Petugas: ['Nama', 'Jabatan'],
   Log: ['Waktu', 'Perangkat', 'Nomor Porsi', 'Nama', 'Kegiatan', 'Status', 'Pelaksana Badal', 'Keterangan', 'Tanggal Pelaksanaan', 'Susulan', 'Pendamping', 'Pilihan', 'Alasan', 'Ulang Ke', 'Status Ulang', 'ID Kirim', 'Petugas'],
   'Jadwal Kegiatan': ['Mode', 'Kegiatan', 'Hari', 'Tempat'],
-  Pengaturan: ['Nama', 'Nilai']
+  Pengaturan: ['Nama', 'Nilai'],
+  'Riwayat Udzur': ['Waktu', 'Nomor Porsi', 'Nama', 'Status', 'Alasan', 'Petugas', 'Perangkat', 'ID Kirim']
 };
 
 // Nama kegiatan = kunci Log. Hari & Tempat boleh diubah di tab "Jadwal Kegiatan"; Mode & Kegiatan jangan.
@@ -489,7 +490,7 @@ function doGet(e) {
   if (!cek.ok) return json(cek);
   if (p.aksi === 'ping') return json({ ok: true, pong: true, waktu: new Date().toISOString() });
   return json({ ok: true, waktu: new Date().toISOString(), jamaah: baca('Jamaah'), petugas: baca('Petugas'), jadwal: bacaTampil('Jadwal Raudhoh'), status: statusTerakhir(), jadwalKegiatan: baca('Jadwal Kegiatan'),
-    pengaturan: pengaturan(), otomatis: otomatisAktif() });
+    pengaturan: pengaturan(), otomatis: otomatisAktif(), riwayatUdzur: baca('Riwayat Udzur') });
 }
 
 function doPost(e) {
@@ -512,6 +513,8 @@ function doPost(e) {
       const ubah = [].concat(...atur.map(i => tulisPengaturan(i.nilai)));
       if (ubah.includes('Jam Pengingat') && otomatisAktif()) pasangPemicu();
     }
+    const udz = (body.items || []).filter(i => i.jenis === 'udzur' && i.porsi);
+    if (udz.length) catatUdzur(ss, udz, now);
     // Aturan konflik: CENTANG TERAKHIR MENANG (berdasarkan cap waktu per centang di perangkat)
     const items = (body.items || []).map(i => { let t = Date.parse(i.waktu); if (isNaN(t) || t > now + 300000) t = now; return Object.assign({}, i, { waktu: new Date(t).toISOString() }, i.jenis === 'centang' ? { kegiatan: namaBaru(i.kegiatan) } : {}); })
       .sort((a, b) => Date.parse(a.waktu) - Date.parse(b.waktu));
@@ -578,6 +581,36 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// Udzur dari aplikasi: setiap perubahan dicatat di "Riwayat Udzur" (kiriman ulang dilewati lewat ID Kirim),
+// lalu kolom Udzur di tab Jamaah diisi dengan perubahan TERBARU per jamaah.
+function catatUdzur(ss, items, now) {
+  const sh = ss.getSheetByName('Riwayat Udzur') || ss.insertSheet('Riwayat Udzur');
+  if (sh.getLastRow() === 0) { sh.appendRow(KOLOM['Riwayat Udzur']); sh.setFrozenRows(1); sh.getRange(1, 1, 1, KOLOM['Riwayat Udzur'].length).setFontWeight('bold').setBackground('#e2f0e9'); }
+  pastikanKolom(sh, 'Riwayat Udzur');
+  const ada = baca('Riwayat Udzur'), sudah = {}, terakhir = {};
+  ada.forEach(r => { if (r['ID Kirim']) sudah[String(r['ID Kirim'])] = true; const p = String(r['Nomor Porsi']), t = Date.parse(r['Waktu']); if (!(terakhir[p] >= t)) terakhir[p] = t; });
+  const h = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String), ubahJamaah = {};
+  const rows = [];
+  items.map(i => { let t = Date.parse(i.waktu); if (isNaN(t) || t > now + 300000) t = now; return Object.assign({}, i, { t }); })
+    .sort((a, b) => a.t - b.t)
+    .forEach(i => {
+      if (i.id && sudah[String(i.id)]) return; if (i.id) sudah[String(i.id)] = true;
+      const p = String(i.porsi), o = { 'Waktu': new Date(i.t), 'Nomor Porsi': p, 'Nama': String(i.nama || ''), 'Status': i.udzur ? 'Udzur' : 'Tidak udzur',
+        'Alasan': String(i.alasan || '').slice(0, 200), 'Petugas': String(i.petugas || '').slice(0, 100), 'Perangkat': String(i.perangkat || ''), 'ID Kirim': i.id ? String(i.id) : '' };
+      rows.push(h.map(k => o[k] === undefined ? '' : o[k]));
+      if (!(terakhir[p] > i.t)) { terakhir[p] = i.t; ubahJamaah[p] = !!i.udzur; }
+    });
+  if (rows.length) {
+    const r0 = sh.getLastRow() + 1;
+    ['Nomor Porsi', 'ID Kirim'].forEach(k => { const c = h.indexOf(k); if (c >= 0) sh.getRange(r0, c + 1, rows.length, 1).setNumberFormat('@'); });
+    sh.getRange(r0, 1, rows.length, h.length).setValues(rows);
+  }
+  const porsi = Object.keys(ubahJamaah); if (!porsi.length) return;
+  const jm = ss.getSheetByName('Jamaah'), data = jm.getDataRange().getValues(), hj = data[0].map(String), cP = hj.indexOf('Nomor Porsi'), cU = hj.indexOf('Udzur') + 1;
+  if (cU < 1) return;
+  porsi.forEach(p => { const r = data.findIndex((row, n) => n > 0 && String(row[cP]) === p); if (r > 0) jm.getRange(r + 1, cU).setValue(ubahJamaah[p] ? 'Ya' : 'Tidak'); });
 }
 
 /* ---------- Bantuan ---------- */

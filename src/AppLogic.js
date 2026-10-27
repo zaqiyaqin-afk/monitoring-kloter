@@ -225,6 +225,7 @@ export default class AppLogic extends DCLogic {
   delPp() { const P = this.state.pp; if (!P || P.id == null) return; if (P.kind === 'pend') this.setKh(P.id, { pend: '' }); if (P.kind === 'pelb') this.setKh(P.id, { pelb: '' }); this.setState({ pp: null }); }
   applyItem(S, it) {
     const id = this.byP[it.porsi]; if (id == null) return;
+    if (it.jenis === 'udzur') { S.udz[id] = !!it.udzur; return; }
     if (it.jenis === 'jamaah') { if (it.udzur !== undefined) S.udz[id] = it.udzur; if (it.catatan !== undefined) S.notes[id] = it.catatan;
       if (['lansia', 'kursiRoda', 'pendamping', 'perluBadal', 'pelaksanaBadal'].some(f => it[f] !== undefined)) { S.kh = S.kh || {}; const o = { ...(S.kh[id] || {}) }; if (it.lansia !== undefined) o.lansia = it.lansia; if (it.kursiRoda !== undefined) o.kroda = it.kursiRoda; if (it.pendamping !== undefined) o.pend = it.pendamping; if (it.perluBadal !== undefined) o.pb = it.perluBadal; if (it.pelaksanaBadal !== undefined) o.pelb = it.pelaksanaBadal; S.kh[id] = o; } return; }
     Object.keys(this.data).forEach(m => { const k = this.data[m].rites.findIndex(r => r.n === this.legacy(it.kegiatan)); if (k < 0) return;
@@ -245,7 +246,9 @@ export default class AppLogic extends DCLogic {
       pendamping: ee.pend ? this.pelText(ee.pend) : '', pilihan: val ? (ee.pil || r.pil || '') : '', alasan: ee.alasan || '', ulangKe: ee.ulangKe ? String(ee.ulangKe) : '', statusUlang: ee.stUlang || '' }; }
   mergeSnap(snap, items) { snap.status = snap.status || {};
     items.forEach(it => { if (it.jenis === 'centang') snap.status[it.porsi + '|' + it.kegiatan] = { waktu: it.waktu, kegiatan: it.kegiatan, status: it.status, pelaksana: it.pelaksana, tanggal: it.tanggal, susulan: it.susulan === 'Ya', pendamping: it.pendamping, pilihan: it.pilihan, alasan: it.alasan, ulangKe: it.ulangKe, statusUlang: it.statusUlang };
-      else { const r = (snap.jamaah || []).find(x => String(x['Nomor Porsi']) === it.porsi); if (r) { if (it.udzur !== undefined) r['Udzur'] = it.udzur ? 'Ya' : 'Tidak'; if (it.catatan !== undefined) r['Catatan'] = it.catatan; } } }); }
+      else if (it.jenis === 'pengaturan') snap.pengaturan = { ...(snap.pengaturan || {}), ...it.nilai };
+      else { if (it.jenis === 'udzur') (snap.riwayatUdzur = snap.riwayatUdzur || []).push({ 'Waktu': it.waktu, 'Nomor Porsi': it.porsi, 'Nama': it.nama, 'Status': it.udzur ? 'Udzur' : 'Tidak udzur', 'Alasan': it.alasan, 'Petugas': it.petugas, 'ID Kirim': it.id });
+        const r = (snap.jamaah || []).find(x => String(x['Nomor Porsi']) === it.porsi); if (r) { if (it.udzur !== undefined) r['Udzur'] = it.udzur ? 'Ya' : 'Tidak'; if (it.catatan !== undefined) r['Catatan'] = it.catatan; } } }); }
   fetchAll(url, key, ping) { return ambilSemua(url, key, { ping }); }
   // Kirim seluruh antrean ke url (per 300 item). Item yang terkirim dihapus dari antrean.
   async flushQueue(url, key) {
@@ -501,6 +504,22 @@ export default class AppLogic extends DCLogic {
     try { await this.flushQueue(this.cfg.url, this.cfg.key); await gantiKunci(this.cfg.url, this.cfg.key, baru);
       this.saveCfg({ key: baru }); this.patch('su', { key: baru, kodeBaru: '', gantiBusy: false, okMsg: 'Kode rahasia diganti. HP lain yang memakai Sheet ini perlu diisi kode baru.' }); }
     catch (e) { this.patch('su', { gantiBusy: false, err: e.message || String(e) }); } }
+  // Udzur dikirim sebagai catatan tersendiri (tidak digabung) agar riwayat lengkap walau diubah berkali-kali saat offline.
+  simpanUdzur(j, udzur, alasan) {
+    const it = { jenis: 'udzur', porsi: j.porsi, nama: j.name, udzur, alasan: String(alasan || '').trim(), perangkat: (this.cfg && this.cfg.device) || '', waktu: new Date().toISOString() };
+    if (this.live()) this.push([it]); else { it.petugas = this.ppih(); this._riwDemo = [it].concat(this._riwDemo || []); }
+    this.setState(s => { const a = s.udz.slice(); a[j.id] = udzur; return { udz: a, udzForm: null }; });
+    this.flash(udzur ? 'Ditandai udzur · masuk daftar badal' : 'Status udzur dihapus');
+  }
+  // Riwayat udzur satu jamaah, terbaru dulu: data Sheet + yang masih di antrean.
+  riwayatUdzur(porsi) {
+    const P = String(porsi), snap = this.readSnap() || {};
+    const server = (snap.riwayatUdzur || []).filter(r => String(r['Nomor Porsi']) === P).map(r => ({ waktu: r['Waktu'], udzur: r['Status'] === 'Udzur', alasan: r['Alasan'] || '', petugas: r['Petugas'] || '', id: r['ID Kirim'] }));
+    const ids = new Set(server.map(r => r.id).filter(Boolean));
+    const antre = this.queue.concat(this._riwDemo || []).filter(q => q.jenis === 'udzur' && q.porsi === P && !ids.has(q.id)).map(q => ({ waktu: q.waktu, udzur: q.udzur, alasan: q.alasan, petugas: q.petugas, antre: this.live() }));
+    return server.concat(antre).sort((a, b) => Date.parse(b.waktu) - Date.parse(a.waktu));
+  }
+  fmtWaktu(t) { const d = new Date(t); if (isNaN(d)) return String(t || ''); try { return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Riyadh' }).format(d).replace(',', '') + ' WAS'; } catch (e) { return d.toLocaleString(); } }
   idLengkap() { return !!this.cfg && !kurangIdentitas(this.cfg).length; }
   identitas(su) { return { ppih: su.ppih.trim(), kloter: su.kloter.trim(), embarkasi: su.embarkasi.trim().toUpperCase(), gelombang: String(su.gelombang) }; }
   prTitle() { return this.sheetDef(this.state.pr.sheet || 'armuzna').title; }
@@ -768,10 +787,21 @@ export default class AppLogic extends DCLogic {
       sel = { name: j.name, ini: j.ini, sub: (j.role ? j.role + ' · ' : '') + `Rombongan ${j.r} · Regu ${j.g} · Porsi ${j.porsi}`,
         udzBg: u ? 'var(--red-100)' : 'var(--color-accent-100)', risti: j.risti, avBg: u || j.risti ? 'var(--red-100)' : 'var(--color-accent-100)', avFg: u || j.risti ? 'var(--red-700)' : 'var(--color-accent-800)', hp: j.hp, tel: 'tel:' + j.hp, note: S.notes[j.id] || '', hasNote: !!S.notes[j.id],
         noteChips: ['Kursi roda', 'Ikut murur', 'Dirawat di KKHI', 'Pendamping keluarga'].map(t => ({ l: t, on: () => this.setNote(j.id, t) })),
-        udzTitle: u ? 'Udzur — dibadalkan' : 'Kondisi baik', udzSub: u ? 'Tidak ikut dicentang massal' : 'Ikut checklist massal',
-        udzCta: u ? 'Batalkan udzur' : 'Tandai udzur',
+        udzTitle: u ? 'UDZUR · dibadalkan' : 'Kondisi baik', udz: !!u,
+        udzSub: (() => { const r = this.riwayatUdzur(j.porsi)[0]; const base = u ? 'Tidak ikut dicentang massal' : 'Ikut checklist massal';
+          return r && r.udzur === !!u ? base + ' · sejak ' + this.fmtWaktu(r.waktu) + (r.alasan ? ' · ' + r.alasan : '') : base; })(),
+        udzCta: u ? 'Hapus status udzur' : 'Tandai udzur',
+        udzBtnCls: u ? 'btn btn-secondary' : 'btn btn-primary', udzBtnStyle: u ? 'height:46px;width:100%' : 'height:46px;width:100%;background:var(--red-600);border-color:var(--red-600)',
+        udzForm: S.udzForm && S.udzForm.id === j.id ? (() => { const f = S.udzForm;
+          return { title: f.udzur ? 'Tandai ' + j.name + ' udzur' : 'Hapus status udzur ' + j.name, alasan: f.alasan,
+            chips: (f.udzur ? ['Sakit', 'Dirawat di KKHI', 'Dirawat di RSAS', 'Lansia / risti berat', 'Kursi roda'] : ['Sudah sehat', 'Keluar dari RS', 'Salah tandai']).map(t => ({ l: t, on: () => this.patch('udzForm', { alasan: t }), bg: f.alasan === t ? 'var(--color-accent)' : 'var(--color-surface)', fg: f.alasan === t ? '#fff' : 'var(--color-neutral-800)' })),
+            onAlasan: e => this.patch('udzForm', { alasan: e.target.value.slice(0, 120) }),
+            ok: () => this.simpanUdzur(j, f.udzur, f.alasan), okLabel: f.udzur ? 'Simpan · tandai udzur' : 'Simpan · hapus udzur', okStyle: f.udzur ? 'background:var(--red-600);border-color:var(--red-600)' : '',
+            batal: () => this.setState({ udzForm: null }) }; })() : null,
+        riwayatUdz: this.riwayatUdzur(j.porsi).slice(0, 6).map(r => ({ teks: this.fmtWaktu(r.waktu) + ' · ' + (r.udzur ? 'Ditandai udzur' : 'Udzur dihapus') + (r.alasan ? ' · ' + r.alasan : ''),
+          oleh: (r.petugas ? 'oleh ' + r.petugas : '') + (r.antre ? (r.petugas ? ' · ' : '') + 'belum terkirim' : ''), dot: r.udzur ? 'var(--red-600)' : 'var(--color-accent)' })),
         pelNote: (() => { const key = 'j' + j.id, out = []; Object.entries(S.badal[S.mode]).forEach(([k, m]) => Object.entries(m).forEach(([id, v]) => { if (v === key) out.push(this.jm[+id].name + ' (' + X.rites[k].p + ')'); })); return out.length ? 'Membadalkan: ' + out.join(', ') : ''; })(),
-        toggleUdz: () => { this.push([{ jenis: 'jamaah', porsi: j.porsi, udzur: !u }]); this.setState(s => { const a = s.udz.slice(); a[j.id] = !a[j.id]; return { udz: a }; }); this.flash(u ? 'Status udzur dibatalkan' : 'Ditandai udzur · badal'); },
+        toggleUdz: () => this.setState({ udzForm: { id: j.id, udzur: !u, alasan: '' } }),
         canUlang: S.mode === 'umrah' && X.rites.some((r, k) => r.ulang && D[k][j.id]), openUlang: () => this.setState({ sel: null, ulDlg: { id: j.id, tahap: 'Thawaf', why: '', cat: '', rencana: '' } }),
         rites: X.rites.map((r, k) => { const d = D[k][j.id], tgE = S.tg[S.mode + '|' + k + '|' + j.id] || {}, ee = S.ex[S.mode + '|' + k + '|' + j.id] || {}, na = this.naLock(S.mode, k, j, D), alt = !d && !r.opt ? this.satBy(S.mode, M0.slotOf[k], j, D) : -1, bkey = r.badal ? (S.badal[S.mode][k] || {})[j.id] : null;
           const st = na ? 'Nafar Awwal · tidak wajib' : d ? (r.badal ? 'Badal · oleh ' + (bkey ? this.pelName(bkey) : '—') : ee.ulangKe >= 2 ? 'Ulang ke-' + ee.ulangKe + (tgE.t ? ' · ' + this.fmtTgl(tgE.t) : '') : tgE.s ? 'Susulan · ' + this.fmtH(tgE.t) + (ee.pend ? ' · didampingi ' + this.pelName(ee.pend) : '') : r.safari ? 'Safari' + (ee.alasan ? ' · ' + ee.alasan : '') : (ee.pil && ee.pil !== r.p && ee.pil !== r.pil ? ee.pil : 'Selesai'))

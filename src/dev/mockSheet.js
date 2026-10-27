@@ -29,6 +29,12 @@ export function pasangMock() {
       st.diterima.push(...body.items);
       body.items.filter(i => i.jenis === 'pengaturan').forEach(i => Object.assign(st.pengaturan, i.nilai));
       localStorage.setItem('mk.mockAtur', JSON.stringify(st.pengaturan));
+      const ms = JSON.parse(localStorage.getItem('mk.mockSnap') || '{}'), riw = ms.riwayatUdzur = ms.riwayatUdzur || [];
+      body.items.filter(i => i.jenis === 'udzur' && !riw.some(r => r['ID Kirim'] === i.id)).forEach(i => {
+        riw.push({ 'Waktu': i.waktu, 'Nomor Porsi': i.porsi, 'Nama': i.nama, 'Status': i.udzur ? 'Udzur' : 'Tidak udzur', 'Alasan': i.alasan, 'Petugas': i.petugas, 'Perangkat': i.perangkat, 'ID Kirim': i.id });
+        const j = (ms.jamaah || []).find(x => x['Nomor Porsi'] === i.porsi); if (j) j['Udzur'] = i.udzur ? 'Ya' : 'Tidak';
+      });
+      localStorage.setItem('mk.mockSnap', JSON.stringify(ms));
       return new Response(JSON.stringify({ ok: true, diterima: body.items.length, diabaikan: 0, dobel: 0 }));
     }
     if (new URL(url).searchParams.get('key') !== st.kunci) return salah;
