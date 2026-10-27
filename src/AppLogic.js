@@ -154,10 +154,13 @@ export default class AppLogic extends DCLogic {
     mintaPenyimpananTetap();
     this.refreshFoto().then(() => this.unggahAntre());
     bacaAntreanCadangan(items => this.mergeQueue(items, 'salinan cadangan di perangkat'));
+    // Tombol back HP: tangani di aplikasi; di Home tanpa jendela terbuka, biarkan keluar
+    this._onPop = () => { if (this.kembali()) { try { history.pushState({ mk: 1 }, ''); } catch (e) {} } };
+    try { history.pushState({ mk: 1 }, ''); } catch (e) {} window.addEventListener('popstate', this._onPop);
     this._onInstall = e => { e.preventDefault(); this._installEvt = e; this.forceUpdate(); }; window.addEventListener('beforeinstallprompt', this._onInstall);
     this._onVis = () => { if (!document.hidden && this.live() && (this.queue.length || Date.now() - (this._lp || 0) > 60000)) this.syncNow(true); }; document.addEventListener('visibilitychange', this._onVis);
   }
-  componentWillUnmount() { if (this._lepasAkun) this._lepasAkun(); window.removeEventListener('beforeinstallprompt', this._onInstall); window.removeEventListener('resize', this._onResize); window.removeEventListener('online', this._onOnline); document.removeEventListener('visibilitychange', this._onVis); window.removeEventListener('offline', this._onResize); clearInterval(this._iv); clearInterval(this._clk); clearInterval(this._lk); }
+  componentWillUnmount() { if (this._lepasAkun) this._lepasAkun(); window.removeEventListener('popstate', this._onPop); window.removeEventListener('beforeinstallprompt', this._onInstall); window.removeEventListener('resize', this._onResize); window.removeEventListener('online', this._onOnline); document.removeEventListener('visibilitychange', this._onVis); window.removeEventListener('offline', this._onResize); clearInterval(this._iv); clearInterval(this._clk); clearInterval(this._lk); }
   build(snap) {
     const ord = { 'Ketua Rombongan': 0, 'Ketua Regu': 1 };
     this._berangkat = String(((snap.pengaturan || {})['Tanggal Berangkat']) || '');
@@ -529,8 +532,20 @@ export default class AppLogic extends DCLogic {
   scrollRef = React.createRef();
   daysRef = React.createRef();
   pdfRef = React.createRef();
-  componentDidUpdate() { const S = this.state; if (this._lastTab !== S.tab) { this._lastTab = S.tab; if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }
+  componentDidUpdate() { const S = this.state; if (this._lastTab !== S.tab) {
+      // Riwayat layar untuk tombol kembali (juga tombol back HP)
+      if (this._lastTab && !this._dariKembali) { this._riwayat = [...(this._riwayat || []), this._lastTab].slice(-20); try { history.pushState({ mk: 1 }, ''); } catch (e) {} }
+      this._dariKembali = false; this._lastTab = S.tab; if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }
     const sig = S.tab + '|' + S.mode + '|' + this.data[S.mode].cur; if (S.tab !== 'checklist') this._daySig = null; else if (this._daySig !== sig) { this._daySig = sig; requestAnimationFrame(() => this.centerToday()); } }
+  // Tutup jendela yang terbuka dulu; bila tidak ada, kembali ke layar sebelumnya. true = ada yang ditangani.
+  kembali() {
+    const S = this.state, tutup = ['sel', 'syncOpen', 'tglOpen', 'galeri', 'fotoDlg', 'susDlg', 'safDlg', 'ulDlg', 'slotDlg', 'mqDlg', 'tgJ', 'pp', 'confirm', 'pdf'].find(k => S[k] != null && S[k] !== false);
+    if (tutup) { this.setState({ [tutup]: ['syncOpen', 'tglOpen', 'galeri', 'pdf'].includes(tutup) ? false : null }); return true; }
+    const r = this._riwayat || [];
+    if (r.length) { this._dariKembali = true; const t = r[r.length - 1]; this._riwayat = r.slice(0, -1); this.setState({ tab: t }); return true; }
+    if (S.tab !== 'beranda') { this._dariKembali = true; this.setState({ tab: 'beranda' }); return true; }
+    return false;
+  }
   centerToday() { const c = this.daysRef.current; if (!c) return; const t = c.querySelector('[data-today="y"]'); if (t) c.scrollLeft = t.offsetLeft - (c.clientWidth - t.offsetWidth) / 2; }
   exportCsv() {
     const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', S = this.state, L = [['Waktu ekspor', 'Mode', 'Nomor Porsi', 'Nama', 'Rombongan', 'Regu', 'Udzur', 'Catatan', 'Kegiatan', 'Status', 'Pelaksana Badal', 'Tanggal Pelaksanaan', 'Susulan', 'Belum terkirim ke sheet'].map(esc).join(',')], now = new Date().toISOString();
@@ -1305,6 +1320,8 @@ export default class AppLogic extends DCLogic {
       openCurChecklist: go('checklist', { ck: { ...ck, rite: ci } }),
       jl, onQuery: e => this.patch('jl', { q: e.target.value }),
       home: S.tab === 'beranda' ? this.homeVals() : null,
+      kirim: S.tab === 'kirim' ? { kloter: String(this.klLabel()).replace(/^Kloter\s*/i, ''), petugas: this.ppih(), rombongan: [...new Set(this.jm.map(j => j.r))].filter(Boolean).sort((a, b) => a - b).map(r => ({ r })),
+        kegiatan: Object.keys(this.data).flatMap(m => this.data[m].rites.map(r => ({ mode: this.modeLabel(m), n: r.n, p: r.p, tgl: r.tgl || '', jam: r.jam || '', place: r.place || '' }))) } : null, bisaKembali: S.tab !== 'beranda', kembali: () => this.kembali(),
       selData: S.sel != null && this.jm[S.sel] ? (() => { const j = this.jm[S.sel], raw = (this.raw || {})[j.porsi] || {}, u = this.umur(raw['Tanggal Lahir']);
         return { porsi: j.porsi, kunci: j.porsi + '|' + Object.values(dariKolom(raw)).join('|'), nilai: dariKolom(raw), umur: u, lansia: u >= 65, berangkat: this._berangkat,
           simpan: nilai => this.simpanDataJamaah(j.porsi, nilai) }; })() : null,

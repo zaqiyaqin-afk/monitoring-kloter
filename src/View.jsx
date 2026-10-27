@@ -13,6 +13,11 @@ export default function View({ v }) {
         <div style={css(`width:${v.fW ?? ''};height:${v.fH ?? ''};border-radius:${v.fR ?? ''};background:var(--color-bg);overflow:hidden;position:relative;box-shadow:${v.fS ?? ''};border:${v.fB ?? ''};box-sizing:border-box;flex:none`)}>
           {" "}
           <div style={css("height:58px;display:flex;align-items:center;gap:10px;padding:0 16px 0 18px;box-sizing:border-box")}>
+            {v.bisaKembali ? (
+              <button onClick={v.kembali} aria-label="Kembali" style={css("width:40px;height:40px;border-radius:50%;flex:none;border:1px solid var(--kartu-garis);background:var(--kartu-bg);color:var(--color-accent-700);display:grid;place-items:center;cursor:pointer;margin-left:-6px")}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
+            ) : null}
             <div ref={v.logoBox} onClick={v.openSync} aria-label="Profil" style={css("width:42px;height:42px;border-radius:50%;flex:none;background:var(--color-surface);overflow:hidden;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 10px rgba(16,40,30,.14)")}></div>
             <div style={css("flex:1;min-width:0;line-height:1.25")}>
               <div style={css("font-size:calc(12.5px*var(--fs,1));font-weight:600;color:var(--color-neutral-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>
@@ -83,7 +88,7 @@ export default function View({ v }) {
                     Pasang aplikasi di layar utama HP
                   </button>
                 ) : null}
-                <div style={css("background:var(--color-surface);border-radius:22px;padding:14px 16px;display:grid;gap:10px;box-shadow:0 1px 2px rgba(16,40,30,.05),0 8px 20px -14px rgba(16,40,30,.22)")}>
+                <div style={css("background:var(--kartu-bg);border:1px solid var(--kartu-garis);border-radius:22px;padding:14px 16px;display:grid;gap:10px;box-shadow:var(--kartu-bayang)")}>
                   <div style={css("display:flex;gap:12px;align-items:center")}>
                     <span style={css("width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--color-accent-2-100);color:var(--color-accent-2-700);flex:none")}>
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
@@ -173,7 +178,7 @@ export default function View({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <button onClick={v.khSum?.on} style={css("width:100%;border:0;text-align:left;cursor:pointer;font:inherit;color:inherit;background:var(--color-surface);border-radius:22px;box-shadow:0 1px 2px rgba(16,40,30,.05),0 8px 20px -14px rgba(16,40,30,.22);padding:14px 16px;display:flex;align-items:center;gap:12px")}>
+                <button onClick={v.khSum?.on} style={css("width:100%;border:0;text-align:left;cursor:pointer;font:inherit;color:inherit;background:var(--kartu-bg);border:1px solid var(--kartu-garis);border-radius:22px;box-shadow:var(--kartu-bayang);padding:14px 16px;display:flex;align-items:center;gap:12px")}>
                   {" "}
                   <span style={css("width:44px;height:44px;border-radius:14px;flex:none;display:grid;place-items:center;background:#FFF1DB;color:#C77700")}>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -201,7 +206,7 @@ export default function View({ v }) {
                 {" "}
                 {v.hasJr ? (<>
                   {" "}
-                  <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:0 1px 2px rgba(16,40,30,.05),0 8px 20px -14px rgba(16,40,30,.22);padding:18px 14px 8px")}>
+                  <div style={css("background:var(--kartu-bg);border:1px solid var(--kartu-garis);border-radius:22px;box-shadow:var(--kartu-bayang);padding:18px 14px 8px")}>
                     {" "}
                     <div style={css("display:flex;justify-content:space-between;align-items:baseline;padding:0 4px")}>
                       <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(20px*var(--fs,1))")}>
@@ -247,7 +252,7 @@ export default function View({ v }) {
                   {" "}
                 </>) : null}
                 {" "}
-                <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:0 1px 2px rgba(16,40,30,.05),0 8px 20px -14px rgba(16,40,30,.22);padding:18px 14px 12px")}>
+                <div style={css("background:var(--kartu-bg);border:1px solid var(--kartu-garis);border-radius:22px;box-shadow:var(--kartu-bayang);padding:18px 14px 12px")}>
                   {" "}
                   <div style={css("padding:0 4px")}>
                     <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(20px*var(--fs,1))")}>
@@ -387,7 +392,7 @@ export default function View({ v }) {
                           </span>
                         </div>
                         {" "}
-                        <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:0 1px 2px rgba(16,40,30,.05),0 8px 20px -14px rgba(16,40,30,.22);padding:2px 18px")}>
+                        <div style={css("background:var(--kartu-bg);border:1px solid var(--kartu-garis);border-radius:22px;box-shadow:var(--kartu-bayang);padding:2px 18px")}>
                           {" "}
                           {arr(gp?.items).map((r, i1) => (<React.Fragment key={i1}>
                             {" "}

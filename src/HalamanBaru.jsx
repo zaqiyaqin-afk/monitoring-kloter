@@ -4,6 +4,7 @@ import * as akun from './data/akun.js';
 import * as tampilan from './tampilan.js';
 import { unduhExcel, bacaExcel } from './excel.js';
 import { imporJamaah } from './data/server.js';
+import Kirim from './Kirim.jsx';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 const kartu = { background: 'var(--color-surface)', borderRadius: 20, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.06)', border: '1px solid var(--color-divider)', display: 'grid', gap: 12 };
@@ -27,17 +28,6 @@ function Menu({ v }) {
         <span style={{ fontSize: fs(16), fontWeight: 700 }}>Catatan Kejadian</span>
         <span style={{ fontSize: fs(13), color: 'var(--color-neutral-700)' }}>Segera hadir</span>
       </div>
-    </div>
-  );
-}
-
-function Kirim() {
-  const daftar = ['Jadwal pengambilan katering per rombongan', 'Pengingat kegiatan ibadah dan tata caranya', 'Undangan pertemuan karom dan karu', 'Undangan pengajian jamaah', 'Undangan pengecekan kesehatan'];
-  return (
-    <div style={kartu}>
-      <div style={judul}>Kirim pesan ke grup</div>
-      <div style={{ fontSize: fs(14), color: 'var(--color-neutral-700)', lineHeight: 1.5 }}>Templat pesan WhatsApp sedang disiapkan. Nanti setiap templat bisa diubah lalu dikirim ke grup.</div>
-      {daftar.map(d => <div key={d} style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--color-neutral-100)', fontSize: fs(15) }}>{d}</div>)}
     </div>
   );
 }
@@ -158,7 +148,7 @@ function Profil({ v }) {
 }
 
 export default function HalamanBaru({ v }) {
-  const isi = v.isMenu ? <Menu v={v} /> : v.isKirim ? <Kirim /> : <Profil v={v} />;
+  const isi = v.isMenu ? <Menu v={v} /> : v.isKirim ? <Kirim d={v.kirim} /> : <Profil v={v} />;
   const j = v.isMenu ? 'Menu' : v.isKirim ? 'Kirim' : 'Profil';
   return (
     <div style={{ padding: '8px 20px 24px', display: 'grid', gap: 14 }}>

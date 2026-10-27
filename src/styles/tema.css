@@ -177,3 +177,24 @@ input::placeholder, textarea::placeholder { color: var(--color-neutral-500); }
 /* Kata yang lebih lebar dari kotaknya dipatahkan, tidak meluber menimpa isi lain
    (penting saat ukuran huruf diperbesar). */
 #root { overflow-wrap: break-word; }
+
+/* Kartu Home: gradasi krem lembut dengan garis emas tipis (gelap: hijau tua) */
+:root {
+  --kartu-bg: linear-gradient(165deg, #fffdf8 0%, #f8f0de 100%);
+  --kartu-garis: color-mix(in srgb, #c4951f 26%, transparent);
+  --kartu-bayang: 0 1px 2px rgba(16, 40, 30, .05), 0 10px 24px -16px rgba(16, 40, 30, .28);
+  /* Pola bintang delapan (rub el hizb) untuk kartu utama */
+  --pola: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%23e8cf86' stroke-width='1' opacity='.16'%3E%3Crect x='14' y='14' width='20' height='20'/%3E%3Crect x='14' y='14' width='20' height='20' transform='rotate(45 24 24)'/%3E%3Ccircle cx='24' cy='24' r='4'/%3E%3Cpath d='M0 24h6M42 24h6M24 0v6M24 42v6'/%3E%3C/g%3E%3C/svg%3E");
+}
+:root[data-tema="gelap"] {
+  --kartu-bg: linear-gradient(165deg, #173428 0%, #10251c 100%);
+  --kartu-garis: rgba(226, 189, 90, .2);
+  --kartu-bayang: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 26px -16px rgba(0, 0, 0, .7);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="terang"]) {
+    --kartu-bg: linear-gradient(165deg, #173428 0%, #10251c 100%);
+    --kartu-garis: rgba(226, 189, 90, .2);
+    --kartu-bayang: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 26px -16px rgba(0, 0, 0, .7);
+  }
+}
