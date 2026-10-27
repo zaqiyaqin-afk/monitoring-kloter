@@ -339,9 +339,16 @@ export default function View({ v }) {
                     <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:20px")}>
                       Rukun & wajib{" "}{txt(v.d?.label)}
                     </div>
-                    <button onClick={v.openTgl} style={css("flex:none;border:0;border-radius:999px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 13px var(--font-body);padding:8px 14px;cursor:pointer")}>
-                      Atur tanggal
-                    </button>
+                    <div style={css("display:flex;gap:6px;flex:none")}>
+                      {v.isUmrah ? (
+                        <button onClick={v.openMiqat} style={css("border:0;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font:700 13px var(--font-body);padding:8px 12px;cursor:pointer")}>
+                          Atur miqat
+                        </button>
+                      ) : null}
+                      <button onClick={v.openTgl} style={css("border:0;border-radius:999px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 13px var(--font-body);padding:8px 12px;cursor:pointer")}>
+                        Atur tanggal
+                      </button>
+                    </div>
                   </div>
                   {" "}
                   <div style={css("display:grid;gap:14px")}>
@@ -1820,6 +1827,12 @@ export default function View({ v }) {
                   {" "}
                 </div>
                 {" "}
+                {v.sel?.mqTxt ? (
+                  <button onClick={v.sel.openMq} style={css("display:flex;align-items:center;justify-content:space-between;gap:10px;border:0;cursor:pointer;text-align:left;font:inherit;background:var(--color-accent-2-100);color:var(--color-accent-2-800);border-radius:18px;padding:12px 14px")}>
+                    <b style={css("font-size:13.5px")}>{txt(v.sel.mqTxt)}</b>
+                    <span style={css("font-size:12.5px;font-weight:700;flex:none")}>Ubah</span>
+                  </button>
+                ) : null}
                 <div style={css(`display:grid;gap:10px;background:${v.sel?.udzBg ?? ''};border-radius:22px;padding:14px`)}>
                   <div style={css("display:flex;gap:10px;align-items:flex-start")}>
                     <span style={css(`flex:none;margin-top:2px;font-size:12px;font-weight:800;letter-spacing:.04em;padding:4px 10px;border-radius:999px;color:#fff;background:${v.sel?.udz ? 'var(--red-600)' : 'var(--color-accent)'}`)}>
@@ -2576,6 +2589,42 @@ export default function View({ v }) {
                   </div>
                 ))}
                 <button className="btn btn-primary" onClick={v.tglJadwal.tutup} style={css("height:48px")}>Selesai</button>
+              </div>
+            </div>
+          ) : null}
+          {v.mqDlg ? (
+            <div onClick={v.mqDlg.batal} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:8")}>
+              <div onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+                <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
+                <div style={css("font-weight:800;font-size:19px")}>{txt(v.mqDlg.title)}</div>
+                <div style={css("font-size:13px;color:var(--color-neutral-700);line-height:1.45")}>
+                  {txt(v.mqDlg.kloterInfo)}<br />Sekarang: {txt(v.mqDlg.ringkas)}
+                </div>
+                {arr(v.mqDlg.scopes).length ? (
+                  <div style={css("display:grid;grid-template-columns:repeat(3,1fr);background:var(--color-surface);border-radius:999px;padding:4px;gap:4px")}>
+                    {arr(v.mqDlg.scopes).map((s, i0) => <button key={i0} onClick={s.on} style={css(`border:0;border-radius:999px;padding:9px 0;font:600 13px var(--font-body);cursor:pointer;background:${s.bg};color:${s.fg}`)}>{txt(s.l)}</button>)}
+                  </div>
+                ) : null}
+                {v.mqDlg.showR ? (
+                  <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>
+                    {arr(v.mqDlg.rs).map((s, i0) => <button key={i0} onClick={s.on} style={css(`border:1px solid var(--color-divider);border-radius:999px;padding:7px 12px;font:600 13px var(--font-body);cursor:pointer;background:${s.bg === 'transparent' ? 'var(--color-surface)' : s.bg};color:${s.fg}`)}>{txt(s.l)}</button>)}
+                  </div>
+                ) : null}
+                {v.mqDlg.showG ? (
+                  <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>
+                    {arr(v.mqDlg.gs).map((s, i0) => <button key={i0} onClick={s.on} style={css(`border:1px solid var(--color-divider);border-radius:999px;padding:7px 12px;font:600 13px var(--font-body);cursor:pointer;background:${s.bg === 'transparent' ? 'var(--color-surface)' : s.bg};color:${s.fg}`)}>{txt(s.l)}</button>)}
+                  </div>
+                ) : null}
+                <div style={css("font-size:13px;font-weight:700;color:var(--color-neutral-800)")}>Pilih miqat atau ketik sendiri</div>
+                <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>
+                  {arr(v.mqDlg.opts).map((o, i0) => <button key={i0} onClick={o.on} style={css(`border:1px solid var(--color-divider);border-radius:999px;padding:8px 12px;font:600 13px var(--font-body);cursor:pointer;background:${o.bg};color:${o.fg}`)}>{txt(o.l)}</button>)}
+                </div>
+                <input className="input" value={v.mqDlg.val} onChange={v.mqDlg.onVal} placeholder="Ketik nama miqat lain…" style={css("height:46px;font-size:14px")} />
+                {v.mqDlg.note ? <div style={css("font-size:12.5px;color:var(--color-neutral-700);line-height:1.4")}>{txt(v.mqDlg.note)}</div> : null}
+                <div style={css("display:grid;grid-template-columns:1fr 1.8fr;gap:8px")}>
+                  <button className="btn btn-secondary" onClick={v.mqDlg.batal} style={css("height:46px")}>Batal</button>
+                  <button className="btn btn-primary" onClick={v.mqDlg.simpan} style={css("height:46px")}>{txt(v.mqDlg.cta)}</button>
+                </div>
               </div>
             </div>
           ) : null}

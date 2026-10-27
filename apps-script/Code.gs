@@ -65,7 +65,7 @@ function namaPpih() { return pengaturan()['Nama PPIH'] || PPIH_NAMA; }
 function jamPengingat() { const j = parseInt(pengaturan()['Jam Pengingat'], 10); return j >= 0 && j <= 23 ? j : JAM_PENGINGAT; }
 
 const KOLOM = {
-  Jamaah: ['Nomor Porsi', 'Nama', 'Rombongan', 'Regu', 'Peran', 'Nomor HP', 'Risti', 'Udzur', 'Catatan', 'Jenis Kelamin', 'Lansia', 'Kursi Roda', 'Pendamping', 'Perlu Badal', 'Pelaksana Badal'],
+  Jamaah: ['Nomor Porsi', 'Nama', 'Rombongan', 'Regu', 'Peran', 'Nomor HP', 'Risti', 'Udzur', 'Catatan', 'Jenis Kelamin', 'Lansia', 'Kursi Roda', 'Pendamping', 'Perlu Badal', 'Pelaksana Badal', 'Miqat'],
   'Jadwal Raudhoh': ['Tanggal', 'Jam', 'Jenis Kelamin', 'Rombongan', 'Keterangan'],
   Petugas: ['Nama', 'Jabatan'],
   Log: ['Waktu', 'Perangkat', 'Nomor Porsi', 'Nama', 'Kegiatan', 'Status', 'Pelaksana Badal', 'Keterangan', 'Tanggal Pelaksanaan', 'Susulan', 'Pendamping', 'Pilihan', 'Alasan', 'Ulang Ke', 'Status Ulang', 'ID Kirim', 'Petugas'],
@@ -87,7 +87,7 @@ function jadwalBawaan() {
     if (d === 12) { add(H, 'Nafar Awwal', D, 'Mina → Makkah'); add(H, 'Lanjut Nafar Tsani', D, 'Tetap di Mina'); }
     if (d === 13) add(H, 'Nafar Tsani', D, 'Mina → Makkah'); });
   add(H, 'Thawaf Ifadzoh', "Ifadzoh & Sa'i", 'Masjidil Haram'); add(H, "Sa'i Haji", "Ifadzoh & Sa'i", 'Mas’a'); add(H, 'Tahallul Tsani Haji', 'Tahallul Tsani', 'Makkah'); add(H, "Thawaf Wada'", "Wada'", 'Masjidil Haram');
-  // Miqat: isi kolom Tempat di tab Jadwal Kegiatan. Selama kosong, Miqat tidak dihitung di persen rekap.
+  // Miqat: kolom Tempat = miqat kloter (diatur dari aplikasi). Kosong = usulan dari Gelombang; miqat per jamaah di kolom Miqat tab Jamaah.
   add('Umrah', 'Niat Umrah', '1 Dzulqa’dah', 'Miqat'); add('Umrah', 'Ihram Umrah', '1 Dzulqa’dah', ''); add('Umrah', 'Miqat', '1 Dzulqa’dah', '');
   add('Umrah', 'Thawaf Umrah', '2 Dzulqa’dah', 'Masjidil Haram'); add('Umrah', "Sa'i Umrah", '2 Dzulqa’dah', 'Mas’a'); add('Umrah', 'Tahallul Umrah', '2 Dzulqa’dah', 'Makkah');
   add('Madinah', 'Raudhoh', 'Madinah', 'Masjid Nabawi');
@@ -235,7 +235,7 @@ function hitungRekap() {
   const perRomb = romb.map(r => { const l = jam.filter(j => Number(j['Rombongan']) === r);
     return { r, l, ketua: (l.find(j => j['Peran'] === 'Ketua Rombongan') || {})['Nama'] || '', n: l.length,
       udz: l.filter(j => j['Udzur'] === 'Ya').length, risti: l.filter(j => j['Risti'] === 'Ya').length }; });
-  const ada = slots.filter(s => !(s.miqat && !tempat[s.m + '|Miqat']) && s.rites.concat(cov[s.g] || []).some(n => adaK.has(n)));
+  const ada = slots.filter(s => !(s.miqat && !miqatKloter(tempat)) && s.rites.concat(cov[s.g] || []).some(n => adaK.has(n)));
   const keg = ada.map(s => { const h = hitung(jam, s), multi = s.rites.length > 1 || Object.keys(h.pil).some(n => !s.rites.includes(n));
     const nafar = s.d13 ? jam.filter(j => ok(j, 'Nafar Awwal')).length : 0;
     const rinci = [multi ? Object.entries(h.pil).map(([n, v]) => pendek(n) + ' ' + v).join(' · ') : '', h.pu ? 'Perlu ulang ' + h.pu : '', nafar ? 'Nafar Awwal ' + nafar + ' (tidak wajib)' : ''].filter(Boolean).join(' · ');
@@ -516,8 +516,8 @@ function doPost(e) {
     }
     const udz = (body.items || []).filter(i => i.jenis === 'udzur' && i.porsi);
     if (udz.length) catatUdzur(ss, udz, now);
-    const tgl = (body.items || []).filter(i => i.jenis === 'tanggal' && i.kegiatan).sort((a, b) => Date.parse(a.waktu) - Date.parse(b.waktu));
-    if (tgl.length) tulisTanggalJadwal(ss, tgl);
+    const jdw = (body.items || []).filter(i => (i.jenis === 'tanggal' || i.jenis === 'tempat') && i.kegiatan).sort((a, b) => Date.parse(a.waktu) - Date.parse(b.waktu));
+    if (jdw.length) tulisJadwalKegiatan(ss, jdw);
     // Aturan konflik: CENTANG TERAKHIR MENANG (berdasarkan cap waktu per centang di perangkat)
     const items = (body.items || []).map(i => { let t = Date.parse(i.waktu); if (isNaN(t) || t > now + 300000) t = now; return Object.assign({}, i, { waktu: new Date(t).toISOString() }, i.jenis === 'centang' ? { kegiatan: namaBaru(i.kegiatan) } : {}); })
       .sort((a, b) => Date.parse(a.waktu) - Date.parse(b.waktu));
@@ -578,6 +578,7 @@ function doPost(e) {
         if (i.pendamping !== undefined) set('Pendamping', String(i.pendamping || ''));
         if (i.perluBadal !== undefined) set('Perlu Badal', yt(i.perluBadal));
         if (i.pelaksanaBadal !== undefined) set('Pelaksana Badal', String(i.pelaksanaBadal || ''));
+        if (i.miqat !== undefined) set('Miqat', String(i.miqat || '').slice(0, 60)); // kosong = ikut miqat kloter
       });
     }
     return json({ ok: true, diterima: items.length, diabaikan, dobel });
@@ -616,16 +617,24 @@ function catatUdzur(ss, items, now) {
   porsi.forEach(p => { const r = data.findIndex((row, n) => n > 0 && String(row[cP]) === p); if (r > 0) jm.getRange(r + 1, cU).setValue(ubahJamaah[p] ? 'Ya' : 'Tidak'); });
 }
 
-// Tanggal jadwal (Masehi, yyyy-MM-dd) per kegiatan dari aplikasi -> kolom Tanggal di tab Jadwal Kegiatan.
-function tulisTanggalJadwal(ss, items) {
+// Dari aplikasi ke tab Jadwal Kegiatan: 'tanggal' -> kolom Tanggal (yyyy-MM-dd), 'tempat' -> kolom Tempat (mis. miqat kloter).
+function tulisJadwalKegiatan(ss, items) {
   const sh = ss.getSheetByName('Jadwal Kegiatan'); if (!sh) return;
   pastikanKolom(sh, 'Jadwal Kegiatan');
-  const data = sh.getDataRange().getValues(), h = data[0].map(String), cM = h.indexOf('Mode'), cK = h.indexOf('Kegiatan'), cT = h.indexOf('Tanggal') + 1;
+  const data = sh.getDataRange().getValues(), h = data[0].map(String), cM = h.indexOf('Mode'), cK = h.indexOf('Kegiatan');
   items.forEach(i => {
-    const t = /^\d{4}-\d{2}-\d{2}$/.test(String(i.tanggal || '')) ? String(i.tanggal) : '';
+    const kolom = i.jenis === 'tempat' ? 'Tempat' : 'Tanggal', c = h.indexOf(kolom) + 1;
+    const v = i.jenis === 'tempat' ? String(i.tempat || '').slice(0, 60) : (/^\d{4}-\d{2}-\d{2}$/.test(String(i.tanggal || '')) ? String(i.tanggal) : '');
     const r = data.findIndex((row, n) => n > 0 && String(row[cM]) === String(i.mode) && namaBaru(row[cK]) === namaBaru(i.kegiatan));
-    if (r > 0) sh.getRange(r + 1, cT).setNumberFormat('@').setValue(t);
+    if (r > 0 && c > 0) { sh.getRange(r + 1, c).setNumberFormat('@').setValue(v); data[r][c - 1] = v; }
   });
+}
+
+// Miqat kloter untuk rekap: kolom Tempat baris Umrah|Miqat, bila kosong diusulkan dari Gelombang (sama dengan aplikasi).
+function miqatKloter(tempat) {
+  const t = tempat['Umrah|Miqat']; if (t) return t;
+  const g = String(pengaturan()['Gelombang'] || '');
+  return g === '1' ? 'Bir Ali' : g === '2' ? 'Yalamlam' : '';
 }
 
 // Seperti baca(), tetapi tanggal yang diketik manual di Sheet (jadi objek Date) diubah ke yyyy-MM-dd menurut zona waktu Sheet.

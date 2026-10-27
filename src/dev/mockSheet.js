@@ -36,6 +36,8 @@ export function pasangMock() {
       });
       const jk = ms.jadwalKegiatan = ms.jadwalKegiatan || [];
       body.items.filter(i => i.jenis === 'tanggal').forEach(i => { const r = jk.find(x => x.Mode === i.mode && x.Kegiatan === i.kegiatan); if (r) r.Tanggal = i.tanggal; else jk.push({ Mode: i.mode, Kegiatan: i.kegiatan, Hari: '', Tempat: '', Tanggal: i.tanggal }); });
+      body.items.filter(i => i.jenis === 'tempat').forEach(i => { const r = jk.find(x => x.Mode === i.mode && x.Kegiatan === i.kegiatan); if (r) r.Tempat = i.tempat; else jk.push({ Mode: i.mode, Kegiatan: i.kegiatan, Hari: '', Tempat: i.tempat, Tanggal: '' }); });
+      body.items.filter(i => i.jenis === 'jamaah' && i.miqat !== undefined).forEach(i => { const j = (ms.jamaah || []).find(x => x['Nomor Porsi'] === i.porsi); if (j) j['Miqat'] = i.miqat; });
       ms.status = ms.status || {};
       body.items.filter(i => i.jenis === 'centang').forEach(i => { ms.status[i.porsi + '|' + i.kegiatan] = { waktu: i.waktu, kegiatan: i.kegiatan, status: i.status, tanggal: i.tanggal, susulan: i.susulan === 'Ya' }; });
       localStorage.setItem('mk.mockSnap', JSON.stringify(ms));

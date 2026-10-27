@@ -2,7 +2,7 @@
 import React from 'react';
 import { DCLogic } from './dc/runtime.js';
 import { ambilSemua, kirimPerubahan, gantiKunci } from './data/sheetsApi.js';
-import { TUSI, EMBARKASI, CATATAN_GELOMBANG, kurangIdentitas, pesanKurang, dariPengaturan, kePengaturan } from './identitas.js';
+import { TUSI, EMBARKASI, CATATAN_GELOMBANG, MIQAT, miqatBawaan, kurangIdentitas, pesanKurang, dariPengaturan, kePengaturan } from './identitas.js';
 import { bacaCfg, simpanCfg, bacaSnap, simpanSnap, bacaAntrean, simpanAntrean, bacaAntreanCadangan, mintaPenyimpananTetap } from './data/localStore.js';
 
 export default class AppLogic extends DCLogic {
@@ -86,7 +86,7 @@ export default class AppLogic extends DCLogic {
     ex['umrah|' + Uk('Thawaf Umrah') + '|4'] = { stUlang: 'Perlu ulang', alasan: 'Kurang putaran', ulangKe: 1, rencana: '' };
     ex['umrah|' + Uk('Thawaf Umrah') + '|6'] = { ulangKe: 2, stUlang: 'Selesai diulang', pend: 'p2' };
     const cur = this.data[mode].cur;
-    return { tab: p.startTab || 'beranda', mode, udz, done, sel: null, tg: {}, ex, safDlg: null, ulDlg: null, susDlg: null, slotDlg: null, confirm: null, toast: null, picker: null, undo: null, notes: { 13: 'Kursi roda', 77: 'Dirawat di KKHI', 141: 'Lansia, ikut murur' }, noteDraft: '',
+    return { tab: p.startTab || 'beranda', mode, udz, mq: {}, done, sel: null, tg: {}, ex, safDlg: null, ulDlg: null, susDlg: null, slotDlg: null, confirm: null, toast: null, picker: null, undo: null, notes: { 13: 'Kursi roda', 77: 'Dirawat di KKHI', 141: 'Lansia, ikut murur' }, noteDraft: '',
       locked: !!(this.cfg && this.cfg.pin), pin: '', pinErr: false, setup: !this.cfg,
       su: { url: (this.cfg && this.cfg.url) || '', key: (this.cfg && this.cfg.key) || '', kloter: (this.cfg && this.cfg.kloter) || '', device: (this.cfg && this.cfg.device) || 'HP', pin: (this.cfg && this.cfg.pin) || '', ppih: (this.cfg && this.cfg.ppih) || '', embarkasi: (this.cfg && this.cfg.embarkasi) || '', gelombang: (this.cfg && this.cfg.gelombang) || '', err: '', busy: false },
       sync: { pending: this.queue.length, last: '—', err: '' }, syncOpen: false,
@@ -138,7 +138,7 @@ export default class AppLogic extends DCLogic {
     const ord = { 'Ketua Rombongan': 0, 'Ketua Regu': 1 };
     const rows = (snap.jamaah || []).filter(r => r['Nama'] && r['Nomor Porsi']).map(r => ({ r: Number(r['Rombongan']) || 0, g: Number(r['Regu']) || 0,
       role: r['Peran'] === 'Ketua Rombongan' || r['Peran'] === 'Ketua Regu' ? r['Peran'] : '', name: String(r['Nama']).trim(), porsi: String(r['Nomor Porsi']).trim(),
-      hp: String(r['Nomor HP'] || '').trim(), sex: (s => s.startsWith('P') ? 'P' : s.startsWith('L') ? 'L' : '')(String(r['Jenis Kelamin'] || '').trim().toUpperCase()), risti: r['Risti'] === 'Ya', udz: r['Udzur'] === 'Ya', note: String(r['Catatan'] || ''), lansia: r['Lansia'] === 'Ya', kroda: r['Kursi Roda'] === 'Ya', pend: String(r['Pendamping'] || '').trim(), pb: r['Perlu Badal'] === 'Ya', pelb: String(r['Pelaksana Badal'] || '').trim() }))
+      hp: String(r['Nomor HP'] || '').trim(), sex: (s => s.startsWith('P') ? 'P' : s.startsWith('L') ? 'L' : '')(String(r['Jenis Kelamin'] || '').trim().toUpperCase()), risti: r['Risti'] === 'Ya', udz: r['Udzur'] === 'Ya', note: String(r['Catatan'] || ''), lansia: r['Lansia'] === 'Ya', kroda: r['Kursi Roda'] === 'Ya', pend: String(r['Pendamping'] || '').trim(), pb: r['Perlu Badal'] === 'Ya', pelb: String(r['Pelaksana Badal'] || '').trim(), mq: String(r['Miqat'] || '').trim() }))
       .sort((a, b) => a.r - b.r || a.g - b.g || ((ord[a.role] ?? 2) - (ord[b.role] ?? 2)) || a.name.localeCompare(b.name));
     const cnt = {};
     this.jm = rows.map((x, i) => { cnt[x.r] = (cnt[x.r] ?? -1) + 1; const w = x.name.split(/\s+/);
@@ -157,7 +157,8 @@ export default class AppLogic extends DCLogic {
       if (s && s.pelaksana) { const key = this.pelKey(s.pelaksana); if (key) (badal[m][k] = badal[m][k] || {})[j.id] = key; }
       return !!s && s.status === 'Selesai'; })); });
     const kh = {}; rows.forEach((x, i) => { if (x.lansia || x.kroda || x.pend || x.pb || x.pelb) kh[i] = { lansia: x.lansia, kroda: x.kroda, pend: x.pend, pb: x.pb, pelb: x.pelb }; });
-    const S = { udz: rows.map(x => x.udz), notes, done, badal, tg, ex, kh };
+    const mq = {}; rows.forEach((x, i) => { if (x.mq) mq[i] = x.mq; });
+    const S = { udz: rows.map(x => x.udz), mq, notes, done, badal, tg, ex, kh };
     this.queue.forEach(it => { if (it.jenis === 'centang') { const sv = st[it.porsi + '|' + this.legacy(it.kegiatan)]; if (sv && Date.parse(sv.waktu) > Date.parse(it.waktu)) return; } this.applyItem(S, it); });
     this.setState(s => ({ ...S, sel: s.sel != null && s.sel < this.jm.length ? s.sel : null }));
   }
@@ -169,6 +170,11 @@ export default class AppLogic extends DCLogic {
     // Tanggal yang diubah di HP ini tetapi belum terkirim (atau mode contoh) menimpa data Sheet
     const lokal = this.live() ? this.queue.filter(q => q.jenis === 'tanggal') : Object.entries(this.tglDemo()).map(([k, v]) => { const [mode, kegiatan] = k.split('|'); return { mode, kegiatan, tanggal: v }; });
     lokal.forEach(q => { const X = this.data[String(q.mode).toLowerCase()], r = X && X.rites.find(r => r.n === q.kegiatan); if (r) r.tgl = q.tanggal || ''; });
+    // Miqat kloter: tempat di Jadwal Kegiatan (atau yang belum terkirim), bila kosong diusulkan dari gelombang
+    const mqR = this.data.umrah.rites.find(r => r.miqat);
+    if (mqR) { const qT = this.live() ? this.queue.filter(q => q.jenis === 'tempat' && q.kegiatan === mqR.n).pop() : null, dT = !this.live() ? localStorage.getItem('mk.miqatdemo') : null;
+      if (qT) mqR.place = qT.tempat; else if (dT != null) mqR.place = dT;
+      mqR.placeAuto = !mqR.place; if (!mqR.place) mqR.place = miqatBawaan(this.cfg && this.cfg.gelombang); }
     this.data.umrah.rites.forEach(r => { if (r.miqat) r.p = r.place ? 'Miqat ' + r.place : 'Miqat (belum ditentukan)'; });
   }
   fmtTgl(t) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t || ''); return m ? +m[3] + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][+m[2] - 1] : ''; }
@@ -206,6 +212,31 @@ export default class AppLogic extends DCLogic {
       else demo[this.modeLabel(m) + '|' + n] = tgl; });
     if (this.live()) { this.saveQueue(); this.push(items); } else try { localStorage.setItem('mk.tgldemo', JSON.stringify(demo)); } catch (e) {}
     this.forceUpdate();
+  }
+  miqatKloter() { const r = this.data.umrah.rites.find(r => r.miqat); return (r && r.place) || ''; }
+  miqatOf(j) { return (this.state.mq || {})[j.id] || this.miqatKloter(); }
+  // Atur miqat. scope 'kloter': jadi miqat kloter dan semua pengecualian per jamaah dihapus.
+  // 'rombongan' / 'regu' / 'jamaah': disimpan per jamaah ('' = ikut miqat kloter).
+  setMiqat(scope, val, { r, g, id } = {}) {
+    val = String(val || '').trim().slice(0, 60);
+    const S = this.state, mq = { ...(S.mq || {}) }, items = [];
+    const setJ = (j, v) => { const lama = mq[j.id] || ''; if (lama === v) return; if (v) mq[j.id] = v; else delete mq[j.id]; items.push({ jenis: 'jamaah', porsi: j.porsi, miqat: v }); };
+    if (scope === 'kloter') {
+      if (!val) { this.flash('Pilih atau ketik miqat dulu'); return; }
+      const mR = this.data.umrah.rites.find(x => x.miqat);
+      if (this.live()) { const ex = this.queue.find(q => q.jenis === 'tempat' && q.kegiatan === mR.n && !this._inflight.has(q));
+        if (ex) { ex.tempat = val; ex.waktu = new Date().toISOString(); this.saveQueue(); } else items.push({ jenis: 'tempat', mode: 'Umrah', kegiatan: mR.n, tempat: val }); }
+      else try { localStorage.setItem('mk.miqatdemo', val); } catch (e) {}
+      this.jm.forEach(j => setJ(j, ''));
+    } else {
+      const list = scope === 'jamaah' ? [this.jm[id]] : this.mem(r, scope === 'regu' ? g : undefined);
+      list.forEach(j => setJ(j, val === this.miqatKloter() && scope === 'jamaah' ? '' : val));
+    }
+    if (this.live()) this.push(items);
+    this.setState({ mq, mqDlg: null });
+    if (scope === 'kloter') this.applyJadwal((this.readSnap() || {}).jadwalKegiatan);
+    const n = items.filter(i => i.jenis === 'jamaah').length;
+    this.flash(scope === 'kloter' ? 'Miqat kloter: ' + val : (val || 'Ikut miqat kloter') + ' · ' + (scope === 'jamaah' ? this.jm[id].name : n + ' jamaah diubah'));
   }
   // Ubah tanggal pelaksanaan satu jamaah untuk kegiatan yang sudah dicentang; Susulan dihitung ulang.
   ubahTglJamaah(id, k, tgl) {
@@ -258,7 +289,7 @@ export default class AppLogic extends DCLogic {
   applyItem(S, it) {
     const id = this.byP[it.porsi]; if (id == null) return;
     if (it.jenis === 'udzur') { S.udz[id] = !!it.udzur; return; }
-    if (it.jenis === 'jamaah') { if (it.udzur !== undefined) S.udz[id] = it.udzur; if (it.catatan !== undefined) S.notes[id] = it.catatan;
+    if (it.jenis === 'jamaah') { if (it.udzur !== undefined) S.udz[id] = it.udzur; if (it.miqat !== undefined) { S.mq = S.mq || {}; if (it.miqat) S.mq[id] = it.miqat; else delete S.mq[id]; } if (it.catatan !== undefined) S.notes[id] = it.catatan;
       if (['lansia', 'kursiRoda', 'pendamping', 'perluBadal', 'pelaksanaBadal'].some(f => it[f] !== undefined)) { S.kh = S.kh || {}; const o = { ...(S.kh[id] || {}) }; if (it.lansia !== undefined) o.lansia = it.lansia; if (it.kursiRoda !== undefined) o.kroda = it.kursiRoda; if (it.pendamping !== undefined) o.pend = it.pendamping; if (it.perluBadal !== undefined) o.pb = it.perluBadal; if (it.pelaksanaBadal !== undefined) o.pelb = it.pelaksanaBadal; S.kh[id] = o; } return; }
     Object.keys(this.data).forEach(m => { const k = this.data[m].rites.findIndex(r => r.n === this.legacy(it.kegiatan)); if (k < 0) return;
       S.done[m][k][id] = it.status === 'Selesai'; { const tk = m + '|' + k + '|' + id; if (it.status === 'Selesai') S.tg[tk] = { t: it.tanggal || '', s: it.susulan === 'Ya' }; else delete S.tg[tk]; if (it.pilihan || it.alasan || it.pendamping || it.ulangKe || it.statusUlang) S.ex[tk] = { pil: it.pilihan || '', alasan: it.alasan || '', pend: it.pendamping ? this.pelKey(it.pendamping) : '', ulangKe: Number(it.ulangKe) || 0, stUlang: it.statusUlang || '' }; else delete S.ex[tk]; } if (it.pelaksana) { const key = this.pelKey(it.pelaksana); if (key) (S.badal[m][k] = S.badal[m][k] || {})[id] = key; } });
@@ -275,14 +306,14 @@ export default class AppLogic extends DCLogic {
     const slotK = m === 'madinah' && S.ck.slot != null && this.jadwal[S.ck.slot] ? this.slotLabel(this.jadwal[S.ck.slot]) : '';
     return { jenis: 'centang', waktu: new Date().toISOString(), perangkat: (this.cfg && this.cfg.device) || '', porsi: j.porsi, nama: j.name, kegiatan: r.n, status: val ? 'Selesai' : 'Belum', tanggal: tg, susulan: sf ? 'Ya' : 'Tidak',
       pelaksana: val && key ? this.pelText(key) : '', keterangan: [this._ket || '', ee.rencana ? 'Rencana ulang ' + this.fmtTgl(ee.rencana) : '', slotK].filter(Boolean).join(' · '),
-      pendamping: ee.pend ? this.pelText(ee.pend) : '', pilihan: val ? (ee.pil || r.pil || '') : '', alasan: ee.alasan || '', ulangKe: ee.ulangKe ? String(ee.ulangKe) : '', statusUlang: ee.stUlang || '' }; }
+      pendamping: ee.pend ? this.pelText(ee.pend) : '', pilihan: val ? (r.miqat ? this.miqatOf(j) : (ee.pil || r.pil || '')) : '', alasan: ee.alasan || '', ulangKe: ee.ulangKe ? String(ee.ulangKe) : '', statusUlang: ee.stUlang || '' }; }
   mergeSnap(snap, items) { snap.status = snap.status || {};
     items.forEach(it => { if (it.jenis === 'centang') snap.status[it.porsi + '|' + it.kegiatan] = { waktu: it.waktu, kegiatan: it.kegiatan, status: it.status, pelaksana: it.pelaksana, tanggal: it.tanggal, susulan: it.susulan === 'Ya', pendamping: it.pendamping, pilihan: it.pilihan, alasan: it.alasan, ulangKe: it.ulangKe, statusUlang: it.statusUlang };
       else if (it.jenis === 'pengaturan') snap.pengaturan = { ...(snap.pengaturan || {}), ...it.nilai };
       else if (it.jenis === 'tanggal') { const rows = snap.jadwalKegiatan = snap.jadwalKegiatan || [], r = rows.find(x => x['Mode'] === it.mode && this.legacy(x['Kegiatan']) === it.kegiatan);
         if (r) r['Tanggal'] = it.tanggal; else rows.push({ 'Mode': it.mode, 'Kegiatan': it.kegiatan, 'Tanggal': it.tanggal }); }
       else { if (it.jenis === 'udzur') (snap.riwayatUdzur = snap.riwayatUdzur || []).push({ 'Waktu': it.waktu, 'Nomor Porsi': it.porsi, 'Nama': it.nama, 'Status': it.udzur ? 'Udzur' : 'Tidak udzur', 'Alasan': it.alasan, 'Petugas': it.petugas, 'ID Kirim': it.id });
-        const r = (snap.jamaah || []).find(x => String(x['Nomor Porsi']) === it.porsi); if (r) { if (it.udzur !== undefined) r['Udzur'] = it.udzur ? 'Ya' : 'Tidak'; if (it.catatan !== undefined) r['Catatan'] = it.catatan; } } }); }
+        const r = (snap.jamaah || []).find(x => String(x['Nomor Porsi']) === it.porsi); if (r) { if (it.miqat !== undefined) r['Miqat'] = it.miqat; if (it.udzur !== undefined) r['Udzur'] = it.udzur ? 'Ya' : 'Tidak'; if (it.catatan !== undefined) r['Catatan'] = it.catatan; } } }); }
   fetchAll(url, key, ping) { return ambilSemua(url, key, { ping }); }
   // Kirim seluruh antrean ke url (per 300 item). Item yang terkirim dihapus dari antrean.
   async flushQueue(url, key) {
@@ -323,7 +354,7 @@ export default class AppLogic extends DCLogic {
     if (this.live() && url === this.cfg.url && key === this.cfg.key) {
       const kurang = kurangIdentitas(su); if (kurang.length) { this.patch('su', { err: pesanKurang(kurang) }); return; }
       const id = this.identitas(su), lama = this.cfg;
-      this.saveCfg({ device: su.device, pin: su.pin, ...id });
+      this.saveCfg({ device: su.device, pin: su.pin, ...id }); this.applyJadwal((this.readSnap() || {}).jadwalKegiatan);
       if (Object.keys(id).some(k => String(id[k]) !== String(lama[k] || ''))) this.pushPengaturan(kePengaturan(id));
       this.setState(s => ({ setup: false, su: { ...s.su, ...id, err: '', okMsg: '' } })); this.flash('Pengaturan disimpan'); return;
     }
@@ -835,6 +866,8 @@ export default class AppLogic extends DCLogic {
         udzBg: u ? 'var(--red-100)' : 'var(--color-accent-100)', risti: j.risti, avBg: u || j.risti ? 'var(--red-100)' : 'var(--color-accent-100)', avFg: u || j.risti ? 'var(--red-700)' : 'var(--color-accent-800)', hp: j.hp, tel: 'tel:' + j.hp, note: S.notes[j.id] || '', hasNote: !!S.notes[j.id],
         noteChips: ['Kursi roda', 'Ikut murur', 'Dirawat di KKHI', 'Pendamping keluarga'].map(t => ({ l: t, on: () => this.setNote(j.id, t) })),
         udzTitle: u ? 'UDZUR · dibadalkan' : 'Kondisi baik', udz: !!u,
+        mqTxt: S.mode === 'umrah' ? 'Miqat: ' + ((S.mq || {})[j.id] || ((this.miqatKloter() || 'belum ditentukan') + ' (ikut kloter)')) : '',
+        openMq: () => this.setState({ mqDlg: { scope: 'jamaah', id: j.id, val: (S.mq || {})[j.id] || '' } }),
         udzSub: (() => { const r = this.riwayatUdzur(j.porsi)[0]; const base = u ? 'Tidak ikut dicentang massal' : 'Ikut checklist massal';
           return r && r.udzur === !!u ? base + ' · sejak ' + this.fmtWaktu(r.waktu) + (r.alasan ? ' · ' + r.alasan : '') : base; })(),
         udzCta: u ? 'Hapus status udzur' : 'Tandai udzur',
@@ -1138,6 +1171,23 @@ export default class AppLogic extends DCLogic {
         if (n) return { title: 'Mengirim ' + n + ' perubahan…', text: 'Jangan tutup aplikasi sampai angka antre menjadi 0.', dot: 'var(--color-accent-300)', bg: 'var(--color-accent-100)', fg: 'var(--color-accent-800)' };
         return null; })(),
       tglJadwal, tgJ, openTgl: () => this.setState({ tglOpen: true }),
+      isUmrah: S.mode === 'umrah', openMiqat: () => this.setState({ mqDlg: { scope: 'kloter', r: 1, g: 1, val: this.miqatKloter() } }),
+      mqDlg: S.mqDlg ? (() => { const d = S.mqDlg, upd = p => this.patch('mqDlg', p), jj = d.scope === 'jamaah' ? this.jm[d.id] : null, kl = this.miqatKloter();
+        const hitung = {}; this.jm.forEach(j => { const m = this.miqatOf(j) || 'Belum ditentukan'; hitung[m] = (hitung[m] || 0) + 1; });
+        const romb = [...new Set(this.jm.map(j => j.r))].sort((a, b) => a - b), regu = [...new Set(this.jm.filter(j => j.r === d.r).map(j => j.g))].sort((a, b) => a - b);
+        const target = jj ? 1 : d.scope === 'kloter' ? this.jm.length : this.mem(d.r, d.scope === 'regu' ? d.g : undefined).length;
+        return { title: jj ? 'Miqat · ' + jj.name : 'Atur miqat umrah', isJ: !!jj,
+          kloterInfo: 'Miqat kloter: ' + (kl || 'belum ditentukan') + (this.data.umrah.rites.find(r => r.miqat).placeAuto && kl ? ' (otomatis dari Gelombang ' + this.cfg.gelombang + ')' : ''),
+          ringkas: Object.entries(hitung).sort((a, b) => b[1] - a[1]).map(([m, n]) => m + ' ' + n).join(' · '),
+          scopes: jj ? [] : [['kloter', 'Seluruh kloter'], ['rombongan', 'Rombongan'], ['regu', 'Regu']].map(([k, l]) => ({ l, ...pill(d.scope === k), on: () => upd({ scope: k }) })),
+          showR: !jj && d.scope !== 'kloter', showG: !jj && d.scope === 'regu',
+          rs: romb.map(r => ({ l: 'R' + r, ...pill(d.r === r), on: () => upd({ r, g: (this.jm.find(j => j.r === r) || {}).g || 1 }) })),
+          gs: regu.map(g => ({ l: 'Regu ' + g, ...pill(d.g === g), on: () => upd({ g }) })),
+          opts: (jj ? ['Ikut miqat kloter'] : []).concat(MIQAT).map(m => { const v = m === 'Ikut miqat kloter' ? '' : m, on = jj ? (d.val || '') === v : d.val === v;
+            return { l: m, bg: on ? 'var(--color-accent)' : 'var(--color-surface)', fg: on ? '#fff' : 'var(--color-neutral-800)', on: () => upd({ val: v }) }; }),
+          val: d.val || '', onVal: e => upd({ val: e.target.value.slice(0, 60) }),
+          note: d.scope === 'kloter' ? 'Semua jamaah memakai miqat ini; pengecualian per jamaah dihapus.' : jj ? '' : 'Berlaku untuk ' + target + ' jamaah di cakupan ini. Jamaah lain tetap.',
+          simpan: () => this.setMiqat(d.scope, d.val, d), cta: 'Simpan miqat' + (jj ? '' : ' · ' + target + ' jamaah'), batal: () => this.setState({ mqDlg: null }) }; })() : null,
       canInstall: !!this._installEvt,
       doInstall: () => { const e = this._installEvt; if (!e) return; e.prompt(); (e.userChoice || Promise.resolve()).finally(() => { this._installEvt = null; this.forceUpdate(); }); },
       installHint: (() => { const sa = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone; if (sa) return '';
@@ -1158,7 +1208,7 @@ export default class AppLogic extends DCLogic {
       suDevices: ['HP', 'Tablet'].map(l => ({ l, ...pill(S.su.device === l), on: () => this.patch('su', { device: l }) })),
       suConnect: () => this.connect(), suCanClose: this.idLengkap(), suClose: () => this.setState({ setup: false }),
       suDemo: () => { const k = kurangIdentitas(S.su); if (k.length) { this.patch('su', { err: pesanKurang(k) }); return; }
-        this.saveCfg({ demo: true, ...this.identitas(S.su), device: S.su.device, pin: /^\d{4}$/.test(S.su.pin) ? S.su.pin : '1234' }); this.setState({ setup: false, locked: false }); this.flash('Mode contoh · PIN ' + this.cfg.pin); },
+        this.saveCfg({ demo: true, ...this.identitas(S.su), device: S.su.device, pin: /^\d{4}$/.test(S.su.pin) ? S.su.pin : '1234' }); this.applyJadwal([]); this.setState({ setup: false, locked: false }); this.flash('Mode contoh · PIN ' + this.cfg.pin); },
       suEmbarkasi: e => this.patch('su', { embarkasi: e.target.value, err: '' }), embarkasiList: EMBARKASI,
       suLive: this.live(), suJam: S.su.jam ?? (this.live() ? (this.aturSheet()['Jam Pengingat'] || '21') : ''), suJamIn: e => this.patch('su', { jam: e.target.value.replace(/\D/g, '').slice(0, 2), okMsg: '' }), suJamSave: () => this.simpanJam(),
       suKodeBaru: S.su.kodeBaru || '', suKodeIn: e => this.patch('su', { kodeBaru: e.target.value.replace(/\D/g, '').slice(0, 12), okMsg: '' }), suKodeSave: () => this.gantiKode(), suKodeCta: S.su.gantiBusy ? 'Mengganti…' : 'Ganti kode',

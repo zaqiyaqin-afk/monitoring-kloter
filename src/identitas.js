@@ -13,6 +13,12 @@ export const CATATAN_GELOMBANG = {
   2: 'Gelombang 2: tiba di Jeddah · miqat umrah biasanya Yalamlam / Bandara KAIA.'
 };
 
+// Pilihan miqat umrah; petugas tetap boleh mengetik sendiri.
+export const MIQAT = ['Bir Ali', 'Yalamlam', 'Bandara KAIA Jeddah', 'Juhfah (Rabigh)', 'Qarnul Manazil', "Dzat 'Irq", "Tan'im", "Ji'ranah", 'Hudaibiyah'];
+
+// Usulan miqat kloter dari gelombang bila belum diatur.
+export function miqatBawaan(gelombang) { return String(gelombang) === '1' ? 'Bir Ali' : String(gelombang) === '2' ? 'Yalamlam' : ''; }
+
 export function kurangIdentitas(x) {
   const k = [];
   if (!String(x.ppih || '').trim()) k.push('Nama');
