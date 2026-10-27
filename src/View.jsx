@@ -3123,7 +3123,7 @@ export default function View({ v }) {
                 {" "}
                 <label style={css("display:grid;gap:6px;font-size:13px;font-weight:700;color:var(--color-neutral-800)")}>
                   Kode rahasia
-                  <input className="input" type="password" autoComplete="off" value={v.su?.key ?? ''} onChange={v.suKey} placeholder="4 angka, sama dengan KUNCI di Code.gs" inputMode="numeric" style={css("height:46px;font-size:14px")} />
+                  <input className="input" type="password" autoComplete="off" value={v.su?.key ?? ''} onChange={v.suKey} placeholder="Angka, sama dengan kode di menu Atur kode rahasia" inputMode="numeric" style={css("height:46px;font-size:14px")} />
                 </label>
                 {" "}
                 <div style={css("display:grid;gap:6px;font-size:13px;font-weight:700;color:var(--color-neutral-800)")}>

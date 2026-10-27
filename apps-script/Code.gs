@@ -1,8 +1,16 @@
 /**
- * Monitoring Ibadah Kloter — penghubung Google Sheet
- * Tempel seluruh isi file ini di Extensions > Apps Script > Code.gs
- * Kode rahasia diatur lewat menu "Monitoring Kloter > Atur kode rahasia" (tidak perlu mengubah file ini).
+ * Monitoring Ibadah Kloter — penghubung Google Sheet (versi 2)
+ *
+ * Pemasangan (sekali per kloter):
+ *  1. Buat Google Sheet baru → Extensions > Apps Script → hapus isi Code.gs, tempel seluruh file ini, simpan.
+ *  2. Muat ulang Sheet → menu Monitoring Kloter > 1. Siapkan sheet (izinkan akses saat diminta).
+ *     Sekaligus diminta mengisi kode rahasia (angka, min. 4). Bisa diganti lewat "Atur kode rahasia" atau dari aplikasi.
+ *  3. Isi tab Jamaah (bisa impor Template Jamaah.csv), lalu menu 3. Periksa data jamaah.
+ *  4. Deploy > New deployment > Web app · Execute as: Me · Who has access: Anyone → salin URL berakhiran /exec.
+ *  5. Di aplikasi: isi identitas, URL /exec, dan kode rahasia → Hubungkan.
+ *
  * Nama PPIH, kloter, embarkasi, gelombang, dan jam pengingat ada di tab "Pengaturan" dan bisa diubah dari aplikasi.
+ * Uji tanpa Google: npm run uji:gs (lihat uji-lokal.mjs).
  */
 // Cadangan untuk pemasangan lama: dipakai hanya bila kode rahasia belum diatur lewat menu.
 const KUNCI = '';
