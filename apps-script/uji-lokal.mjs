@@ -110,6 +110,14 @@ uji('Udzur lama yang datang terlambat tidak menimpa', () => {
   post({ key: '1234', items: [{ jenis: 'udzur', id: 'u0', waktu: t(4), porsi: '9001', nama: 'JAMAAH B', udzur: true, alasan: 'telat terkirim' }] });
   assert.equal(tab('Riwayat Udzur').length, 3); assert.equal(tab('Jamaah').find(j => j['Nomor Porsi'] === '9001')['Udzur'], 'Tidak'); });
 uji('Tanggal jadwal dan miqat kloter tertulis', () => { const jk = tab('Jadwal Kegiatan'); assert.equal(jk.find(r => r.Kegiatan === 'Jumroh Aqobah').Tanggal, '2026-10-26'); assert.equal(jk.find(r => r.Kegiatan === 'Miqat').Tempat, 'Bandara KAIA Jeddah'); });
+uji('Label hari Hijriyah tertulis, label kosong diabaikan', () => {
+  post({ key: '1234', items: [
+    { jenis: 'hari', id: 'h1', waktu: t(10), mode: 'Umrah', kegiatan: 'Thawaf Umrah', hari: "5 Dzulqa'dah" },
+    { jenis: 'hari', id: 'h2', waktu: t(11), mode: 'Umrah', kegiatan: "Sa'i Umrah", hari: '  ' }
+  ] });
+  const jk = tab('Jadwal Kegiatan');
+  assert.equal(jk.find(r => r.Mode === 'Umrah' && r.Kegiatan === 'Thawaf Umrah').Hari, "5 Dzulqa'dah");
+  assert.equal(jk.find(r => r.Mode === 'Umrah' && r.Kegiatan === "Sa'i Umrah").Hari, '2 Dzulqa’dah'); });
 uji('Miqat per jamaah tertulis', () => assert.equal(tab('Jamaah').find(j => j['Nomor Porsi'] === '9002')['Miqat'], 'Bir Ali'));
 uji('doGet mengirim balik riwayat udzur', () => assert.equal(get({ key: '1234' }).riwayatUdzur.length, 3));
 uji('Rekap berjalan', () => { const R = api.hitungRekap(); assert.equal(R.jam.length, 4); assert.ok(R.keg.some(k => /Jumroh Aqobah/.test(k.k))); });

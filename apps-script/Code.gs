@@ -526,7 +526,7 @@ function doPost(e) {
     }
     const udz = (body.items || []).filter(i => i.jenis === 'udzur' && i.porsi);
     if (udz.length) catatUdzur(ss, udz, now);
-    const jdw = (body.items || []).filter(i => (i.jenis === 'tanggal' || i.jenis === 'tempat') && i.kegiatan).sort((a, b) => Date.parse(a.waktu) - Date.parse(b.waktu));
+    const jdw = (body.items || []).filter(i => (i.jenis === 'tanggal' || i.jenis === 'tempat' || i.jenis === 'hari') && i.kegiatan).sort((a, b) => Date.parse(a.waktu) - Date.parse(b.waktu));
     if (jdw.length) tulisJadwalKegiatan(ss, jdw);
     // Aturan konflik: CENTANG TERAKHIR MENANG (berdasarkan cap waktu per centang di perangkat)
     const items = (body.items || []).map(i => { let t = Date.parse(i.waktu); if (isNaN(t) || t > now + 300000) t = now; return Object.assign({}, i, { waktu: new Date(t).toISOString() }, i.jenis === 'centang' ? { kegiatan: namaBaru(i.kegiatan) } : {}); })
@@ -627,14 +627,16 @@ function catatUdzur(ss, items, now) {
   porsi.forEach(p => { const r = data.findIndex((row, n) => n > 0 && String(row[cP]) === p); if (r > 0) jm.getRange(r + 1, cU).setValue(ubahJamaah[p] ? 'Ya' : 'Tidak'); });
 }
 
-// Dari aplikasi ke tab Jadwal Kegiatan: 'tanggal' -> kolom Tanggal (yyyy-MM-dd), 'tempat' -> kolom Tempat (mis. miqat kloter).
+// Dari aplikasi ke tab Jadwal Kegiatan: 'tanggal' -> kolom Tanggal (yyyy-MM-dd), 'tempat' -> kolom Tempat (mis. miqat kloter),
+// 'hari' -> kolom Hari (label Hijriyah yang diketik bebas, mis. "5 Dzulqa'dah"; kosong diabaikan).
 function tulisJadwalKegiatan(ss, items) {
   const sh = ss.getSheetByName('Jadwal Kegiatan'); if (!sh) return;
   pastikanKolom(sh, 'Jadwal Kegiatan');
   const data = sh.getDataRange().getValues(), h = data[0].map(String), cM = h.indexOf('Mode'), cK = h.indexOf('Kegiatan');
   items.forEach(i => {
-    const kolom = i.jenis === 'tempat' ? 'Tempat' : 'Tanggal', c = h.indexOf(kolom) + 1;
-    const v = i.jenis === 'tempat' ? String(i.tempat || '').slice(0, 60) : (/^\d{4}-\d{2}-\d{2}$/.test(String(i.tanggal || '')) ? String(i.tanggal) : '');
+    if (i.jenis === 'hari' && !String(i.hari || '').trim()) return;
+    const kolom = i.jenis === 'tempat' ? 'Tempat' : i.jenis === 'hari' ? 'Hari' : 'Tanggal', c = h.indexOf(kolom) + 1;
+    const v = i.jenis === 'tempat' ? String(i.tempat || '').slice(0, 60) : i.jenis === 'hari' ? String(i.hari).trim().slice(0, 40) : (/^\d{4}-\d{2}-\d{2}$/.test(String(i.tanggal || '')) ? String(i.tanggal) : '');
     const r = data.findIndex((row, n) => n > 0 && String(row[cM]) === String(i.mode) && namaBaru(row[cK]) === namaBaru(i.kegiatan));
     if (r > 0 && c > 0) { sh.getRange(r + 1, c).setNumberFormat('@').setValue(v); data[r][c - 1] = v; }
   });

@@ -2589,7 +2589,7 @@ export default function View({ v }) {
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 <div style={css("font-weight:800;font-size:19px")}>{txt(v.tglJadwal.title)}</div>
                 <div style={css("font-size:13px;line-height:1.45;color:var(--color-neutral-700)")}>
-                  Pilih tanggal (Masehi) untuk tiap hari kegiatan. Jamaah yang melaksanakan <b>setelah</b> tanggal ini otomatis tercatat <b>Susulan</b>. Bisa diubah kapan saja, juga tanpa internet.
+                  Ketik hari Hijriyah sesuai jadwal kloter, lalu pilih tanggal Masehinya. Jamaah yang melaksanakan <b>setelah</b> tanggal Masehi ini otomatis tercatat <b>Susulan</b>. Bisa diubah kapan saja, juga tanpa internet.
                 </div>
                 {arr(v.tglJadwal.groups).map((g, i0) => (
                   <div key={i0} style={css("background:var(--color-surface);border-radius:20px;padding:12px 14px;display:grid;gap:8px;box-shadow:0 1px 2px rgba(16,40,30,.05)")}>
@@ -2598,6 +2598,14 @@ export default function View({ v }) {
                       <span style={css(`font-size:12.5px;font-weight:700;color:${g.adaTgl ? 'var(--color-accent-800)' : 'var(--red-600)'}`)}>{txt(g.hari)}</span>
                     </div>
                     <div style={css("font-size:12.5px;color:var(--color-neutral-700);line-height:1.4")}>{txt(g.names)}</div>
+                    <label style={css("display:grid;gap:4px;font-size:12px;font-weight:700;color:var(--color-neutral-700)")}>
+                      Hari (Hijriyah)
+                      <div style={css("display:flex;gap:8px")}>
+                        <input className="input" value={g.hijri} onChange={g.onHijri} placeholder="mis. 5 Dzulqa'dah" style={css("height:44px;font-size:14px;flex:1;min-width:0")} />
+                        {g.ubahHijri ? <button className="btn btn-primary" onClick={g.simpanHijri} style={css("height:44px;padding:0 14px;font-size:13px")}>Simpan</button> : null}
+                      </div>
+                    </label>
+                    <div style={css("font-size:12px;font-weight:700;color:var(--color-neutral-700)")}>Tanggal (Masehi)</div>
                     <div style={css("display:flex;gap:8px")}>
                       <input className="input" type="date" value={g.tgl} onChange={g.onTgl} style={css("height:44px;font-size:14px;flex:1;min-width:0")} />
                       {g.adaTgl ? <button className="btn btn-ghost" onClick={g.hapus} style={css("height:44px;padding:0 12px;font-size:13px")}>Kosongkan</button> : null}

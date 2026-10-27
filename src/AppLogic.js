@@ -172,6 +172,9 @@ export default class AppLogic extends DCLogic {
     // Tanggal yang diubah di HP ini tetapi belum terkirim (atau mode contoh) menimpa data Sheet
     const lokal = this.live() ? this.queue.filter(q => q.jenis === 'tanggal') : Object.entries(this.tglDemo()).map(([k, v]) => { const [mode, kegiatan] = k.split('|'); return { mode, kegiatan, tanggal: v }; });
     lokal.forEach(q => { const X = this.data[String(q.mode).toLowerCase()], r = X && X.rites.find(r => r.n === q.kegiatan); if (r) r.tgl = q.tanggal || ''; });
+    // Label hari Hijriyah yang diketik di HP ini (belum terkirim / mode contoh)
+    const hariL = this.live() ? this.queue.filter(q => q.jenis === 'hari') : Object.entries(this.hariDemo()).map(([k, v]) => { const [mode, kegiatan] = k.split('|'); return { mode, kegiatan, hari: v }; });
+    hariL.forEach(q => { const X = this.data[String(q.mode).toLowerCase()], r = X && X.rites.find(r => r.n === q.kegiatan); if (r && q.hari) r.day = q.hari; });
     // Miqat kloter: tempat di Jadwal Kegiatan (atau yang belum terkirim), bila kosong diusulkan dari gelombang
     const mqR = this.data.umrah.rites.find(r => r.miqat);
     if (mqR) { const qT = this.live() ? this.queue.filter(q => q.jenis === 'tempat' && q.kegiatan === mqR.n).pop() : null, dT = !this.live() ? localStorage.getItem('mk.miqatdemo') : null;
@@ -289,6 +292,18 @@ export default class AppLogic extends DCLogic {
     const n = items.filter(i => i.jenis === 'jamaah').length;
     this.flash(scope === 'kloter' ? 'Miqat kloter: ' + val : (val || 'Ikut miqat kloter') + ' · ' + (scope === 'jamaah' ? this.jm[id].name : n + ' jamaah diubah'));
   }
+  hariDemo() { try { return JSON.parse(localStorage.getItem('mk.haridemo')) || {}; } catch (e) { return {}; } }
+  // Ganti label hari Hijriyah (diketik bebas) untuk sekelompok kegiatan. Ikut antrean offline -> kolom Hari di Jadwal Kegiatan.
+  setHariJadwal(m, names, hari) {
+    hari = String(hari || '').trim().slice(0, 40); if (!hari) { this.flash('Label hari tidak boleh kosong'); return; }
+    const X = this.data[m], items = [], demo = this.hariDemo();
+    names.forEach(n => { const r = X.rites.find(r => r.n === n); if (!r) return; r.day = hari;
+      if (this.live()) { const ex = this.queue.find(q => q.jenis === 'hari' && q.mode === this.modeLabel(m) && q.kegiatan === n && !this._inflight.has(q));
+        if (ex) { ex.hari = hari; ex.waktu = new Date().toISOString(); } else items.push({ jenis: 'hari', mode: this.modeLabel(m), kegiatan: n, hari }); }
+      else demo[this.modeLabel(m) + '|' + n] = hari; });
+    if (this.live()) { this.saveQueue(); this.push(items); } else try { localStorage.setItem('mk.haridemo', JSON.stringify(demo)); } catch (e) {}
+    this.flash('Label hari diubah · ' + hari); this.forceUpdate();
+  }
   // Ubah tanggal pelaksanaan satu jamaah untuk kegiatan yang sudah dicentang; Susulan dihitung ulang.
   ubahTglJamaah(id, k, tgl) {
     const S = this.state, m = S.mode, key = m + '|' + k + '|' + id, today = this.todayKey();
@@ -361,6 +376,8 @@ export default class AppLogic extends DCLogic {
   mergeSnap(snap, items) { snap.status = snap.status || {};
     items.forEach(it => { if (it.jenis === 'centang') snap.status[it.porsi + '|' + it.kegiatan] = { waktu: it.waktu, kegiatan: it.kegiatan, status: it.status, pelaksana: it.pelaksana, tanggal: it.tanggal, susulan: it.susulan === 'Ya', pendamping: it.pendamping, pilihan: it.pilihan, alasan: it.alasan, ulangKe: it.ulangKe, statusUlang: it.statusUlang };
       else if (it.jenis === 'pengaturan') snap.pengaturan = { ...(snap.pengaturan || {}), ...it.nilai };
+      else if (it.jenis === 'hari') { const rows = snap.jadwalKegiatan = snap.jadwalKegiatan || [], r = rows.find(x => x['Mode'] === it.mode && this.legacy(x['Kegiatan']) === it.kegiatan);
+        if (r) r['Hari'] = it.hari; else rows.push({ 'Mode': it.mode, 'Kegiatan': it.kegiatan, 'Hari': it.hari }); }
       else if (it.jenis === 'tanggal') { const rows = snap.jadwalKegiatan = snap.jadwalKegiatan || [], r = rows.find(x => x['Mode'] === it.mode && this.legacy(x['Kegiatan']) === it.kegiatan);
         if (r) r['Tanggal'] = it.tanggal; else rows.push({ 'Mode': it.mode, 'Kegiatan': it.kegiatan, 'Tanggal': it.tanggal }); }
       else { if (it.jenis === 'udzur') (snap.riwayatUdzur = snap.riwayatUdzur || []).push({ 'Waktu': it.waktu, 'Nomor Porsi': it.porsi, 'Nama': it.nama, 'Status': it.udzur ? 'Udzur' : 'Tidak udzur', 'Alasan': it.alasan, 'Petugas': it.petugas, 'ID Kirim': it.id });
@@ -882,7 +899,11 @@ export default class AppLogic extends DCLogic {
     const tglJadwal = S.tglOpen ? {
       title: 'Tanggal kegiatan · ' + X.label,
       groups: this.group(X.rites.map(r => ({ ...r }))).map(g => { const names = X.rites.filter(r => r.day === g.day).map(r => r.n), t = tglDay(g.day);
+        // Draf label disimpan per kegiatan pertama (bukan per label) agar kolom tidak hilang fokus saat diketik
+        const key = S.mode + '|' + names[0], draf = (S.hariDraft || {})[key], val = draf ?? g.day, ubah = draf != null && draf.trim() && draf.trim() !== g.day;
         return { day: g.day, names: names.join(' · '), tgl: t, hari: t ? this.fmtHari(t) : 'Belum diatur',
+          hijri: val, onHijri: e => this.setState(s => ({ hariDraft: { ...(s.hariDraft || {}), [key]: e.target.value.slice(0, 40) } })), ubahHijri: !!ubah,
+          simpanHijri: () => { this.setHariJadwal(S.mode, names, val); this.setState(s => { const d = { ...(s.hariDraft || {}) }; delete d[key]; return { hariDraft: d }; }); },
           onTgl: e => this.setTglJadwal(S.mode, names, e.target.value), hapus: () => this.setTglJadwal(S.mode, names, ''), adaTgl: !!t }; }),
       tutup: () => this.setState({ tglOpen: false }) } : null;
     const tgJ = S.tgJ ? (() => { const j = this.jm[S.tgJ.id], r = X.rites[S.tgJ.k], t = S.tgJ.tgl, sus = this.autoSus(r, t, false, {});

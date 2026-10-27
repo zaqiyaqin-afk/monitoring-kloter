@@ -42,6 +42,7 @@ export function pasangMock() {
       });
       const jk = ms.jadwalKegiatan = ms.jadwalKegiatan || [];
       body.items.filter(i => i.jenis === 'tanggal').forEach(i => { const r = jk.find(x => x.Mode === i.mode && x.Kegiatan === i.kegiatan); if (r) r.Tanggal = i.tanggal; else jk.push({ Mode: i.mode, Kegiatan: i.kegiatan, Hari: '', Tempat: '', Tanggal: i.tanggal }); });
+      body.items.filter(i => i.jenis === 'hari' && String(i.hari || '').trim()).forEach(i => { const r = jk.find(x => x.Mode === i.mode && x.Kegiatan === i.kegiatan); if (r) r.Hari = i.hari; else jk.push({ Mode: i.mode, Kegiatan: i.kegiatan, Hari: i.hari, Tempat: '', Tanggal: '' }); });
       body.items.filter(i => i.jenis === 'tempat').forEach(i => { const r = jk.find(x => x.Mode === i.mode && x.Kegiatan === i.kegiatan); if (r) r.Tempat = i.tempat; else jk.push({ Mode: i.mode, Kegiatan: i.kegiatan, Hari: '', Tempat: i.tempat, Tanggal: '' }); });
       body.items.filter(i => i.jenis === 'jamaah' && i.miqat !== undefined).forEach(i => { const j = (ms.jamaah || []).find(x => x['Nomor Porsi'] === i.porsi); if (j) j['Miqat'] = i.miqat; });
       ms.status = ms.status || {};
