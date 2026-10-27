@@ -2,6 +2,7 @@
 import React from 'react';
 import { css, txt, arr } from './dc/runtime.js';
 import HalamanBaru from './HalamanBaru.jsx';
+import DataJamaah from './DataJamaah.jsx';
 
 export default function View({ v }) {
   return (
@@ -1900,6 +1901,7 @@ export default function View({ v }) {
                   ) : null}
                 </div>
                 {" "}
+                <DataJamaah d={v.selData} />
                 <div style={css("display:grid;gap:8px")}>
                   {" "}
                   <div style={css("font-size:calc(13px*var(--fs,1));font-weight:600;color:var(--color-neutral-800)")}>

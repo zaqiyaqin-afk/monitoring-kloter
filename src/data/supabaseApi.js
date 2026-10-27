@@ -3,6 +3,9 @@
 import { sb, keadaan, pesan } from './akun.js';
 
 const yt = v => (v ? 'Ya' : 'Tidak');
+// Kolom akomodasi: nama kolom di data aplikasi <-> kolom database
+export const AKOMODASI = [['Hotel Makkah', 'hotel_makkah'], ['Lantai Makkah', 'lantai_makkah'], ['Kamar Makkah', 'kamar_makkah'], ['Tenda Arafah', 'tenda_arafah'],
+  ['Tenda Mina', 'tenda_mina'], ['Hotel Madinah', 'hotel_madinah'], ['Lantai Madinah', 'lantai_madinah'], ['Kamar Madinah', 'kamar_madinah']];
 const BATAS = 20000;
 
 async function denganBatasWaktu(ms, kerja, pesanHabis) {
@@ -39,7 +42,7 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
     if (!k) throw new Error('Akun belum tersambung ke kloter. Hubungi admin.');
     if (ping) return { ok: true, pong: true, waktu: new Date().toISOString() };
     const [jm, pt, jr, ct, jd, ru] = await Promise.all([
-      semua('jamaah', 'id, porsi, nama, rombongan, regu, jabatan, hp, resti, udzur, catatan, jk, lansia, kursi_roda, pendamping, perlu_badal, pelaksana_badal, miqat, tgl_lahir', 'porsi'),
+      semua('jamaah', 'id, porsi, nama, rombongan, regu, jabatan, hp, resti, udzur, catatan, jk, lansia, kursi_roda, pendamping, perlu_badal, pelaksana_badal, miqat, tgl_lahir, hotel_makkah, lantai_makkah, kamar_makkah, tenda_arafah, tenda_mina, hotel_madinah, lantai_madinah, kamar_madinah', 'porsi'),
       semua('petugas', 'nama, jabatan, urutan', 'urutan'),
       semua('jadwal_raudhoh', 'tanggal, jam, jk, rombongan, keterangan', 'tanggal'),
       semua('centang', 'jamaah_id, kegiatan, status, tanggal, jam, susulan, waktu, pelaksana_badal, keterangan, pendamping, pilihan, alasan, ulang_ke, status_ulang', 'waktu'),
@@ -62,7 +65,8 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
       jamaah: jm.map(j => ({ 'Nomor Porsi': j.porsi, 'Nama': j.nama, 'Rombongan': j.rombongan ?? '', 'Regu': j.regu ?? '', 'Peran': j.jabatan || 'Jamaah',
         'Nomor HP': j.hp || '', 'Risti': j.resti ? 'Ya' : '', 'Udzur': yt(j.udzur), 'Catatan': j.catatan || '', 'Jenis Kelamin': j.jk || '',
         'Lansia': j.lansia ? 'Ya' : '', 'Kursi Roda': j.kursi_roda ? 'Ya' : '', 'Pendamping': j.pendamping || '', 'Perlu Badal': j.perlu_badal ? 'Ya' : '',
-        'Pelaksana Badal': j.pelaksana_badal || '', 'Miqat': j.miqat || '', 'Tanggal Lahir': j.tgl_lahir || '' })),
+        'Pelaksana Badal': j.pelaksana_badal || '', 'Miqat': j.miqat || '', 'Tanggal Lahir': j.tgl_lahir || '',
+        ...Object.fromEntries(AKOMODASI.map(([k, kol]) => [k, j[kol] || ''])) })),
       petugas: pt.map(x => ({ 'Nama': x.nama, 'Jabatan': x.jabatan })),
       jadwal: jr.map(x => ({ 'Tanggal': tglId(x.tanggal), 'Jam': x.jam, 'Jenis Kelamin': x.jk, 'Rombongan': x.rombongan, 'Keterangan': x.keterangan })),
       status,
@@ -77,8 +81,11 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
 // Kirim antrean. Server melewati kiriman ganda (id) dan centang yang lebih lama, jadi aman diulang.
 export async function kirimPerubahan(_url, _key, items) {
   return denganBatasWaktu(45000, async () => {
-    const { data, error } = await sb.rpc('terima_perubahan', { p_items: items });
-    if (error) throw error;
+    // Data pribadi/akomodasi lewat fungsi tersendiri; sisanya lewat penerima utama
+    const pribadi = items.filter(i => i.jenis === 'dataJamaah'), lain = items.filter(i => i.jenis !== 'dataJamaah');
+    let data = { ok: true, diterima: 0, diabaikan: 0, dobel: 0 };
+    if (lain.length) { const r = await sb.rpc('terima_perubahan', { p_items: lain }); if (r.error) throw r.error; data = r.data; }
+    if (pribadi.length) { const r = await sb.rpc('ubah_data_jamaah', { p_items: pribadi }); if (r.error) throw r.error; }
     return data;
   }, 'Server tidak menjawab dalam 45 detik. Data tetap aman di perangkat dan akan dikirim ulang.');
 }
@@ -110,4 +117,14 @@ export async function tautanFoto(path) {
   const { data, error } = await sb.storage.from('foto').createSignedUrl(path, 3600);
   if (error) throw new Error(pesan(error));
   return data.signedUrl;
+}
+
+// Unggah Excel jamaah (butuh internet): porsi lama diperbarui, porsi baru ditambahkan.
+export async function imporJamaah(rows) {
+  if (!navigator.onLine) throw new Error('Unggah Excel butuh internet.');
+  return denganBatasWaktu(60000, async () => {
+    const { data, error } = await sb.rpc('impor_jamaah', { p_rows: rows });
+    if (error) throw error;
+    return data;
+  }, 'Server tidak menjawab dalam 60 detik. Coba lagi.');
 }

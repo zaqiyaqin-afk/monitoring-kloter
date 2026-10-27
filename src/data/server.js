@@ -11,3 +11,4 @@ export const kirimPerubahan = (url, key, items) => pilih(url).kirimPerubahan(url
 export const gantiKunci = (url, key, baru) => pilih(url).gantiKunci(url, key, baru);
 export const unggahFoto = (url, key, f, data) => pilih(url).unggahFoto(url, key, f, data);
 export const tautanFoto = supa.tautanFoto;
+export const imporJamaah = supa.imporJamaah;
