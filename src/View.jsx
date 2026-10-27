@@ -59,7 +59,7 @@ export default function View({ v }) {
           {" "}
           <div ref={v.scrollRef} style={css("position:absolute;top:96px;bottom:76px;left:0;right:0;overflow-y:auto;overflow-x:hidden;padding-bottom:34px;box-sizing:border-box")}>
             {" "}
-            {v.isMenu || v.isKirim || v.isProfil ? <HalamanBaru v={v} /> : null}
+            {v.isMenu || v.isKirim || v.isProfil || v.isKejadian ? <HalamanBaru v={v} /> : null}
             {v.isBeranda ? (<>
               {" "}
               <div style={css("padding:8px 20px 24px;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;gap:18px")}>

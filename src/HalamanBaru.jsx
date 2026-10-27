@@ -5,6 +5,7 @@ import * as tampilan from './tampilan.js';
 import { unduhExcel, bacaExcel } from './excel.js';
 import { imporJamaah } from './data/server.js';
 import Kirim from './Kirim.jsx';
+import Kejadian from './Kejadian.jsx';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 const kartu = { background: 'var(--color-surface)', borderRadius: 20, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.06)', border: '1px solid var(--color-divider)', display: 'grid', gap: 12 };
@@ -23,11 +24,6 @@ function Menu({ v }) {
           <span style={{ fontSize: fs(13), color: 'var(--color-neutral-700)' }}>{m.s}</span>
         </button>
       ))}
-      <div style={{ ...kartu, gap: 8, opacity: 0.7 }}>
-        <span style={{ width: 44, height: 44, borderRadius: 14, display: 'grid', placeItems: 'center', background: 'var(--color-accent-2-100)', color: 'var(--color-accent-2-700)' }}><Ikon d="M12 8v5M12 16h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></span>
-        <span style={{ fontSize: fs(16), fontWeight: 700 }}>Catatan Kejadian</span>
-        <span style={{ fontSize: fs(13), color: 'var(--color-neutral-700)' }}>Segera hadir</span>
-      </div>
     </div>
   );
 }
@@ -148,8 +144,8 @@ function Profil({ v }) {
 }
 
 export default function HalamanBaru({ v }) {
-  const isi = v.isMenu ? <Menu v={v} /> : v.isKirim ? <Kirim d={v.kirim} /> : <Profil v={v} />;
-  const j = v.isMenu ? 'Menu' : v.isKirim ? 'Kirim' : 'Profil';
+  const isi = v.isMenu ? <Menu v={v} /> : v.isKirim ? <Kirim d={v.kirim} /> : v.isKejadian ? <Kejadian d={v.kejadian} /> : <Profil v={v} />;
+  const j = v.isMenu ? 'Menu' : v.isKirim ? 'Kirim' : v.isKejadian ? (v.kejadian && v.kejadian.form ? (v.kejadian.form.baru ? 'Catat kejadian' : 'Ubah catatan') : 'Catatan Kejadian') : 'Profil';
   return (
     <div style={{ padding: '8px 20px 24px', display: 'grid', gap: 14 }}>
       <div style={{ fontSize: fs(24), fontWeight: 700 }}>{j}</div>

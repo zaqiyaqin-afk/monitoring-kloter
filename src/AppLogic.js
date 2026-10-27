@@ -4,6 +4,7 @@ import { DCLogic } from './dc/runtime.js';
 import { ambilSemua, kirimPerubahan, gantiKunci, unggahFoto, tautanFoto, SB_URL } from './data/server.js';
 import { keadaan as akunKeadaan, dengar as dengarAkun } from './data/akun.js';
 import { kompres, keBase64, simpanFoto, hapusFoto, semuaFoto } from './data/fotoStore.js';
+import { JENIS_KEJADIAN, labelKejadian, dariKejadian, uuid } from './kejadian.js';
 import { TUSI, EMBARKASI, CATATAN_GELOMBANG, MIQAT, miqatBawaan, kurangIdentitas, pesanKurang, dariPengaturan, kePengaturan } from './identitas.js';
 import { bacaCfg, simpanCfg, bacaSnap, simpanSnap, bacaAntrean, simpanAntrean, bacaAntreanCadangan, mintaPenyimpananTetap } from './data/localStore.js';
 
@@ -164,6 +165,7 @@ export default class AppLogic extends DCLogic {
   build(snap) {
     const ord = { 'Ketua Rombongan': 0, 'Ketua Regu': 1 };
     this._berangkat = String(((snap.pengaturan || {})['Tanggal Berangkat']) || '');
+    this._kej = snap.kejadian || [];
     // Isian data pribadi/akomodasi yang belum terkirim tetap tampil setelah aplikasi dibuka ulang
     this.raw = {}; (snap.jamaah || []).forEach(r => { if (r['Nomor Porsi']) this.raw[String(r['Nomor Porsi']).trim()] = { ...r }; });
     this.queue.forEach(q => { if (q.jenis === 'dataJamaah' && this.raw[q.porsi]) Object.assign(this.raw[q.porsi], keKolom(q)); });
@@ -294,7 +296,9 @@ export default class AppLogic extends DCLogic {
     if (!this.live() || !navigator.onLine || this._fotoBusy) return;
     this._fotoBusy = true; this.setState({ fotoErr: '' });
     try {
-      for (const f of this.fotoList.filter(x => x.status === 'antre').reverse()) {
+      // Foto kejadian menunggu kejadiannya terkirim lebih dulu
+      const tunggu = new Set(this.queue.filter(q => q.jenis === 'kejadian').map(q => q.kid));
+      for (const f of this.fotoList.filter(x => x.status === 'antre' && !tunggu.has(x.kejadian)).reverse()) {
         const { penuh, kecil, ...meta } = f;
         const out = await unggahFoto(this.cfg.url, this.cfg.key, meta, await keBase64(penuh));
         await simpanFoto({ ...f, penuh: null, status: 'terkirim', link: out.url || '', terkirim: new Date().toISOString() });
@@ -306,6 +310,61 @@ export default class AppLogic extends DCLogic {
   async buangFoto(f) {
     if (f.status === 'antre' && !window.confirm('Foto ini belum terunggah. Hapus dari HP?')) return;
     await hapusFoto(f.id); await this.refreshFoto(); this.flash(f.status === 'terkirim' ? 'Dihapus dari HP · tetap ada di ' + this.tempatFoto() : 'Foto dihapus');
+  }
+  // Catatan kejadian: data dari server ditimpa antrean yang belum terkirim (mode contoh: hanya di memori)
+  daftarKejadian() {
+    const m = new Map((this._kej || []).map(k => [k.kid, k]));
+    [...(this._kejDemo || []), ...this.queue.filter(q => q.jenis === 'kejadian')].forEach(q => {
+      if (q.hapus) m.delete(q.kid); else m.set(q.kid, { ...dariKejadian(q), foto: (m.get(q.kid) || {}).foto || [], belum: this.live() });
+    });
+    return [...m.values()].sort((a, b) => Date.parse(b.waktuKejadian) - Date.parse(a.waktuKejadian));
+  }
+  async simpanKejadian(rec, berkas) {
+    const it = { jenis: 'kejadian', ...dariKejadian(rec), petugas: rec.petugas || this.ppih(), diubah: new Date().toISOString() };
+    if (this.live()) this.push([it]); else this._kejDemo = (this._kejDemo || []).filter(x => x.kid !== it.kid).concat(it);
+    const nama = it.porsi.map(p => (this.jm.find(x => x.porsi === p) || {}).name).filter(Boolean).join(', ');
+    for (const file of berkas || []) {
+      try {
+        const { penuh, kecil } = await kompres(file);
+        await simpanFoto({ id: String((this.cfg && this.cfg.device) || 'hp').replace(/[^\w-]/g, '') + '-foto-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          waktu: new Date().toISOString(), tanggal: this.todayKey(), mode: 'Kejadian', kegiatan: 'Kejadian · ' + labelKejadian(it.kategori), cakupan: nama, keterangan: it.lokasi.slice(0, 200),
+          petugas: it.petugas, kloter: this.klLabel(), penuh, kecil, status: this.live() ? 'antre' : 'lokal', kejadian: it.kid });
+      } catch (e) { this.flash('Foto tidak bisa disimpan: ' + (e.message || e)); }
+    }
+    if ((berkas || []).length) await this.refreshFoto();
+    this.setState({ kejForm: null });
+    this.flash(!this.live() ? 'Mode contoh · catatan hanya ada sementara di HP ini' : navigator.onLine ? 'Catatan kejadian disimpan' : 'Catatan disimpan di HP · dikirim saat ada internet');
+  }
+  async hapusKejadian(kid) {
+    if (!window.confirm('Hapus catatan kejadian ini? Foto yang sudah terunggah tetap ada di galeri.')) return;
+    const it = { jenis: 'kejadian', kid, hapus: true, diubah: new Date().toISOString() };
+    if (this.live()) this.push([it]); else this._kejDemo = (this._kejDemo || []).filter(x => x.kid !== kid).concat(it);
+    for (const f of this.fotoList.filter(f => f.kejadian === kid && f.status !== 'terkirim')) await hapusFoto(f.id);
+    await this.refreshFoto();
+    this.setState({ kejForm: null }); this.flash('Catatan kejadian dihapus');
+  }
+  kejadianVals() {
+    const S = this.state, F = S.kejForm, sheet = this.live() && !this.pakaiAkun();
+    const nama = p => { const j = this.jm.find(x => x.porsi === p); return j ? j.name : 'Porsi ' + p; };
+    const fotoDari = k => { const lokal = this.fotoList.filter(f => f.kejadian === k.kid), ada = new Set(lokal.map(f => f.id));
+      return lokal.map(f => ({ id: f.id, src: this._thumbs[f.id] || '', link: f.link || '', antre: f.status === 'antre' }))
+        .concat((k.foto || []).filter(f => !ada.has(f.id)).map(f => ({ id: f.id, src: '', link: 'supabase:' + f.path }))); };
+    const list = sheet ? [] : this.daftarKejadian().map(k => ({ ...k, nama: k.porsi.map(nama), foto: fotoDari(k) }));
+    const now = new Date(), was = new Date(now.getTime() + (now.getTimezoneOffset() + 180) * 60000);
+    return {
+      sheet, contoh: !this.live(), list, jenis: JENIS_KEJADIAN,
+      jamaah: this.jm.map(j => ({ porsi: j.porsi, name: j.name, r: j.r, g: j.g })),
+      form: F || null,
+      baru: () => this.setState({ kejForm: { kid: uuid(), kategori: 'sakit', tgl: this.todayKey(), jam: String(was.getHours()).padStart(2, '0') + ':' + String(was.getMinutes()).padStart(2, '0'),
+        lokasi: '', kronologi: '', tindakLanjut: '', status: 'terbuka', porsi: [], foto: [], berkas: [], baru: true } }),
+      buka: k => { const w = new Date(new Date(k.waktuKejadian).getTime() + 3 * 3600000).toISOString();
+        this.setState({ kejForm: { ...k, tgl: w.slice(0, 10), jam: w.slice(11, 16), berkas: [], baru: false } }); },
+      ubah: x => this.setState(s => ({ kejForm: { ...s.kejForm, ...x } })),
+      batal: () => this.setState({ kejForm: null }),
+      simpan: () => { const f = this.state.kejForm; this.simpanKejadian({ ...f, waktuKejadian: f.tgl + 'T' + (f.jam || '00:00') + ':00+03:00' }, f.berkas.map(b => b.file)); },
+      hapus: kid => this.hapusKejadian(kid),
+      bukaFoto: (e, link) => this.bukaFoto(e, link)
+    };
   }
   miqatKloter() { const r = this.data.umrah.rites.find(r => r.miqat); return (r && r.place) || ''; }
   miqatOf(j) { return (this.state.mq || {})[j.id] || this.miqatKloter(); }
@@ -402,7 +461,7 @@ export default class AppLogic extends DCLogic {
   }
   push(items) {
     if (!this.live()) { this.bump(); return; }
-    items.forEach(it => { if (!it.waktu) it.waktu = new Date().toISOString(); if (!it.petugas) it.petugas = this.ppih(); if (!it.id) it.id = String((this.cfg && this.cfg.device) || 'hp').replace(/[^\w-]/g, '').slice(0, 12) + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7); if (it.jenis === 'jamaah' || it.jenis === 'dataJamaah') { const ex = this.queue.find(q => q.jenis === it.jenis && q.porsi === it.porsi && !this._inflight.has(q)); if (ex) { Object.assign(ex, it); return; } } this.queue.push(it); });
+    items.forEach(it => { if (!it.waktu) it.waktu = new Date().toISOString(); if (!it.petugas) it.petugas = this.ppih(); if (!it.id) it.id = String((this.cfg && this.cfg.device) || 'hp').replace(/[^\w-]/g, '').slice(0, 12) + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7); if (it.jenis === 'jamaah' || it.jenis === 'dataJamaah' || it.jenis === 'kejadian') { const ex = this.queue.find(q => q.jenis === it.jenis && (it.jenis === 'kejadian' ? q.kid === it.kid : q.porsi === it.porsi) && !this._inflight.has(q)); if (ex) { Object.assign(ex, it); return; } } this.queue.push(it); });
     this.saveQueue(); this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length } }));
     clearTimeout(this._sy); this._sy = setTimeout(() => this.syncNow(true), 1500);
   }
@@ -417,6 +476,8 @@ export default class AppLogic extends DCLogic {
     items.forEach(it => { if (it.jenis === 'centang') snap.status[it.porsi + '|' + it.kegiatan] = { waktu: it.waktu, kegiatan: it.kegiatan, status: it.status, pelaksana: it.pelaksana, tanggal: it.tanggal, jam: it.jam || '', susulan: it.susulan === 'Ya', pendamping: it.pendamping, pilihan: it.pilihan, alasan: it.alasan, ulangKe: it.ulangKe, statusUlang: it.statusUlang };
       else if (it.jenis === 'pengaturan') snap.pengaturan = { ...(snap.pengaturan || {}), ...it.nilai };
       else if (it.jenis === 'dataJamaah') { const r = (snap.jamaah || []).find(x => String(x['Nomor Porsi']) === it.porsi); if (r) Object.assign(r, keKolom(it)); }
+      else if (it.jenis === 'kejadian') { const l = (snap.kejadian || []).filter(x => x.kid !== it.kid), lama = (snap.kejadian || []).find(x => x.kid === it.kid);
+        snap.kejadian = it.hapus ? l : l.concat({ ...dariKejadian(it), foto: (lama && lama.foto) || [] }); }
       else if (it.jenis === 'hari') { const rows = snap.jadwalKegiatan = snap.jadwalKegiatan || [], r = rows.find(x => x['Mode'] === it.mode && this.legacy(x['Kegiatan']) === it.kegiatan);
         if (r) r['Hari'] = it.hari; else rows.push({ 'Mode': it.mode, 'Kegiatan': it.kegiatan, 'Hari': it.hari }); }
       else if (it.jenis === 'tanggal') { const rows = snap.jadwalKegiatan = snap.jadwalKegiatan || [], r = rows.find(x => x['Mode'] === it.mode && this.legacy(x['Kegiatan']) === it.kegiatan);
@@ -539,7 +600,7 @@ export default class AppLogic extends DCLogic {
     const sig = S.tab + '|' + S.mode + '|' + this.data[S.mode].cur; if (S.tab !== 'checklist') this._daySig = null; else if (this._daySig !== sig) { this._daySig = sig; requestAnimationFrame(() => this.centerToday()); } }
   // Tutup jendela yang terbuka dulu; bila tidak ada, kembali ke layar sebelumnya. true = ada yang ditangani.
   kembali() {
-    const S = this.state, tutup = ['sel', 'syncOpen', 'tglOpen', 'galeri', 'fotoDlg', 'susDlg', 'safDlg', 'ulDlg', 'slotDlg', 'mqDlg', 'tgJ', 'pp', 'confirm', 'pdf'].find(k => S[k] != null && S[k] !== false);
+    const S = this.state, tutup = ['sel', 'syncOpen', 'tglOpen', 'galeri', 'fotoDlg', 'susDlg', 'safDlg', 'ulDlg', 'slotDlg', 'mqDlg', 'tgJ', 'pp', 'confirm', 'pdf', 'kejForm'].find(k => S[k] != null && S[k] !== false);
     if (tutup) { this.setState({ [tutup]: ['syncOpen', 'tglOpen', 'galeri', 'pdf'].includes(tutup) ? false : null }); return true; }
     const r = this._riwayat || [];
     if (r.length) { this._dariKembali = true; const t = r[r.length - 1]; this._riwayat = r.slice(0, -1); this.setState({ tab: t }); return true; }
@@ -1434,17 +1495,19 @@ export default class AppLogic extends DCLogic {
       hasToast: !!S.toast, toastMsg: S.toast || '',
       // Bilah bawah: Home · Menu · [Massal] · Kirim · Profil. Layar lama (Jamaah, Badal, Rekap, Cetak) dibuka dari Menu.
       tabs: [['beranda', 'Home', 'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10', ['beranda']],
-        ['menu', 'Menu', 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z', ['menu', 'jamaah', 'badal', 'rekap', 'cetak']],
+        ['menu', 'Menu', 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z', ['menu', 'jamaah', 'badal', 'rekap', 'cetak', 'kejadian']],
         ['checklist', 'Massal', 'M3 12l3 3 6-6M10 17l2 2 9-9', ['checklist'], true],
         ['kirim', 'Kirim', 'M21 3L10 14M21 3l-7 18-4-7-7-4z', ['kirim']],
         ['profil', 'Profil', 'M12 4a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM5 20c0-3.5 3-6 7-6s7 2.5 7 6', ['profil']]].map(([k, l, d, grup, fab]) => { const a = grup.includes(S.tab);
         return { l, d, on: go(k), fab: !!fab, fg: fab ? '#0b2a1f' : a ? 'var(--color-accent)' : 'var(--nav-fg)', bg: a && !fab ? 'var(--color-accent-100)' : 'transparent', ring: a ? 'var(--color-accent)' : 'transparent' }; }),
-      isMenu: S.tab === 'menu', isKirim: S.tab === 'kirim', isProfil: S.tab === 'profil',
+      isMenu: S.tab === 'menu', isKirim: S.tab === 'kirim', isProfil: S.tab === 'profil', isKejadian: S.tab === 'kejadian',
+      kejadian: S.tab === 'kejadian' ? this.kejadianVals() : null,
       menuItems: [['jamaah', 'Jamaah', 'Rombongan, regu, detail', 'M12 4a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM5 20c0-3.5 3-6 7-6s7 2.5 7 6'],
         ['checklist', 'Ibadah', 'Haji, Umrah, Madinah', 'M4 6l2 2 3-3M4 14l2 2 3-3M13 7h8M13 15h8'],
         ['badal', 'Badal', 'Lempar jumrah', 'M7 11V6a2 2 0 0 1 4 0v4M11 9V4a2 2 0 0 1 4 0v6M15 8a2 2 0 0 1 4 0v6a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-3l-2.5-4.3a1.8 1.8 0 0 1 3-1.9L7 14'],
         ['rekap', 'Rekap', 'Progres ibadah', 'M5 20V11M12 20V4M19 20v-6'],
-        ['cetak', 'Cetak', 'Simpan PDF', 'M7 9V3h10v6M7 17H4v-6h16v6h-3M7 14h10v7H7z']].map(([k, l, s, d]) => ({ l, s, d, on: go(k) })),
+        ['cetak', 'Cetak', 'Simpan PDF', 'M7 9V3h10v6M7 17H4v-6h16v6h-3M7 14h10v7H7z'],
+        ['kejadian', 'Catatan Kejadian', 'Sakit, terpisah, dll', 'M12 8v5M12 16h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z']].map(([k, l, s, d]) => ({ l, s, d, on: go(k) })),
       goTab: k => this.setState({ tab: k })
     };
   }

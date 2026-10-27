@@ -16,11 +16,12 @@ async function denganBatasWaktu(ms, kerja, pesanHabis) {
 }
 
 // Supabase membatasi 1000 baris per permintaan; ambil per halaman.
-async function semua(tabel, kolom, urut) {
+async function semua(tabel, kolom, urut, saring) {
   const out = [];
   for (let dari = 0; ; dari += 1000) {
     let q = sb.from(tabel).select(kolom).range(dari, dari + 999);
     if (urut) q = q.order(urut);
+    if (saring) q = saring(q);
     const { data, error } = await q;
     if (error) throw error;
     out.push(...data);
@@ -41,13 +42,15 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
     if (error) throw error;
     if (!k) throw new Error('Akun belum tersambung ke kloter. Hubungi admin.');
     if (ping) return { ok: true, pong: true, waktu: new Date().toISOString() };
-    const [jm, pt, jr, ct, jd, ru] = await Promise.all([
+    const [jm, pt, jr, ct, jd, ru, kj, fk] = await Promise.all([
       semua('jamaah', 'id, porsi, nama, rombongan, regu, jabatan, hp, resti, udzur, catatan, jk, lansia, kursi_roda, pendamping, perlu_badal, pelaksana_badal, miqat, tgl_lahir, hotel_makkah, lantai_makkah, kamar_makkah, tenda_arafah, tenda_mina, hotel_madinah, lantai_madinah, kamar_madinah', 'porsi'),
       semua('petugas', 'nama, jabatan, urutan', 'urutan'),
       semua('jadwal_raudhoh', 'tanggal, jam, jk, rombongan, keterangan', 'tanggal'),
       semua('centang', 'jamaah_id, kegiatan, status, tanggal, jam, susulan, waktu, pelaksana_badal, keterangan, pendamping, pilihan, alasan, ulang_ke, status_ulang', 'waktu'),
       semua('jadwal', 'mode, kegiatan, hari, tempat, tanggal, jam', 'kegiatan'),
-      semua('riwayat_udzur', 'jamaah_id, udzur, alasan, petugas, perangkat, waktu, id_kirim', 'waktu')
+      semua('riwayat_udzur', 'jamaah_id, udzur, alasan, petugas, perangkat, waktu, id_kirim', 'waktu'),
+      semua('kejadian', 'id, jenis, waktu, lokasi, kronologi, tindak_lanjut, status, jamaah_ids, petugas, diubah', 'waktu'),
+      semua('foto', 'kejadian_id, path, id_kirim', 'dibuat', q => q.not('kejadian_id', 'is', null))
     ]);
     const porsiDari = {}; jm.forEach(j => { porsiDari[j.id] = j; });
     const status = {};
@@ -73,7 +76,10 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
       jadwalKegiatan: jd.map(x => ({ 'Mode': x.mode, 'Kegiatan': x.kegiatan, 'Hari': x.hari || '', 'Tempat': x.tempat || '', 'Tanggal': x.tanggal || '', 'Jam': x.jam ? x.jam.slice(0, 5) : '' })),
       pengaturan: atur, otomatis: false,
       riwayatUdzur: ru.map(r => { const j = porsiDari[r.jamaah_id] || {};
-        return { 'Waktu': r.waktu, 'Nomor Porsi': j.porsi || '', 'Nama': j.nama || '', 'Status': r.udzur ? 'Udzur' : 'Tidak udzur', 'Alasan': r.alasan, 'Petugas': r.petugas, 'Perangkat': r.perangkat, 'ID Kirim': r.id_kirim || '' }; })
+        return { 'Waktu': r.waktu, 'Nomor Porsi': j.porsi || '', 'Nama': j.nama || '', 'Status': r.udzur ? 'Udzur' : 'Tidak udzur', 'Alasan': r.alasan, 'Petugas': r.petugas, 'Perangkat': r.perangkat, 'ID Kirim': r.id_kirim || '' }; }),
+      kejadian: kj.map(x => ({ kid: x.id, kategori: x.jenis, waktuKejadian: x.waktu, lokasi: x.lokasi, kronologi: x.kronologi, tindakLanjut: x.tindak_lanjut, status: x.status,
+        porsi: (x.jamaah_ids || []).map(id => (porsiDari[id] || {}).porsi).filter(Boolean), petugas: x.petugas || '', diubah: x.diubah,
+        foto: fk.filter(f => f.kejadian_id === x.id).map(f => ({ id: f.id_kirim || f.path, path: f.path })) }))
     };
   }, 'Tidak ada sinyal: server tidak menjawab dalam 20 detik.');
 }
@@ -82,10 +88,12 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
 export async function kirimPerubahan(_url, _key, items) {
   return denganBatasWaktu(45000, async () => {
     // Data pribadi/akomodasi lewat fungsi tersendiri; sisanya lewat penerima utama
-    const pribadi = items.filter(i => i.jenis === 'dataJamaah'), lain = items.filter(i => i.jenis !== 'dataJamaah');
+    const pribadi = items.filter(i => i.jenis === 'dataJamaah'), kej = items.filter(i => i.jenis === 'kejadian'),
+      lain = items.filter(i => i.jenis !== 'dataJamaah' && i.jenis !== 'kejadian');
     let data = { ok: true, diterima: 0, diabaikan: 0, dobel: 0 };
     if (lain.length) { const r = await sb.rpc('terima_perubahan', { p_items: lain }); if (r.error) throw r.error; data = r.data; }
     if (pribadi.length) { const r = await sb.rpc('ubah_data_jamaah', { p_items: pribadi }); if (r.error) throw r.error; }
+    if (kej.length) { const r = await sb.rpc('simpan_kejadian', { p_items: kej }); if (r.error) throw r.error; }
     return data;
   }, 'Server tidak menjawab dalam 45 detik. Data tetap aman di perangkat dan akan dikirim ulang.');
 }
@@ -104,9 +112,12 @@ export async function unggahFoto(_url, _key, f, base64) {
     const up = await sb.storage.from('foto').upload(path, bin, { contentType: 'image/jpeg', upsert: true });
     if (up.error) throw up.error;
     const tgl = /^\d{4}-\d{2}-\d{2}$/.test(String(f.tanggal || '')) ? f.tanggal : hariRiyadh(Date.now());
-    const { error } = await sb.from('foto').insert({ kloter_id: p.kloter_id, mode: f.mode || null, kegiatan: f.kegiatan || null, tanggal: tgl,
+    const baris = { kloter_id: p.kloter_id, mode: f.mode || null, kegiatan: f.kegiatan || null, kejadian_id: f.kejadian || null, tanggal: tgl,
       keterangan: String(f.keterangan || '').slice(0, 200), cakupan: String(f.cakupan || ''), path, petugas: String(f.petugas || '').slice(0, 100),
-      id_kirim: String(f.id), dibuat: f.waktu || new Date().toISOString() });
+      id_kirim: String(f.id), dibuat: f.waktu || new Date().toISOString() };
+    let { error } = await sb.from('foto').insert(baris);
+    // Kejadiannya sudah dihapus dari HP lain: foto tetap disimpan tanpa tautan kejadian
+    if (error && error.code === '23503' && baris.kejadian_id) ({ error } = await sb.from('foto').insert({ ...baris, kejadian_id: null }));
     if (error && !/duplicate/i.test(error.message)) throw error;
     return { ok: true, url: 'supabase:' + path };
   }, 'Unggah foto terlalu lama (sinyal lemah). Akan dicoba lagi.');
