@@ -71,7 +71,8 @@ const KOLOM = {
   Log: ['Waktu', 'Perangkat', 'Nomor Porsi', 'Nama', 'Kegiatan', 'Status', 'Pelaksana Badal', 'Keterangan', 'Tanggal Pelaksanaan', 'Susulan', 'Pendamping', 'Pilihan', 'Alasan', 'Ulang Ke', 'Status Ulang', 'ID Kirim', 'Petugas'],
   'Jadwal Kegiatan': ['Mode', 'Kegiatan', 'Hari', 'Tempat', 'Tanggal'],
   Pengaturan: ['Nama', 'Nilai'],
-  'Riwayat Udzur': ['Waktu', 'Nomor Porsi', 'Nama', 'Status', 'Alasan', 'Petugas', 'Perangkat', 'ID Kirim']
+  'Riwayat Udzur': ['Waktu', 'Nomor Porsi', 'Nama', 'Status', 'Alasan', 'Petugas', 'Perangkat', 'ID Kirim'],
+  Foto: ['Waktu', 'Tanggal', 'Mode', 'Kegiatan', 'Cakupan', 'Keterangan', 'Petugas', 'Nama File', 'Link', 'ID Kirim']
 };
 
 // Nama kegiatan = kunci Log. Hari & Tempat boleh diubah di tab "Jadwal Kegiatan"; Mode & Kegiatan jangan.
@@ -503,6 +504,7 @@ function doPost(e) {
     PropertiesService.getScriptProperties().setProperty('KUNCI', String(body.baru));
     return json({ ok: true });
   }
+  if (body.aksi === 'foto') return json(simpanFotoDrive(body.foto || {}, String(body.data || '')));
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
@@ -644,6 +646,48 @@ function bacaJadwalKegiatan() {
   const tz = SpreadsheetApp.getActive().getSpreadsheetTimeZone(), [h, ...rows] = sh.getDataRange().getValues();
   return rows.filter(r => r.some(v => v !== '')).map(r => Object.fromEntries(h.map((k, i) => [k, r[i] instanceof Date ? Utilities.formatDate(r[i], tz, 'yyyy-MM-dd') : r[i]])));
 }
+
+/* ---------- Foto kegiatan ---------- */
+
+// Simpan satu foto dari aplikasi ke Google Drive: Foto Kegiatan / <Kegiatan> / <Tanggal>.
+// Foto tetap privat (tidak dibagikan). Kiriman ulang dengan ID yang sama tidak membuat file baru.
+function simpanFotoDrive(f, data) {
+  if (!f.id || !data) return { ok: false, error: 'Data foto kosong' };
+  if (data.length > 12 * 1024 * 1024) return { ok: false, error: 'Foto terlalu besar' };
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const ss = SpreadsheetApp.getActive();
+    let sh = ss.getSheetByName('Foto');
+    if (!sh) { sh = ss.insertSheet('Foto'); sh.appendRow(KOLOM.Foto); sh.setFrozenRows(1); sh.getRange(1, 1, 1, KOLOM.Foto.length).setFontWeight('bold').setBackground('#e2f0e9'); }
+    pastikanKolom(sh, 'Foto');
+    const ada = baca('Foto').find(r => String(r['ID Kirim']) === String(f.id));
+    if (ada) return { ok: true, url: ada['Link'], dobel: true };
+    const bersih = s => String(s || '').replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 60);
+    const tgl = /^\d{4}-\d{2}-\d{2}$/.test(String(f.tanggal || '')) ? String(f.tanggal) : Utilities.formatDate(new Date(), 'Asia/Riyadh', 'yyyy-MM-dd');
+    const folder = folderAnak(folderAnak(folderFotoUtama(), bersih(f.kegiatan) || 'Lainnya'), tgl);
+    const nama = [tgl, bersih(f.kegiatan), bersih(f.cakupan), String(f.id).slice(-6)].filter(Boolean).join(' · ') + '.jpg';
+    const file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(data), 'image/jpeg', nama));
+    if (f.keterangan) file.setDescription(String(f.keterangan).slice(0, 500));
+    const h = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
+    const o = { 'Waktu': new Date(Date.parse(f.waktu) || Date.now()), 'Tanggal': tgl, 'Mode': String(f.mode || ''), 'Kegiatan': String(f.kegiatan || ''), 'Cakupan': String(f.cakupan || ''),
+      'Keterangan': String(f.keterangan || '').slice(0, 200), 'Petugas': String(f.petugas || '').slice(0, 100), 'Nama File': nama, 'Link': file.getUrl(), 'ID Kirim': String(f.id) };
+    const r = sh.getLastRow() + 1;
+    ['Tanggal', 'ID Kirim'].forEach(k => { const c = h.indexOf(k); if (c >= 0) sh.getRange(r, c + 1).setNumberFormat('@'); });
+    sh.getRange(r, 1, 1, h.length).setValues([h.map(k => o[k] === undefined ? '' : o[k])]);
+    return { ok: true, url: file.getUrl() };
+  } finally { lock.releaseLock(); }
+}
+
+// Folder utama disimpan ID-nya agar tidak tertukar dengan folder lain bernama sama.
+function folderFotoUtama() {
+  const P = PropertiesService.getScriptProperties(), id = P.getProperty('FOLDER_FOTO');
+  if (id) { try { const f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  const f = DriveApp.createFolder('Foto Kegiatan · ' + SpreadsheetApp.getActive().getName());
+  P.setProperty('FOLDER_FOTO', f.getId());
+  return f;
+}
+
+function folderAnak(induk, nama) { const it = induk.getFoldersByName(nama); return it.hasNext() ? it.next() : induk.createFolder(nama); }
 
 /* ---------- Bantuan ---------- */
 

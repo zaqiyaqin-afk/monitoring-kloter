@@ -1,5 +1,6 @@
 // Penyimpanan di perangkat. Antrean perubahan disimpan dua kali
 // (localStorage + IndexedDB) agar tetap ada walau salah satunya dibersihkan browser.
+// Foto disimpan di IndexedDB (store 'foto') karena ukurannya besar.
 
 const K = { cfg: 'mk.cfg', queue: 'mk.queue', snap: 'mk.snap' };
 
@@ -14,29 +15,39 @@ export const bacaAntrean = () => baca(K.queue) || [];
 
 export function simpanAntrean(queue) {
   tulis(K.queue, queue);
-  idb('put', queue);
+  kv('put', queue);
 }
 
-export function bacaAntreanCadangan(cb) { idb('get', null, cb); }
+export function bacaAntreanCadangan(cb) { kv('get', null, cb); }
 
-function idb(op, val, cb) {
-  try {
-    const r = indexedDB.open('kloter', 1);
-    r.onupgradeneeded = () => r.result.createObjectStore('kv');
-    r.onsuccess = () => {
-      const db = r.result;
-      if (op === 'put') {
-        const tx = db.transaction('kv', 'readwrite');
-        tx.objectStore('kv').put(JSON.parse(JSON.stringify(val)), 'queue');
-        tx.oncomplete = tx.onerror = () => db.close();
-      } else {
-        const q = db.transaction('kv').objectStore('kv').get('queue');
-        q.onsuccess = () => { db.close(); cb(q.result || []); };
-        q.onerror = () => { db.close(); cb([]); };
-      }
-    };
-    r.onerror = () => cb && cb([]);
-  } catch (e) { if (cb) cb([]); }
+// Versi 2 menambah store 'foto'. Semua pembukaan database lewat fungsi ini.
+export function bukaDb() {
+  return new Promise((ok, gagal) => {
+    try {
+      const r = indexedDB.open('kloter', 2);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+        if (!db.objectStoreNames.contains('foto')) db.createObjectStore('foto', { keyPath: 'id' });
+      };
+      r.onsuccess = () => ok(r.result);
+      r.onerror = () => gagal(r.error);
+    } catch (e) { gagal(e); }
+  });
+}
+
+function kv(op, val, cb) {
+  bukaDb().then(db => {
+    if (op === 'put') {
+      const tx = db.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(JSON.parse(JSON.stringify(val)), 'queue');
+      tx.oncomplete = tx.onerror = () => db.close();
+    } else {
+      const q = db.transaction('kv').objectStore('kv').get('queue');
+      q.onsuccess = () => { db.close(); cb(q.result || []); };
+      q.onerror = () => { db.close(); cb([]); };
+    }
+  }).catch(() => cb && cb([]));
 }
 
 // Minta browser agar data aplikasi tidak dihapus otomatis (penting di iPhone).

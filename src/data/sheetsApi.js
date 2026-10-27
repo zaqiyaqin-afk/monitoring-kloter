@@ -45,6 +45,16 @@ export async function gantiKunci(url, key, baru) {
   return data;
 }
 
+// Unggah satu foto (base64 JPEG) ke Google Drive lewat Apps Script. Server melewati ID yang sudah ada.
+export async function unggahFoto(url, key, foto, data) {
+  const res = await denganBatasWaktu(90000,
+    signal => fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key, aksi: 'foto', foto, data }), signal }),
+    'Unggah foto terlalu lama (sinyal lemah). Akan dicoba lagi.');
+  const out = await bacaJson(res);
+  if (!out.ok) throw new Error(pesanServer(out, 'Gagal mengunggah foto'));
+  return out;
+}
+
 // Kirim antrean perubahan. Server menolak kiriman ganda lewat "ID Kirim",
 // jadi aman diulang bila jawaban server tidak sampai.
 export async function kirimPerubahan(url, key, items) {

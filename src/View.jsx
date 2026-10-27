@@ -78,6 +78,22 @@ export default function View({ v }) {
                     Pasang aplikasi di layar utama HP
                   </button>
                 ) : null}
+                <div style={css("background:var(--color-surface);border-radius:22px;padding:14px 16px;display:grid;gap:10px;box-shadow:0 1px 2px rgba(16,40,30,.05),0 8px 20px -14px rgba(16,40,30,.22)")}>
+                  <div style={css("display:flex;gap:12px;align-items:center")}>
+                    <span style={css("width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--color-accent-2-100);color:#2C66A8;flex:none")}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+                    </span>
+                    <div style={css("min-width:0")}>
+                      <b style={css("font-size:15px")}>Foto kegiatan · {txt(v.fotoCard?.judul)}</b>
+                      <div style={css("font-size:12.5px;color:var(--color-neutral-700);line-height:1.35")}>{txt(v.fotoCard?.sub)}</div>
+                    </div>
+                  </div>
+                  <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:8px")}>
+                    <button className="btn btn-primary" onClick={v.ambilFoto} style={css("height:44px;font-size:14px")}>Ambil foto</button>
+                    <button className="btn btn-secondary" onClick={v.bukaGaleri} style={css("height:44px;font-size:14px")}>Lihat foto</button>
+                  </div>
+                  <input ref={v.fotoInput} type="file" accept="image/*" capture="environment" onChange={v.onFotoFile} style={css("display:none")} />
+                </div>
                 {" "}
                 <div style={css("background:linear-gradient(140deg,#1C8F64 0%,#0E5C40 100%);border-radius:26px;position:relative;overflow:hidden;color:#fff;padding:18px 18px 16px;display:grid;gap:12px;box-shadow:0 16px 28px -18px rgba(14,92,64,.9)")}>
                   {" "}
@@ -2589,6 +2605,58 @@ export default function View({ v }) {
                   </div>
                 ))}
                 <button className="btn btn-primary" onClick={v.tglJadwal.tutup} style={css("height:48px")}>Selesai</button>
+              </div>
+            </div>
+          ) : null}
+          {v.fotoDlg ? (
+            <div onClick={v.fotoDlg.batal} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:8")}>
+              <div onClick={v.stop} style={css("width:100%;max-height:94%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+                <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
+                <div style={css("font-weight:800;font-size:19px")}>Simpan foto kegiatan</div>
+                <img src={v.fotoDlg.prev} alt="Pratinjau foto" style={css("width:100%;max-height:220px;object-fit:contain;border-radius:18px;background:#000")} />
+                <div style={css("font-size:12px;color:var(--color-neutral-700)")}>{txt(v.fotoDlg.kb)}</div>
+                <div style={css("font-size:13px;font-weight:700;color:var(--color-neutral-800)")}>Kegiatan</div>
+                <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>
+                  {arr(v.fotoDlg.rites).map((s, i0) => <button key={i0} onClick={s.on} style={css(`border:1px solid var(--color-divider);border-radius:999px;padding:7px 12px;font:600 12.5px var(--font-body);cursor:pointer;background:${s.bg === 'transparent' ? 'var(--color-surface)' : s.bg};color:${s.fg}`)}>{txt(s.l)}</button>)}
+                </div>
+                <div style={css("font-size:13px;font-weight:700;color:var(--color-neutral-800)")}>Cakupan</div>
+                <div style={css("display:grid;grid-template-columns:repeat(3,1fr);background:var(--color-surface);border-radius:999px;padding:4px;gap:4px")}>
+                  {arr(v.fotoDlg.scopes).map((s, i0) => <button key={i0} onClick={s.on} style={css(`border:0;border-radius:999px;padding:9px 0;font:600 13px var(--font-body);cursor:pointer;background:${s.bg};color:${s.fg}`)}>{txt(s.l)}</button>)}
+                </div>
+                {v.fotoDlg.showR ? <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>{arr(v.fotoDlg.rs).map((s, i0) => <button key={i0} onClick={s.on} style={css(`border:1px solid var(--color-divider);border-radius:999px;padding:7px 12px;font:600 13px var(--font-body);cursor:pointer;background:${s.bg === 'transparent' ? 'var(--color-surface)' : s.bg};color:${s.fg}`)}>{txt(s.l)}</button>)}</div> : null}
+                {v.fotoDlg.showG ? <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>{arr(v.fotoDlg.gs).map((s, i0) => <button key={i0} onClick={s.on} style={css(`border:1px solid var(--color-divider);border-radius:999px;padding:7px 12px;font:600 13px var(--font-body);cursor:pointer;background:${s.bg === 'transparent' ? 'var(--color-surface)' : s.bg};color:${s.fg}`)}>{txt(s.l)}</button>)}</div> : null}
+                <input className="input" value={v.fotoDlg.ket} onChange={v.fotoDlg.onKet} placeholder="Keterangan (boleh kosong)" style={css("height:46px;font-size:14px")} />
+                <div style={css("display:grid;grid-template-columns:1fr 1.8fr;gap:8px")}>
+                  <button className="btn btn-secondary" onClick={v.fotoDlg.batal} style={css("height:46px")}>Batal</button>
+                  <button className="btn btn-primary" onClick={v.fotoDlg.simpan} style={css("height:46px")}>Simpan foto</button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {v.galeri ? (
+            <div onClick={v.galeri.tutup} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:7")}>
+              <div onClick={v.stop} style={css("width:100%;max-height:94%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+                <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
+                <div style={css("font-weight:800;font-size:19px")}>Foto kegiatan</div>
+                <div style={css("font-size:13px;color:var(--color-neutral-700);line-height:1.45")}>
+                  Foto disimpan di folder <b>Foto Kegiatan · (nama Sheet)</b> di Google Drive pemilik Sheet, per kegiatan lalu per tanggal. Setelah terunggah, HP hanya menyimpan gambar kecilnya.
+                </div>
+                {v.galeri.kosong ? <div style={css("padding:20px;text-align:center;color:var(--color-neutral-700);font-size:14px")}>Belum ada foto.</div> : null}
+                {v.galeri.adaAntre ? <button className="btn btn-secondary" onClick={v.galeri.unggah} style={css("height:44px")}>Unggah sekarang</button> : null}
+                {arr(v.galeri.items).map((f, i0) => (
+                  <div key={i0} style={css("display:flex;gap:12px;align-items:center;background:var(--color-surface);border-radius:18px;padding:10px")}>
+                    {f.src ? <img src={f.src} alt="" style={css("width:64px;height:64px;object-fit:cover;border-radius:12px;flex:none")} /> : <div style={css("width:64px;height:64px;border-radius:12px;background:var(--color-neutral-200);flex:none")}></div>}
+                    <div style={css("flex:1;min-width:0;display:grid;gap:2px")}>
+                      <b style={css("font-size:13.5px")}>{txt(f.judul)}</b>
+                      {f.sub ? <span style={css("font-size:12px;color:var(--color-neutral-700)")}>{txt(f.sub)}</span> : null}
+                      <span style={css(`font-size:12px;font-weight:700;color:${f.stFg}`)}>
+                        {txt(f.st)}{f.link ? <> · <a href={f.link} target="_blank" rel="noopener">buka</a></> : null}
+                      </span>
+                    </div>
+                    <button onClick={f.hapus} aria-label="Hapus foto dari HP" style={css("border:0;background:transparent;color:var(--color-neutral-600);cursor:pointer;font-size:12px;font-weight:700;flex:none")}>Hapus</button>
+                  </div>
+                ))}
+                <button className="btn btn-primary" onClick={v.galeri.tutup} style={css("height:46px")}>Tutup</button>
               </div>
             </div>
           ) : null}

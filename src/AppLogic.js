@@ -1,7 +1,8 @@
 // Logika aplikasi (state, sinkron, perhitungan). Tampilan ada di View.jsx.
 import React from 'react';
 import { DCLogic } from './dc/runtime.js';
-import { ambilSemua, kirimPerubahan, gantiKunci } from './data/sheetsApi.js';
+import { ambilSemua, kirimPerubahan, gantiKunci, unggahFoto } from './data/sheetsApi.js';
+import { kompres, keBase64, simpanFoto, hapusFoto, semuaFoto } from './data/fotoStore.js';
 import { TUSI, EMBARKASI, CATATAN_GELOMBANG, MIQAT, miqatBawaan, kurangIdentitas, pesanKurang, dariPengaturan, kePengaturan } from './identitas.js';
 import { bacaCfg, simpanCfg, bacaSnap, simpanSnap, bacaAntrean, simpanAntrean, bacaAntreanCadangan, mintaPenyimpananTetap } from './data/localStore.js';
 
@@ -129,6 +130,7 @@ export default class AppLogic extends DCLogic {
     Object.keys(this.data).forEach(m => { this.data[m].cur = this.curOf(m); });
     if (this.live()) { const snap = this.readSnap(); if (snap) this.build(snap); this.syncNow(true); }
     mintaPenyimpananTetap();
+    this.refreshFoto().then(() => this.unggahAntre());
     bacaAntreanCadangan(items => this.mergeQueue(items, 'salinan cadangan di perangkat'));
     this._onInstall = e => { e.preventDefault(); this._installEvt = e; this.forceUpdate(); }; window.addEventListener('beforeinstallprompt', this._onInstall);
     this._onVis = () => { if (!document.hidden && this.live() && (this.queue.length || Date.now() - (this._lp || 0) > 60000)) this.syncNow(true); }; document.addEventListener('visibilitychange', this._onVis);
@@ -212,6 +214,55 @@ export default class AppLogic extends DCLogic {
       else demo[this.modeLabel(m) + '|' + n] = tgl; });
     if (this.live()) { this.saveQueue(); this.push(items); } else try { localStorage.setItem('mk.tgldemo', JSON.stringify(demo)); } catch (e) {}
     this.forceUpdate();
+  }
+  /* ---------- Foto kegiatan ---------- */
+  fotoInput = React.createRef();
+  fotoList = [];
+  _thumbs = {};
+  async refreshFoto() {
+    try { this.fotoList = await semuaFoto(); } catch (e) { this.fotoList = []; }
+    const ada = new Set(this.fotoList.map(f => f.id));
+    Object.keys(this._thumbs).forEach(id => { if (!ada.has(id)) { URL.revokeObjectURL(this._thumbs[id]); delete this._thumbs[id]; } });
+    this.fotoList.forEach(f => { if (!this._thumbs[f.id] && f.kecil) this._thumbs[f.id] = URL.createObjectURL(f.kecil); });
+    this.forceUpdate();
+  }
+  async pilihFoto(e) {
+    const file = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    try {
+      const { penuh, kecil } = await kompres(file), S = this.state, X = this.data[S.mode];
+      this.setState({ fotoDlg: { penuh, kecil, prev: URL.createObjectURL(kecil), kb: Math.round(penuh.size / 1024), rite: X.cur, scope: 'kloter', r: 1, g: 1, ket: '' } });
+    } catch (err) { this.flash('Foto tidak bisa dibaca: ' + (err.message || err)); }
+  }
+  async simpanFotoDlg() {
+    const d = this.state.fotoDlg, S = this.state, X = this.data[S.mode], r = X.rites[d.rite];
+    const cakupan = d.scope === 'kloter' ? 'Seluruh kloter' : d.scope === 'rombongan' ? 'Rombongan ' + d.r : 'Rombongan ' + d.r + ' · Regu ' + d.g;
+    const f = { id: String((this.cfg && this.cfg.device) || 'hp').replace(/[^\w-]/g, '') + '-foto-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      waktu: new Date().toISOString(), tanggal: this.todayKey(), mode: X.label, kegiatan: r.n, cakupan, keterangan: String(d.ket || '').trim().slice(0, 200),
+      petugas: this.ppih(), kloter: this.klLabel(), penuh: d.penuh, kecil: d.kecil, status: this.live() ? 'antre' : 'lokal' };
+    try { await simpanFoto(f); } catch (e) { this.flash('Gagal menyimpan foto di HP: ' + (e.message || e)); return; }
+    URL.revokeObjectURL(d.prev); this.setState({ fotoDlg: null });
+    await this.refreshFoto();
+    this.flash(this.live() ? (navigator.onLine ? 'Foto disimpan · mengunggah…' : 'Foto disimpan di HP · diunggah saat ada internet') : 'Mode contoh · foto hanya disimpan di HP ini');
+    this.unggahAntre();
+  }
+  // Unggah foto antre satu per satu. Berhenti di kegagalan pertama; dicoba lagi saat sinkron berikutnya.
+  async unggahAntre() {
+    if (!this.live() || !navigator.onLine || this._fotoBusy) return;
+    this._fotoBusy = true; this.setState({ fotoErr: '' });
+    try {
+      for (const f of this.fotoList.filter(x => x.status === 'antre').reverse()) {
+        const { penuh, kecil, ...meta } = f;
+        const out = await unggahFoto(this.cfg.url, this.cfg.key, meta, await keBase64(penuh));
+        await simpanFoto({ ...f, penuh: null, status: 'terkirim', link: out.url || '', terkirim: new Date().toISOString() });
+        await this.refreshFoto();
+      }
+    } catch (e) { this.setState({ fotoErr: e.message || String(e) }); }
+    this._fotoBusy = false; this.forceUpdate();
+  }
+  async buangFoto(f) {
+    if (f.status === 'antre' && !window.confirm('Foto ini belum terunggah ke Drive. Hapus dari HP?')) return;
+    await hapusFoto(f.id); await this.refreshFoto(); this.flash(f.status === 'terkirim' ? 'Dihapus dari HP · tetap ada di Drive' : 'Foto dihapus');
   }
   miqatKloter() { const r = this.data.umrah.rites.find(r => r.miqat); return (r && r.place) || ''; }
   miqatOf(j) { return (this.state.mq || {})[j.id] || this.miqatKloter(); }
@@ -339,6 +390,7 @@ export default class AppLogic extends DCLogic {
       simpanSnap(data); this.build(data); this._lp = Date.now();
       this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, last: this.hhmm(new Date()), err: '', busy: false } }));
       if (!quiet) this.flash('Tersinkron dengan Google Sheet');
+      this.unggahAntre();
     } catch (e) {
       this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, err: 'Gagal sinkron: ' + (e.message || e), busy: false } }));
       if (!quiet) this.flash('Gagal sinkron · data tetap aman di perangkat');
@@ -1168,9 +1220,28 @@ export default class AppLogic extends DCLogic {
       net: (() => { const n = S.sync.pending; if (!this.live()) return null;
         if (S.sync.err && !off) return { title: 'Gagal mengirim · ' + n + ' perubahan aman di HP', text: 'Akan dicoba lagi otomatis. Ketuk untuk detail atau kirim sekarang.', dot: 'var(--red-600)', bg: 'var(--red-100)', fg: 'var(--red-800)' };
         if (off) return { title: 'Tanpa internet · aplikasi tetap bisa dipakai', text: n ? n + ' perubahan tersimpan di HP ini dan terkirim otomatis saat ada sinyal.' : 'Centang tetap tersimpan di HP ini dan terkirim otomatis saat ada sinyal.', dot: '#c98a00', bg: '#fdf0c4', fg: '#5a3f00' };
+        if (S.fotoErr && !n) return { title: 'Foto belum terunggah', text: S.fotoErr + ' · Foto aman di HP dan dicoba lagi saat sinkron.', dot: '#c98a00', bg: '#fdf0c4', fg: '#5a3f00' };
         if (n) return { title: 'Mengirim ' + n + ' perubahan…', text: 'Jangan tutup aplikasi sampai angka antre menjadi 0.', dot: 'var(--color-accent-300)', bg: 'var(--color-accent-100)', fg: 'var(--color-accent-800)' };
         return null; })(),
       tglJadwal, tgJ, openTgl: () => this.setState({ tglOpen: true }),
+      fotoInput: this.fotoInput, onFotoFile: e => this.pilihFoto(e), ambilFoto: () => this.fotoInput.current && this.fotoInput.current.click(),
+      fotoCard: (() => { const n = this.fotoList.length, a = this.fotoList.filter(f => f.status === 'antre').length;
+        return { judul: n ? n + ' foto di HP ini' : 'Belum ada foto', sub: a ? a + ' menunggu diunggah ke Google Drive' + (off ? ' · saat ada internet' : this._fotoBusy ? ' · mengunggah…' : '') : n ? (this.live() ? 'Semua sudah di Google Drive' : 'Mode contoh · tidak diunggah') : 'Foto tersimpan di HP dulu, lalu otomatis ke Google Drive',
+          err: S.fotoErr || '', adaFoto: n > 0 }; })(),
+      bukaGaleri: () => this.setState({ galeri: true }),
+      galeri: S.galeri ? { tutup: () => this.setState({ galeri: false }), kosong: !this.fotoList.length, unggah: () => this.unggahAntre(), adaAntre: this.fotoList.some(f => f.status === 'antre'),
+        items: this.fotoList.slice(0, 80).map(f => ({ src: this._thumbs[f.id] || '', judul: f.kegiatan + ' · ' + this.fmtHari(f.tanggal), sub: [f.cakupan, f.keterangan].filter(Boolean).join(' · '),
+          st: f.status === 'terkirim' ? 'Di Google Drive' : f.status === 'lokal' ? 'Hanya di HP (mode contoh)' : 'Menunggu diunggah', stFg: f.status === 'terkirim' ? 'var(--color-accent-800)' : '#7a5200',
+          link: f.link || '', hapus: () => this.buangFoto(f) })) } : null,
+      fotoDlg: S.fotoDlg ? (() => { const d = S.fotoDlg, upd = p => this.patch('fotoDlg', p), romb = [...new Set(this.jm.map(j => j.r))].sort((a, b) => a - b), regu = [...new Set(this.jm.filter(j => j.r === d.r).map(j => j.g))].sort((a, b) => a - b);
+        return { prev: d.prev, kb: d.kb + ' KB setelah diperkecil',
+          rites: X.rites.map((r, k) => ({ l: r.miqat ? r.p : r.n, ...pill(d.rite === k), on: () => upd({ rite: k }) })),
+          scopes: [['kloter', 'Kloter'], ['rombongan', 'Rombongan'], ['regu', 'Regu']].map(([k, l]) => ({ l, ...pill(d.scope === k), on: () => upd({ scope: k }) })),
+          showR: d.scope !== 'kloter', showG: d.scope === 'regu',
+          rs: romb.map(r => ({ l: 'R' + r, ...pill(d.r === r), on: () => upd({ r, g: (this.jm.find(j => j.r === r) || {}).g || 1 }) })),
+          gs: regu.map(g => ({ l: 'Regu ' + g, ...pill(d.g === g), on: () => upd({ g }) })),
+          ket: d.ket, onKet: e => upd({ ket: e.target.value.slice(0, 200) }),
+          simpan: () => this.simpanFotoDlg(), batal: () => { URL.revokeObjectURL(d.prev); this.setState({ fotoDlg: null }); } }; })() : null,
       isUmrah: S.mode === 'umrah', openMiqat: () => this.setState({ mqDlg: { scope: 'kloter', r: 1, g: 1, val: this.miqatKloter() } }),
       mqDlg: S.mqDlg ? (() => { const d = S.mqDlg, upd = p => this.patch('mqDlg', p), jj = d.scope === 'jamaah' ? this.jm[d.id] : null, kl = this.miqatKloter();
         const hitung = {}; this.jm.forEach(j => { const m = this.miqatOf(j) || 'Belum ditentukan'; hitung[m] = (hitung[m] || 0) + 1; });

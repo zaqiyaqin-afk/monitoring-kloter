@@ -26,6 +26,12 @@ export function pasangMock() {
       const body = JSON.parse(init.body);
       if (body.key !== st.kunci) return salah;
       if (body.aksi === 'gantiKunci') { st.kunci = body.baru; return new Response(JSON.stringify({ ok: true })); }
+      if (body.aksi === 'foto') {
+        st.foto = st.foto || [];
+        if (!st.foto.some(f => f.id === body.foto.id)) st.foto.push({ ...body.foto, kb: Math.round(body.data.length * 0.75 / 1024) });
+        window.__mock.foto = st.foto;
+        return new Response(JSON.stringify({ ok: true, url: 'https://drive.google.com/file/d/tiruan-' + body.foto.id + '/view' }));
+      }
       st.diterima.push(...body.items);
       body.items.filter(i => i.jenis === 'pengaturan').forEach(i => Object.assign(st.pengaturan, i.nilai));
       localStorage.setItem('mk.mockAtur', JSON.stringify(st.pengaturan));
