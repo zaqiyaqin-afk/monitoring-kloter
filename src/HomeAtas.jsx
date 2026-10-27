@@ -68,7 +68,7 @@ export default function HomeAtas({ h }) {
   return (
     <>
       <div style={{ ...kartu, background: 'var(--hero)', color: '#fff', textAlign: 'center', gap: 4 }}>
-        <div style={{ fontFamily: 'var(--font-arab)', fontSize: fs(26), color: '#e8cf86', direction: 'rtl', lineHeight: 1.5 }}>خِدْمَةُ الْحُجَّاجِ شَرَفُنَا</div>
+        <div style={{ fontFamily: 'var(--font-arab)', fontSize: fs(26), color: '#e8cf86', direction: 'rtl', lineHeight: 1.5 }}>خِدْمَةُ الْحُجَّاجِ شَرَفٌ لَنَا</div>
         <div style={{ fontSize: fs(13), opacity: 0.85 }}>Melayani jamaah haji adalah kehormatan kami</div>
       </div>
       <Sholat kotaAwal={h.kota} />
