@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png'],
+      includeAssets: ['favicon-48.png', 'apple-touch-icon.png', 'icon-192.png', 'emblem-256.png'],
       manifest: {
         name: 'Monitoring Kloter',
         short_name: 'Kloter',
@@ -19,8 +19,8 @@ export default defineConfig({
         scope: './',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#f2f4f3',
-        theme_color: '#1e6b52',
+        background_color: '#0b2a1f',
+        theme_color: '#0f3d2e',
         lang: 'id',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

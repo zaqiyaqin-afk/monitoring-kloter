@@ -4,5 +4,6 @@ dev-dist/
 *.zip
 .env
 .env.*
+!.env.example
 android/
 .netlify/
