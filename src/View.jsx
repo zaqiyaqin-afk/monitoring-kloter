@@ -3,6 +3,7 @@ import React from 'react';
 import { css, txt, arr } from './dc/runtime.js';
 import HalamanBaru from './HalamanBaru.jsx';
 import DataJamaah from './DataJamaah.jsx';
+import HomeAtas from './HomeAtas.jsx';
 
 export default function View({ v }) {
   return (
@@ -57,6 +58,7 @@ export default function View({ v }) {
             {v.isBeranda ? (<>
               {" "}
               <div style={css("padding:8px 20px 24px;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;gap:18px")}>
+                <HomeAtas h={v.home} />
                 {" "}
                 <div style={css("display:inline-flex;justify-self:start;background:var(--color-surface);border-radius:999px;overflow:hidden;padding:4px;gap:4px;box-shadow:0 1px 2px rgba(16,40,30,.06)")}>
                   {" "}
@@ -2614,9 +2616,10 @@ export default function View({ v }) {
                         {g.ubahHijri ? <button className="btn btn-primary" onClick={g.simpanHijri} style={css("height:44px;padding:0 14px;font-size:calc(13px*var(--fs,1))")}>Simpan</button> : null}
                       </div>
                     </label>
-                    <div style={css("font-size:calc(12px*var(--fs,1));font-weight:700;color:var(--color-neutral-700)")}>Tanggal (Masehi)</div>
-                    <div style={css("display:flex;gap:8px")}>
-                      <input className="input" type="date" value={g.tgl} onChange={g.onTgl} style={css("height:44px;font-size:calc(14px*var(--fs,1));flex:1;min-width:0")} />
+                    <div style={css("font-size:calc(12px*var(--fs,1));font-weight:700;color:var(--color-neutral-700)")}>Tanggal (Masehi) dan jam (WAS)</div>
+                    <div style={css("display:flex;flex-wrap:wrap;gap:8px;min-width:0")}>
+                      <input className="input" type="date" value={g.tgl} onChange={g.onTgl} style={css("height:44px;font-size:calc(14px*var(--fs,1));flex:1 1 150px;min-width:0")} />
+                      <input className="input" type="time" value={g.jam} onChange={g.onJam} aria-label="Jam (WAS)" style={css("height:44px;font-size:calc(14px*var(--fs,1));flex:1 1 110px;min-width:0")} />
                       {g.adaTgl ? <button className="btn btn-ghost" onClick={g.hapus} style={css("height:44px;padding:0 12px;font-size:calc(13px*var(--fs,1))")}>Kosongkan</button> : null}
                     </div>
                   </div>
