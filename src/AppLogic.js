@@ -120,6 +120,7 @@ export default class AppLogic extends DCLogic {
   readSnap() { return bacaSnap(); }
   componentDidMount() {
     { const tryL = i => { const c = ['icon-192.png', 'app/icon-192.png'], im = new Image(); im.onload = () => { this._logo = c[i]; const b = this.logoBox.current; if (b) { im.alt = ''; im.style.cssText = 'width:30px;height:30px;display:block'; b.textContent = ''; b.appendChild(im); } }; im.onerror = () => { if (i + 1 < c.length) tryL(i + 1); }; im.src = c[i]; }; tryL(0); }
+    if (!this.live()) this.applyJadwal([]);
     if (!this.live()) this.jadwal = this.jadwal.concat(this.parseJadwal(this.localJadwal()).map((x, i) => ({ ...x, id: this.jadwal.length + i })));
     this._onResize = () => this.forceUpdate(); window.addEventListener('resize', this._onResize);
     this._onOnline = () => this.syncNow(true); window.addEventListener('online', this._onOnline); window.addEventListener('offline', this._onResize);
@@ -163,7 +164,11 @@ export default class AppLogic extends DCLogic {
   applyJadwal(rows) {
     Object.keys(this.data).forEach(m => this.data[m].rites.forEach(r => { if (!r._o) r._o = { day: r.day, place: r.place }; r.day = r._o.day; r.place = r._o.place; }));
     (rows || []).forEach(x => { const X = this.data[String(x['Mode'] || '').trim().toLowerCase()]; if (!X) return; const r = X.rites.find(r => r.n === this.legacy(String(x['Kegiatan'] || '').trim())); if (!r) return;
-      const h = String(x['Hari'] || '').trim(), t = String(x['Tempat'] || '').trim(); if (h) r.day = h; if (t) r.place = t; });
+      const h = String(x['Hari'] || '').trim(), t = String(x['Tempat'] || '').trim(); if (h) r.day = h; if (t) r.place = t;
+      r.tgl = /^\d{4}-\d{2}-\d{2}$/.test(String(x['Tanggal'] || '').trim()) ? String(x['Tanggal']).trim() : ''; });
+    // Tanggal yang diubah di HP ini tetapi belum terkirim (atau mode contoh) menimpa data Sheet
+    const lokal = this.live() ? this.queue.filter(q => q.jenis === 'tanggal') : Object.entries(this.tglDemo()).map(([k, v]) => { const [mode, kegiatan] = k.split('|'); return { mode, kegiatan, tanggal: v }; });
+    lokal.forEach(q => { const X = this.data[String(q.mode).toLowerCase()], r = X && X.rites.find(r => r.n === q.kegiatan); if (r) r.tgl = q.tanggal || ''; });
     this.data.umrah.rites.forEach(r => { if (r.miqat) r.p = r.place ? 'Miqat ' + r.place : 'Miqat (belum ditentukan)'; });
   }
   fmtTgl(t) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t || ''); return m ? +m[3] + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][+m[2] - 1] : ''; }
@@ -186,6 +191,33 @@ export default class AppLogic extends DCLogic {
   badalCand(k, list) { const S = this.state, m = S.mode, D = S.done[m], r = this.data[m].rites[k], M = this.meta(m);
     return (list || this.scopeList(S.ck)).filter(j => !this.naLock(m, k, j, D) && !D[k][j.id] && (r.opt ? !(r.covers || []).every(g => (M.slots[g] || []).some(x => D[x][j.id])) : !this.sat(m, k, j, D)))
       .sort((a, b) => (S.udz[b.id] ? 1 : 0) - (S.udz[a.id] ? 1 : 0)); }
+  // Susulan otomatis: dilaksanakan SETELAH tanggal jadwal. Tanpa tanggal jadwal, pakai penanda lama (sus).
+  autoSus(r, tgl, sus, x) { if (r && r.tgl && tgl && !(x && x.ulangKe)) return tgl > r.tgl; return !!sus; }
+  // Centang ini terlambat dari jadwal? Bila tanggal jadwal belum diisi, pakai urutan kegiatan berlangsung.
+  telat(m, kk) { const r = this.data[m].rites[kk]; return r.tgl ? this.defTgl(r) > r.tgl : kk < this.data[m].cur; }
+  tglDemo() { try { return JSON.parse(localStorage.getItem('mk.tgldemo')) || {}; } catch (e) { return {}; } }
+  modeLabel(m) { return { haji: 'Haji', umrah: 'Umrah', madinah: 'Madinah' }[m] || m; }
+  // Atur tanggal jadwal untuk sekelompok kegiatan (satu hari). Ikut antrean offline.
+  setTglJadwal(m, names, tgl) {
+    const X = this.data[m], items = [], demo = this.tglDemo();
+    names.forEach(n => { const r = X.rites.find(r => r.n === n); if (!r) return; r.tgl = tgl;
+      if (this.live()) { const ex = this.queue.find(q => q.jenis === 'tanggal' && q.mode === this.modeLabel(m) && q.kegiatan === n && !this._inflight.has(q));
+        if (ex) { ex.tanggal = tgl; ex.waktu = new Date().toISOString(); } else items.push({ jenis: 'tanggal', mode: this.modeLabel(m), kegiatan: n, tanggal: tgl }); }
+      else demo[this.modeLabel(m) + '|' + n] = tgl; });
+    if (this.live()) { this.saveQueue(); this.push(items); } else try { localStorage.setItem('mk.tgldemo', JSON.stringify(demo)); } catch (e) {}
+    this.forceUpdate();
+  }
+  // Ubah tanggal pelaksanaan satu jamaah untuk kegiatan yang sudah dicentang; Susulan dihitung ulang.
+  ubahTglJamaah(id, k, tgl) {
+    const S = this.state, m = S.mode, key = m + '|' + k + '|' + id, today = this.todayKey();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(tgl || '')) { this.flash('Pilih tanggal dulu'); return; }
+    if (tgl > today) { this.flash('Tanggal pelaksanaan tidak boleh setelah hari ini'); return; }
+    const ex = S.ex[key] || {};
+    this.commit([id], true, k, tgl, (S.tg[key] || {}).s, ex.ulangKe ? ex : { ...ex });
+    const r = this.data[m].rites[k]; this.setState({ tgJ: null });
+    this.flash('Tanggal ' + r.p + ' · ' + this.fmtTgl(tgl) + (this.autoSus(r, tgl, (S.tg[key] || {}).s, ex) ? ' · Susulan' : ' · tepat waktu'));
+  }
+  fmtHari(t) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t || ''); if (!m) return ''; try { return new Intl.DateTimeFormat('id-ID', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]))); } catch (e) { return this.fmtTgl(t); } }
   defTgl(r) { const t = this.todayKey(); if (r && r.malam && this.wasHour() < 12) { const d = new Date(t + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); } return t; }
   fmtH(t) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t || ''); if (!m) return ''; try { const p = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric', month: 'numeric', timeZone: 'UTC' }).formatToParts(new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])));
       const d = +(p.find(x => x.type === 'day') || {}).value, mo = +(p.find(x => x.type === 'month') || {}).value; if (!d || !mo) throw 0;
@@ -247,6 +279,8 @@ export default class AppLogic extends DCLogic {
   mergeSnap(snap, items) { snap.status = snap.status || {};
     items.forEach(it => { if (it.jenis === 'centang') snap.status[it.porsi + '|' + it.kegiatan] = { waktu: it.waktu, kegiatan: it.kegiatan, status: it.status, pelaksana: it.pelaksana, tanggal: it.tanggal, susulan: it.susulan === 'Ya', pendamping: it.pendamping, pilihan: it.pilihan, alasan: it.alasan, ulangKe: it.ulangKe, statusUlang: it.statusUlang };
       else if (it.jenis === 'pengaturan') snap.pengaturan = { ...(snap.pengaturan || {}), ...it.nilai };
+      else if (it.jenis === 'tanggal') { const rows = snap.jadwalKegiatan = snap.jadwalKegiatan || [], r = rows.find(x => x['Mode'] === it.mode && this.legacy(x['Kegiatan']) === it.kegiatan);
+        if (r) r['Tanggal'] = it.tanggal; else rows.push({ 'Mode': it.mode, 'Kegiatan': it.kegiatan, 'Tanggal': it.tanggal }); }
       else { if (it.jenis === 'udzur') (snap.riwayatUdzur = snap.riwayatUdzur || []).push({ 'Waktu': it.waktu, 'Nomor Porsi': it.porsi, 'Nama': it.nama, 'Status': it.udzur ? 'Udzur' : 'Tidak udzur', 'Alasan': it.alasan, 'Petugas': it.petugas, 'ID Kirim': it.id });
         const r = (snap.jamaah || []).find(x => String(x['Nomor Porsi']) === it.porsi); if (r) { if (it.udzur !== undefined) r['Udzur'] = it.udzur ? 'Ya' : 'Tidak'; if (it.catatan !== undefined) r['Catatan'] = it.catatan; } } }); }
   fetchAll(url, key, ping) { return ambilSemua(url, key, { ping }); }
@@ -418,7 +452,7 @@ export default class AppLogic extends DCLogic {
     if (r.safari && !(x && x.alasan)) { this.setState({ confirm: null, safDlg: { ids, k: kk, why: '', cat: '', c } }); return; }
     const ul = ids.filter(id => (S.ex[m + '|' + kk + '|' + id] || {}).stUlang === 'Perlu ulang');
     if (ul.length && ul.length === ids.length) { const e0 = S.ex[m + '|' + kk + '|' + ids[0]] || {}; this.setState({ confirm: null, susDlg: { ids, rite: kk, tgl: this.todayKey(), c, x, ulang: (e0.ulangKe || 1) + 1, pend: '', pq: '' } }); return; }
-    if (kk < this.data[m].cur) { this.setState({ confirm: null, susDlg: { ids, rite: kk, tgl: this.defTgl(r), c, x, pend: '', pq: '' } }); return; }
+    if (this.telat(m, kk)) { this.setState({ confirm: null, susDlg: { ids, rite: kk, tgl: this.defTgl(r), c, x, pend: '', pq: '' } }); return; }
     if (r.tarw) x = { pil: 'Tarwiyah ' + (S.ck.tarwD || 8) + ' Dzh', ...(x || {}) };
     this.commit(ids, true, kk, undefined, false, x);
     if (c) { this.setState({ confirm: null }); this.flash(ids.length + ' jamaah dicentang', { mode: m, rite: kk, ids, prev: ids.map(() => false) }); }
@@ -429,9 +463,10 @@ export default class AppLogic extends DCLogic {
     (M.cov[M.slotOf[k]] || []).forEach(x => out.add(x)); out.delete(k); return [...out]; }
   commit(ids, val, kk, tgl, sus, x) {
     const S = this.state, m = S.mode, D = S.done[m], conf = val ? this.conflicts(m, kk) : [], items = [];
+    const r = this.data[m].rites[kk], t0 = tgl || this.defTgl(r);
+    if (val) sus = this.autoSus(r, t0, sus, x);
     ids.forEach(id => { conf.forEach(k2 => { if (D[k2][id]) items.push(this.item(k2, id, false)); }); items.push(this.item(kk, id, val, undefined, tgl, sus, x)); });
     this.push(items);
-    const r = this.data[m].rites[kk], t0 = tgl || this.defTgl(r);
     this.setState(s => { const all = { ...s.done }, arr = all[m].slice(), tg = { ...s.tg }, ex = { ...s.ex }, row = arr[kk].slice();
       conf.forEach(k2 => { arr[k2] = arr[k2].slice(); });
       ids.forEach(i => { row[i] = val; const key = m + '|' + kk + '|' + i;
@@ -734,7 +769,7 @@ export default class AppLogic extends DCLogic {
     const x = { ...(d.x || {}), ...(d.pend ? { pend: d.pend } : {}), ...(d.ulang ? { ulangKe: d.ulang, stUlang: 'Selesai diulang' } : {}) };
     if (R.tarw && !x.pil) x.pil = 'Tarwiyah ' + (S.ck.tarwD || 8) + ' Dzh';
     this.commit(d.ids, true, d.rite, tgl, !d.ulang, x); this._ket = ''; this.setState({ susDlg: null, confirm: null });
-    const lbl = d.ulang ? 'Ulang ke-' + d.ulang + ' · ' + this.fmtTgl(tgl) : 'Susulan · ' + this.fmtH(tgl);
+    const lbl = d.ulang ? 'Ulang ke-' + d.ulang + ' · ' + this.fmtTgl(tgl) : this.autoSus(R, tgl, true, x) ? 'Susulan · ' + this.fmtH(tgl) : 'tepat waktu · ' + this.fmtTgl(tgl);
     this.flash(d.ids.length + ' jamaah dicatat ' + lbl, { mode: m, rite: d.rite, ids: d.ids, prev: d.ids.map(() => false) }); }
 
   renderVals() {
@@ -758,7 +793,19 @@ export default class AppLogic extends DCLogic {
         tagBg: r.k === 'Rukun' ? 'var(--color-accent-100)' : r.k === 'Wajib' ? 'var(--color-accent-2-100)' : 'var(--color-neutral-200)', tagFg: r.k === 'Rukun' ? 'var(--color-accent-800)' : r.k === 'Wajib' ? 'var(--color-accent-2-800)' : 'var(--color-neutral-800)',
         cntFg: st === 'now' ? 'var(--color-accent-700)' : st === 'done' ? 'var(--color-accent-2-700)' : 'var(--color-neutral-700)',
         on: go('checklist', { ck: { ...ck, rite: i, scope: 'kloter' } }) }; });
-    const riteGroups = this.group(rites).map(g => { const now = g.day === X.rites[ci].day; return { ...g, note: now ? 'Hari ini' : '', fg: now ? 'var(--color-accent-700)' : 'var(--color-neutral-700)' }; });
+    const tglDay = day => (X.rites.find(r => r.day === day && r.tgl) || {}).tgl || '', today0 = this.todayKey();
+    const riteGroups = this.group(rites).map(g => { const t = tglDay(g.day), now = t ? t === today0 : g.day === X.rites[ci].day;
+      return { ...g, day: g.day + (t ? ' · ' + this.fmtHari(t) : ''), note: now ? 'Hari ini' : t ? '' : 'tanggal belum diatur', fg: now ? 'var(--color-accent-700)' : 'var(--color-neutral-700)' }; });
+    const tglJadwal = S.tglOpen ? {
+      title: 'Tanggal kegiatan · ' + X.label,
+      groups: this.group(X.rites.map(r => ({ ...r }))).map(g => { const names = X.rites.filter(r => r.day === g.day).map(r => r.n), t = tglDay(g.day);
+        return { day: g.day, names: names.join(' · '), tgl: t, hari: t ? this.fmtHari(t) : 'Belum diatur',
+          onTgl: e => this.setTglJadwal(S.mode, names, e.target.value), hapus: () => this.setTglJadwal(S.mode, names, ''), adaTgl: !!t }; }),
+      tutup: () => this.setState({ tglOpen: false }) } : null;
+    const tgJ = S.tgJ ? (() => { const j = this.jm[S.tgJ.id], r = X.rites[S.tgJ.k], t = S.tgJ.tgl, sus = this.autoSus(r, t, false, {});
+      return { title: r.p + ' · ' + j.name, jadwal: r.tgl ? 'Jadwal kloter: ' + this.fmtHari(r.tgl) : 'Tanggal jadwal belum diatur · Susulan tidak dihitung otomatis', tgl: t, max: today0,
+        hasil: !r.tgl || !t ? '' : sus ? 'Akan tercatat SUSULAN (setelah tanggal jadwal)' : 'Tercatat tepat waktu', hasilFg: sus ? '#7a5200' : 'var(--color-accent-800)', hasilBg: sus ? '#fdf0c4' : 'var(--color-accent-100)',
+        onTgl: e => this.patch('tgJ', { tgl: e.target.value }), simpan: () => this.ubahTglJamaah(S.tgJ.id, S.tgJ.k, t), batal: () => this.setState({ tgJ: null }) }; })() : null;
     const RS = this.rekapStats();
     const stats = [
       { v: belum, l: 'Belum', icon: 'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z', bg: 'var(--color-accent-100)', fg: 'var(--color-accent)', ring: 'transparent', on: go('jamaah', { jl: { ...J, f: 'belum', r: 0 } }) },
@@ -808,6 +855,7 @@ export default class AppLogic extends DCLogic {
             : ee.stUlang === 'Perlu ulang' ? '↺ Perlu ulang' : alt >= 0 ? 'Dipilih: ' + X.rites[alt].p : r.opt ? '—' : k < ci ? 'Tertinggal' : k === ci ? 'Berlangsung' : '—';
           return { n: r.n, day: r.day, mark: d ? '✓' : '', bg: d ? (r.badal ? 'var(--color-accent-2)' : tgE.s ? '#c98a00' : 'var(--color-accent)') : na ? 'var(--color-neutral-200)' : 'transparent', ring: d ? 'transparent' : 'var(--color-neutral-400)', st,
             fg: na || alt >= 0 ? 'var(--color-neutral-700)' : tgE.s || ee.stUlang === 'Perlu ulang' ? '#7a5200' : d ? 'var(--color-accent-2-700)' : k <= ci ? 'var(--color-accent-700)' : 'var(--color-neutral-700)',
+            tglTxt: d && tgE.t ? this.fmtHari(tgE.t) : '', ubahTgl: d ? () => this.setState({ tgJ: { id: j.id, k, tgl: tgE.t || this.defTgl(r) } }) : null,
             on: na ? () => {} : () => { if (d) this.setDone([j.id], false, k); else { this.setState({ sel: null }); this.setDone([j.id], true, k); } } }; }) }; }
     // checklist
     const isMad = S.mode === 'madinah', slot = isMad && ck.slot != null ? this.jadwal[ck.slot] : null;
@@ -993,7 +1041,7 @@ export default class AppLogic extends DCLogic {
       blMore: RS.bl.length > 12, blMoreTxt: '+' + (RS.bl.length - 12) + ' lainnya · lihat lembar cetak' };
     const susSheet = (() => { const d = S.susDlg; if (!d) return {}; const R = X.rites[d.rite], today = this.todayKey();
       const addD = (iso, n) => { const t = new Date(iso + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
-      const a = parseInt(X.rites[ci].day), b = parseInt(R.day), off = isNaN(a) || isNaN(b) ? 0 : Math.max(0, a - b), base = addD(today, -off);
+      const a = parseInt(X.rites[ci].day), b = parseInt(R.day), off = isNaN(a) || isNaN(b) ? 0 : Math.max(0, a - b), base = R.tgl && R.tgl <= today ? R.tgl : addD(today, -off);
       const cand = [[base, 'Hari jadwal'], [addD(base, 1), '+1 hari'], [addD(base, 2), '+2 hari']].filter(([t], i, arr) => t <= today && arr.findIndex(x => x[0] === t) === i);
       if (!cand.some(x => x[0] === today)) cand.push([today, 'Hari ini']);
       const opts = cand.map(([t, l]) => { const on = d.tgl === t && !d.other; return { l: l + ' · ' + this.fmtTgl(t), bg: on ? '#fdf0c4' : 'var(--color-surface)', fg: on ? '#5a3f00' : 'var(--color-text)', ring: on ? '#c98a00' : 'var(--color-divider)', on: () => this.setState(st => ({ susDlg: { ...st.susDlg, tgl: t, other: false } })) }; });
@@ -1002,11 +1050,11 @@ export default class AppLogic extends DCLogic {
       const pOpts = !R.pend || d.pend ? [] : (pq ? this.petugas.filter(p => p.name.toLowerCase().includes(pq)).map(p => ({ key: p.key, name: p.name, sub: p.role + ' · Petugas' })).concat(this.jm.filter(j => j.name.toLowerCase().includes(pq) || j.porsi.includes(pq)).slice(0, 8).map(j => ({ key: 'j' + j.id, name: j.name, sub: 'Jamaah R' + j.r + ' · Regu ' + j.g }))).concat([{ key: 'x:' + d.pq.trim(), name: d.pq.trim(), sub: 'Nama lain · ketik manual' }])
         : this.petugas.map(p => ({ key: p.key, name: p.name, sub: p.role + ' · Petugas' }))).map(o => ({ ...o, on: pick(o.key) }));
       const candL = (d.cand || []).map(id => { const j = this.jm[id], a = d.ids.includes(id); return { name: j.name, sub: `R${j.r} · Regu ${j.g}`, mark: a ? '✓' : '', bg: a ? '#c98a00' : 'transparent', ring: a ? '#c98a00' : 'var(--color-neutral-400)', on: () => this.setState(st => ({ susDlg: { ...st.susDlg, ids: a ? st.susDlg.ids.filter(x => x !== id) : [...st.susDlg.ids, id] } })) }; });
-      const t1 = d.tgl || today, prev = d.ulang ? 'Ulang ke-' + d.ulang + ' · ' + this.fmtTgl(t1) : 'Susulan · ' + this.fmtH(t1) + ' (' + this.fmtTgl(t1) + ')';
+      const t1 = d.tgl || today, prev = d.ulang ? 'Ulang ke-' + d.ulang + ' · ' + this.fmtTgl(t1) : this.autoSus(R, t1, true, d.x) ? 'Susulan · ' + this.fmtH(t1) + ' (' + this.fmtTgl(t1) + ')' : 'tepat waktu · ' + this.fmtTgl(t1) + ' (sesuai jadwal)';
       return { n, rite: R.n, title: (d.ulang ? 'Catat ulang ' : d.group ? 'Catat susulan berkelompok · ' : 'Catat susulan ') + R.n, hasCand: !!d.cand, cand: candL, candN: n + ' dari ' + (d.cand || []).length + ' dipilih', hasWho: !d.cand,
         who: n === 1 ? j0.name : n + ' jamaah', whoSub: n === 1 ? `R${j0.r} · Regu ${j0.g} · Porsi ${j0.porsi}` : this.scopeLabel(S.ck), hari: R.day + (R.place ? ' · ' + R.place : ''), opts, other: !!d.other, tgl: t1, max: today, jam: d.jam || '', ket: d.ket || '',
         prev: prev + (d.pend ? ' · didampingi ' + this.pelName(d.pend) : ''), needPend: !!R.pend, hasPend: !!d.pend, noPend: !d.pend, pendName: d.pend ? this.pelName(d.pend) + ' · ' + this.pelRole(d.pend) : '', pq: d.pq || '', pOpts,
-        clearPend: () => this.setState(st => ({ susDlg: { ...st.susDlg, pend: '' } })), noSave: !n || (R.pend && !d.pend), cta: d.ulang ? 'Simpan ulang' : n > 1 ? 'Simpan susulan · ' + n + ' jamaah' : 'Simpan susulan' }; })();
+        clearPend: () => this.setState(st => ({ susDlg: { ...st.susDlg, pend: '' } })), noSave: !n || (R.pend && !d.pend), cta: d.ulang ? 'Simpan ulang' : (this.autoSus(R, t1, true, d.x) ? 'Simpan susulan' : 'Simpan') + (n > 1 ? ' · ' + n + ' jamaah' : '') }; })();
     const amb = a => ({ bg: a ? '#fdf0c4' : 'var(--color-surface)', fg: a ? '#5a3f00' : 'var(--color-text)', ring: a ? '#c98a00' : 'var(--color-divider)' });
     const sfd = S.safDlg, sf = sfd ? (() => { const n = sfd.ids.length, j0 = this.jm[sfd.ids[0]]; return { who: n === 1 ? j0.name : n + ' jamaah', cat: sfd.cat, catReq: sfd.why === 'Lainnya' ? 'Catatan (wajib)' : 'Catatan (opsional)', noSave: !sfd.why || (sfd.why === 'Lainnya' && !sfd.cat.trim()),
       whys: ['Dirawat di KKHI/RS', 'Lansia/Risti', 'Kursi roda', 'Lainnya'].map(l => { const a = sfd.why === l; return { l, bg: a ? '#e3eaf3' : 'var(--color-surface)', fg: a ? '#1f4673' : 'var(--color-text)', ring: a ? 'var(--color-accent-2)' : 'var(--color-divider)', on: () => this.patch('safDlg', { why: l }) }; }) }; })() : {};
@@ -1089,6 +1137,7 @@ export default class AppLogic extends DCLogic {
         if (off) return { title: 'Tanpa internet · aplikasi tetap bisa dipakai', text: n ? n + ' perubahan tersimpan di HP ini dan terkirim otomatis saat ada sinyal.' : 'Centang tetap tersimpan di HP ini dan terkirim otomatis saat ada sinyal.', dot: '#c98a00', bg: '#fdf0c4', fg: '#5a3f00' };
         if (n) return { title: 'Mengirim ' + n + ' perubahan…', text: 'Jangan tutup aplikasi sampai angka antre menjadi 0.', dot: 'var(--color-accent-300)', bg: 'var(--color-accent-100)', fg: 'var(--color-accent-800)' };
         return null; })(),
+      tglJadwal, tgJ, openTgl: () => this.setState({ tglOpen: true }),
       canInstall: !!this._installEvt,
       doInstall: () => { const e = this._installEvt; if (!e) return; e.prompt(); (e.userChoice || Promise.resolve()).finally(() => { this._installEvt = null; this.forceUpdate(); }); },
       installHint: (() => { const sa = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone; if (sa) return '';

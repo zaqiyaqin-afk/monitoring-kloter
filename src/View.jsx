@@ -335,8 +335,13 @@ export default function View({ v }) {
                 {" "}
                 <div>
                   {" "}
-                  <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:20px;margin-bottom:10px")}>
-                    Rukun & wajib{" "}{txt(v.d?.label)}
+                  <div style={css("display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px")}>
+                    <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:20px")}>
+                      Rukun & wajib{" "}{txt(v.d?.label)}
+                    </div>
+                    <button onClick={v.openTgl} style={css("flex:none;border:0;border-radius:999px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 13px var(--font-body);padding:8px 14px;cursor:pointer")}>
+                      Atur tanggal
+                    </button>
                   </div>
                   {" "}
                   <div style={css("display:grid;gap:14px")}>
@@ -1960,9 +1965,14 @@ export default function View({ v }) {
                           <div style={css("font-size:13px;color:var(--color-neutral-700)")}>
                             {txt(r?.day)}
                           </div>
+                          {r?.ubahTgl ? (
+                            <button onClick={e => { e.stopPropagation(); r.ubahTgl(); }} style={css("margin-top:4px;border:1px solid var(--color-divider);background:var(--color-bg);border-radius:999px;padding:3px 10px;font:600 12px var(--font-body);color:var(--color-accent-800);cursor:pointer")}>
+                              {r.tglTxt ? 'Dilaksanakan ' + r.tglTxt + ' · ubah' : 'Atur tanggal pelaksanaan'}
+                            </button>
+                          ) : null}
                         </div>
                         {" "}
-                        <span style={css(`font-size:13px;color:${r?.fg ?? ''};font-weight:700`)}>
+                        <span style={css(`font-size:13px;color:${r?.fg ?? ''};font-weight:700;text-align:right`)}>
                           {txt(r?.st)}
                         </span>
                         {" "}
@@ -2544,6 +2554,47 @@ export default function View({ v }) {
             {" "}
           </>) : null}
           {" "}
+          {v.tglJadwal ? (
+            <div onClick={v.tglJadwal.tutup} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:7")}>
+              <div onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+                <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
+                <div style={css("font-weight:800;font-size:19px")}>{txt(v.tglJadwal.title)}</div>
+                <div style={css("font-size:13px;line-height:1.45;color:var(--color-neutral-700)")}>
+                  Pilih tanggal (Masehi) untuk tiap hari kegiatan. Jamaah yang melaksanakan <b>setelah</b> tanggal ini otomatis tercatat <b>Susulan</b>. Bisa diubah kapan saja, juga tanpa internet.
+                </div>
+                {arr(v.tglJadwal.groups).map((g, i0) => (
+                  <div key={i0} style={css("background:var(--color-surface);border-radius:20px;padding:12px 14px;display:grid;gap:8px;box-shadow:0 1px 2px rgba(16,40,30,.05)")}>
+                    <div style={css("display:flex;justify-content:space-between;gap:8px;align-items:baseline")}>
+                      <b style={css("font-size:14.5px")}>{txt(g.day)}</b>
+                      <span style={css(`font-size:12.5px;font-weight:700;color:${g.adaTgl ? 'var(--color-accent-800)' : 'var(--red-600)'}`)}>{txt(g.hari)}</span>
+                    </div>
+                    <div style={css("font-size:12.5px;color:var(--color-neutral-700);line-height:1.4")}>{txt(g.names)}</div>
+                    <div style={css("display:flex;gap:8px")}>
+                      <input className="input" type="date" value={g.tgl} onChange={g.onTgl} style={css("height:44px;font-size:14px;flex:1;min-width:0")} />
+                      {g.adaTgl ? <button className="btn btn-ghost" onClick={g.hapus} style={css("height:44px;padding:0 12px;font-size:13px")}>Kosongkan</button> : null}
+                    </div>
+                  </div>
+                ))}
+                <button className="btn btn-primary" onClick={v.tglJadwal.tutup} style={css("height:48px")}>Selesai</button>
+              </div>
+            </div>
+          ) : null}
+          {v.tgJ ? (
+            <div onClick={v.tgJ.batal} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:8")}>
+              <div onClick={v.stop} style={css("width:100%;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+                <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
+                <div style={css("font-weight:800;font-size:18px")}>Tanggal pelaksanaan</div>
+                <div style={css("font-size:14px;font-weight:600")}>{txt(v.tgJ.title)}</div>
+                <div style={css("font-size:13px;color:var(--color-neutral-700)")}>{txt(v.tgJ.jadwal)}</div>
+                <input className="input" type="date" value={v.tgJ.tgl} max={v.tgJ.max} onChange={v.tgJ.onTgl} style={css("height:48px;font-size:15px")} />
+                {v.tgJ.hasil ? <div style={css(`border-radius:14px;padding:10px 12px;font-size:13px;font-weight:700;background:${v.tgJ.hasilBg};color:${v.tgJ.hasilFg}`)}>{txt(v.tgJ.hasil)}</div> : null}
+                <div style={css("display:grid;grid-template-columns:1fr 1.6fr;gap:8px")}>
+                  <button className="btn btn-secondary" onClick={v.tgJ.batal} style={css("height:46px")}>Batal</button>
+                  <button className="btn btn-primary" onClick={v.tgJ.simpan} style={css("height:46px")}>Simpan tanggal</button>
+                </div>
+              </div>
+            </div>
+          ) : null}
           {v.hasSync ? (<>
             {" "}
             <div onClick={v.closeSync} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:6")}>

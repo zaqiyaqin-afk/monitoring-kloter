@@ -34,6 +34,10 @@ export function pasangMock() {
         riw.push({ 'Waktu': i.waktu, 'Nomor Porsi': i.porsi, 'Nama': i.nama, 'Status': i.udzur ? 'Udzur' : 'Tidak udzur', 'Alasan': i.alasan, 'Petugas': i.petugas, 'Perangkat': i.perangkat, 'ID Kirim': i.id });
         const j = (ms.jamaah || []).find(x => x['Nomor Porsi'] === i.porsi); if (j) j['Udzur'] = i.udzur ? 'Ya' : 'Tidak';
       });
+      const jk = ms.jadwalKegiatan = ms.jadwalKegiatan || [];
+      body.items.filter(i => i.jenis === 'tanggal').forEach(i => { const r = jk.find(x => x.Mode === i.mode && x.Kegiatan === i.kegiatan); if (r) r.Tanggal = i.tanggal; else jk.push({ Mode: i.mode, Kegiatan: i.kegiatan, Hari: '', Tempat: '', Tanggal: i.tanggal }); });
+      ms.status = ms.status || {};
+      body.items.filter(i => i.jenis === 'centang').forEach(i => { ms.status[i.porsi + '|' + i.kegiatan] = { waktu: i.waktu, kegiatan: i.kegiatan, status: i.status, tanggal: i.tanggal, susulan: i.susulan === 'Ya' }; });
       localStorage.setItem('mk.mockSnap', JSON.stringify(ms));
       return new Response(JSON.stringify({ ok: true, diterima: body.items.length, diabaikan: 0, dobel: 0 }));
     }

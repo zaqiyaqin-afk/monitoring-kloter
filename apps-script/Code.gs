@@ -69,7 +69,7 @@ const KOLOM = {
   'Jadwal Raudhoh': ['Tanggal', 'Jam', 'Jenis Kelamin', 'Rombongan', 'Keterangan'],
   Petugas: ['Nama', 'Jabatan'],
   Log: ['Waktu', 'Perangkat', 'Nomor Porsi', 'Nama', 'Kegiatan', 'Status', 'Pelaksana Badal', 'Keterangan', 'Tanggal Pelaksanaan', 'Susulan', 'Pendamping', 'Pilihan', 'Alasan', 'Ulang Ke', 'Status Ulang', 'ID Kirim', 'Petugas'],
-  'Jadwal Kegiatan': ['Mode', 'Kegiatan', 'Hari', 'Tempat'],
+  'Jadwal Kegiatan': ['Mode', 'Kegiatan', 'Hari', 'Tempat', 'Tanggal'],
   Pengaturan: ['Nama', 'Nilai'],
   'Riwayat Udzur': ['Waktu', 'Nomor Porsi', 'Nama', 'Status', 'Alasan', 'Petugas', 'Perangkat', 'ID Kirim']
 };
@@ -126,12 +126,13 @@ function daftarKegiatan() { return [...new Set(jadwalBawaan().map(r => r[1]))]; 
 
 function isiJadwalKegiatan(ss) {
   const sh = ss.getSheetByName('Jadwal Kegiatan');
-  sh.getRange(1, 1, sh.getMaxRows(), 4).setNumberFormat('@');
+  pastikanKolom(sh, 'Jadwal Kegiatan');
+  sh.getRange(1, 1, sh.getMaxRows(), 5).setNumberFormat('@');
   const ada = {}; baca('Jadwal Kegiatan').forEach(r => { ada[r['Mode'] + '|' + r['Kegiatan']] = true; });
   const baru = jadwalBawaan().filter(r => !ada[r[0] + '|' + r[1]]);
   if (baru.length) sh.getRange(sh.getLastRow() + 1, 1, baru.length, 4).setValues(baru);
   sh.getRange('A2:A').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Haji', 'Umrah', 'Madinah']).build());
-  sh.setColumnWidth(1, 80); sh.setColumnWidth(2, 220); sh.setColumnWidth(3, 130); sh.setColumnWidth(4, 190);
+  sh.setColumnWidth(1, 80); sh.setColumnWidth(2, 220); sh.setColumnWidth(3, 130); sh.setColumnWidth(4, 190); sh.setColumnWidth(5, 110);
   sh.getProtections(SpreadsheetApp.ProtectionType.RANGE).forEach(p => p.remove());
   sh.getRange('A2:B').protect().setWarningOnly(true).setDescription('Jangan ubah Mode dan Kegiatan: dipakai sebagai kunci Log. Ubah Hari dan Tempat saja.');
 }
@@ -489,7 +490,7 @@ function doGet(e) {
   const p = e.parameter || {}, cek = kunciSah(p.key);
   if (!cek.ok) return json(cek);
   if (p.aksi === 'ping') return json({ ok: true, pong: true, waktu: new Date().toISOString() });
-  return json({ ok: true, waktu: new Date().toISOString(), jamaah: baca('Jamaah'), petugas: baca('Petugas'), jadwal: bacaTampil('Jadwal Raudhoh'), status: statusTerakhir(), jadwalKegiatan: baca('Jadwal Kegiatan'),
+  return json({ ok: true, waktu: new Date().toISOString(), jamaah: baca('Jamaah'), petugas: baca('Petugas'), jadwal: bacaTampil('Jadwal Raudhoh'), status: statusTerakhir(), jadwalKegiatan: bacaJadwalKegiatan(),
     pengaturan: pengaturan(), otomatis: otomatisAktif(), riwayatUdzur: baca('Riwayat Udzur') });
 }
 
@@ -515,6 +516,8 @@ function doPost(e) {
     }
     const udz = (body.items || []).filter(i => i.jenis === 'udzur' && i.porsi);
     if (udz.length) catatUdzur(ss, udz, now);
+    const tgl = (body.items || []).filter(i => i.jenis === 'tanggal' && i.kegiatan).sort((a, b) => Date.parse(a.waktu) - Date.parse(b.waktu));
+    if (tgl.length) tulisTanggalJadwal(ss, tgl);
     // Aturan konflik: CENTANG TERAKHIR MENANG (berdasarkan cap waktu per centang di perangkat)
     const items = (body.items || []).map(i => { let t = Date.parse(i.waktu); if (isNaN(t) || t > now + 300000) t = now; return Object.assign({}, i, { waktu: new Date(t).toISOString() }, i.jenis === 'centang' ? { kegiatan: namaBaru(i.kegiatan) } : {}); })
       .sort((a, b) => Date.parse(a.waktu) - Date.parse(b.waktu));
@@ -611,6 +614,26 @@ function catatUdzur(ss, items, now) {
   const jm = ss.getSheetByName('Jamaah'), data = jm.getDataRange().getValues(), hj = data[0].map(String), cP = hj.indexOf('Nomor Porsi'), cU = hj.indexOf('Udzur') + 1;
   if (cU < 1) return;
   porsi.forEach(p => { const r = data.findIndex((row, n) => n > 0 && String(row[cP]) === p); if (r > 0) jm.getRange(r + 1, cU).setValue(ubahJamaah[p] ? 'Ya' : 'Tidak'); });
+}
+
+// Tanggal jadwal (Masehi, yyyy-MM-dd) per kegiatan dari aplikasi -> kolom Tanggal di tab Jadwal Kegiatan.
+function tulisTanggalJadwal(ss, items) {
+  const sh = ss.getSheetByName('Jadwal Kegiatan'); if (!sh) return;
+  pastikanKolom(sh, 'Jadwal Kegiatan');
+  const data = sh.getDataRange().getValues(), h = data[0].map(String), cM = h.indexOf('Mode'), cK = h.indexOf('Kegiatan'), cT = h.indexOf('Tanggal') + 1;
+  items.forEach(i => {
+    const t = /^\d{4}-\d{2}-\d{2}$/.test(String(i.tanggal || '')) ? String(i.tanggal) : '';
+    const r = data.findIndex((row, n) => n > 0 && String(row[cM]) === String(i.mode) && namaBaru(row[cK]) === namaBaru(i.kegiatan));
+    if (r > 0) sh.getRange(r + 1, cT).setNumberFormat('@').setValue(t);
+  });
+}
+
+// Seperti baca(), tetapi tanggal yang diketik manual di Sheet (jadi objek Date) diubah ke yyyy-MM-dd menurut zona waktu Sheet.
+function bacaJadwalKegiatan() {
+  const sh = SpreadsheetApp.getActive().getSheetByName('Jadwal Kegiatan');
+  if (!sh || sh.getLastRow() < 2) return [];
+  const tz = SpreadsheetApp.getActive().getSpreadsheetTimeZone(), [h, ...rows] = sh.getDataRange().getValues();
+  return rows.filter(r => r.some(v => v !== '')).map(r => Object.fromEntries(h.map((k, i) => [k, r[i] instanceof Date ? Utilities.formatDate(r[i], tz, 'yyyy-MM-dd') : r[i]])));
 }
 
 /* ---------- Bantuan ---------- */
