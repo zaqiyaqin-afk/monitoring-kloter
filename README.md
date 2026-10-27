@@ -62,7 +62,7 @@ Aplikasi berupa situs statis, jadi bisa diterbitkan gratis. Pilih salah satu:
 
 1. *Fork* atau unggah repo ini ke akun GitHub Anda.
 2. **Settings › Pages › Build and deployment › Source: GitHub Actions**.
-3. Setiap ada perubahan di cabang `main`, workflow [deploy-pages.yml](.github/workflows/deploy-pages.yml) menguji `Code.gs`, membangun, dan menerbitkan aplikasi ke `https://<akun>.github.io/<nama-repo>/`.
+3. Workflow [deploy-pages.yml](.github/workflows/deploy-pages.yml) menguji `Code.gs`, membangun, dan menerbitkan aplikasi ke `https://<akun>.github.io/<nama-repo>/`. Saat ini workflow hanya berjalan manual (*Actions › Terbitkan ke GitHub Pages › Run workflow*). Untuk terbit otomatis setiap ada perubahan di `main`, hapus tanda `#` pada pemicu `push` di file tersebut. GitHub Pages gratis hanya untuk repo publik; untuk repo private pakai Netlify.
 
 ### B. Netlify
 

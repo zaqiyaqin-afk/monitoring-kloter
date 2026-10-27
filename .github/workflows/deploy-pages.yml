@@ -1,10 +1,12 @@
-# Terbitkan aplikasi ke GitHub Pages setiap ada perubahan di cabang main.
-# Aktifkan sekali: Settings > Pages > Build and deployment > Source: GitHub Actions.
+# Terbitkan aplikasi ke GitHub Pages.
+# Sementara hanya dijalankan manual (Actions > Terbitkan ke GitHub Pages > Run workflow) karena repo masih private;
+# GitHub Pages gratis hanya untuk repo publik. Setelah repo publik, aktifkan lagi pemicu push di bawah dan
+# atur Settings > Pages > Build and deployment > Source: GitHub Actions.
 name: Terbitkan ke GitHub Pages
 
 on:
-  push:
-    branches: [main]
+  # push:
+  #   branches: [main]
   workflow_dispatch:
 
 permissions:
