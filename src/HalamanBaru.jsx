@@ -9,7 +9,7 @@ import Kejadian from './Kejadian.jsx';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 const kartu = { background: 'var(--color-surface)', borderRadius: 20, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.06)', border: '1px solid var(--color-divider)', display: 'grid', gap: 12 };
-const judul = { fontSize: fs(13), fontWeight: 700, color: 'var(--color-neutral-700)', letterSpacing: '.02em', textTransform: 'uppercase' };
+const judul = { fontSize: fs(14), fontWeight: 700, color: 'var(--color-neutral-700)' };
 const tombolPil = on => ({ minHeight: 44, padding: '6px 4px', lineHeight: 1.2, borderRadius: 12, border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent)' : 'transparent', color: on ? 'var(--on-accent)' : 'var(--color-text)', font: `600 ${fs(14)} var(--font-body)`, cursor: 'pointer' });
 const tombol = { minHeight: 46, padding: '8px 12px', lineHeight: 1.25, borderRadius: 14, border: '1.5px solid var(--color-divider)', background: 'transparent', color: 'var(--color-text)', font: `600 ${fs(15)} var(--font-body)`, cursor: 'pointer' };
 const Ikon = ({ d, s = 22 }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;

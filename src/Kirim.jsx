@@ -7,7 +7,7 @@ import { tataCaraUntuk } from './tataCara.js';
 const fs = n => `calc(${n}px*var(--fs,1))`;
 const kartu = { background: 'var(--kartu-bg)', border: '1px solid var(--kartu-garis)', borderRadius: 20, padding: 14, boxShadow: 'var(--kartu-bayang)', display: 'grid', gap: 10, minWidth: 0 };
 const label = { display: 'grid', gap: 5, fontSize: fs(12.5), fontWeight: 700, color: 'var(--color-neutral-700)', minWidth: 0 };
-const input = { minHeight: 42, borderRadius: 12, border: '1.5px solid var(--color-divider)', padding: '0 12px', fontSize: fs(15), fontFamily: 'inherit', background: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', boxSizing: 'border-box', minWidth: 0 };
+const input = { minHeight: 44, borderRadius: 12, border: '1.5px solid var(--color-divider)', padding: '0 12px', fontSize: fs(15), fontFamily: 'inherit', background: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', boxSizing: 'border-box', minWidth: 0 };
 const tombol = { minHeight: 46, borderRadius: 14, border: '1.5px solid var(--color-divider)', background: 'var(--color-surface)', color: 'var(--color-text)', font: `700 ${fs(15)} var(--font-body)`, cursor: 'pointer', padding: '8px 12px' };
 const Ikon = ({ d }) => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 
@@ -62,7 +62,7 @@ function Form({ jenis, d, kembali }) {
   const I = (k, l, p = {}) => <label style={label}>{l}<input style={input} value={f[k] ?? ''} onChange={e => set(k, e.target.value)} {...p} /></label>;
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <button onClick={kembali} style={{ ...tombol, justifySelf: 'start', minHeight: 38, padding: '4px 14px', fontSize: fs(13.5) }}>‹ Semua templat</button>
+      <button onClick={kembali} style={{ ...tombol, justifySelf: 'start', minHeight: 44, padding: '4px 14px', fontSize: fs(13.5) }}>‹ Semua templat</button>
       <div style={kartu}>
         <div style={{ fontSize: fs(17), fontWeight: 800 }}>{J.l}</div>
         {jenis === 'pengingat' && (
@@ -77,7 +77,7 @@ function Form({ jenis, d, kembali }) {
           <label style={label}>Waktu makan
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {['Sarapan', 'Makan siang', 'Makan malam'].map(m => <button key={m} type="button" onClick={() => set('makan', m)} aria-pressed={f.makan === m}
-                style={{ ...tombol, minHeight: 38, padding: '4px 12px', fontSize: fs(13.5), background: f.makan === m ? 'var(--color-accent)' : 'var(--color-surface)', color: f.makan === m ? 'var(--on-accent)' : 'var(--color-text)', borderColor: f.makan === m ? 'var(--color-accent)' : 'var(--color-divider)' }}>{m}</button>)}
+                style={{ ...tombol, minHeight: 44, padding: '4px 12px', fontSize: fs(13.5), background: f.makan === m ? 'var(--color-accent)' : 'var(--color-surface)', color: f.makan === m ? 'var(--on-accent)' : 'var(--color-text)', borderColor: f.makan === m ? 'var(--color-accent)' : 'var(--color-divider)' }}>{m}</button>)}
             </div>
           </label>
         )}
@@ -92,7 +92,7 @@ function Form({ jenis, d, kembali }) {
               {(f.jadwal || []).map((x, i) => (
                 <label key={x.r} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--color-surface)', borderRadius: 12, padding: '4px 8px', border: '1px solid var(--color-divider)', minWidth: 0 }}>
                   <b style={{ fontSize: fs(13), whiteSpace: 'nowrap' }}>R{x.r}</b>
-                  <input type="time" value={x.jam} onChange={e => set('jadwal', f.jadwal.map((y, j) => (j === i ? { ...y, jam: e.target.value } : y)))} style={{ ...input, minHeight: 36, border: 0, padding: '0 4px' }} />
+                  <input type="time" value={x.jam} onChange={e => set('jadwal', f.jadwal.map((y, j) => (j === i ? { ...y, jam: e.target.value } : y)))} style={{ ...input, minHeight: 44, border: 0, padding: '0 4px' }} />
                 </label>
               ))}
             </div>
@@ -111,7 +111,7 @@ function Form({ jenis, d, kembali }) {
       <div style={kartu}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <b style={{ fontSize: fs(14) }}>Pratinjau pesan</b>
-          {ubahManual && <button onClick={() => setUbahManual(false)} style={{ ...tombol, minHeight: 32, padding: '2px 10px', fontSize: fs(12.5) }}>Susun ulang</button>}
+          {ubahManual && <button onClick={() => setUbahManual(false)} style={{ ...tombol, minHeight: 44, padding: '2px 10px', fontSize: fs(12.5) }}>Susun ulang</button>}
         </div>
         <textarea value={teks} onChange={e => { setTeks(e.target.value); setUbahManual(true); }} rows={14}
           style={{ ...input, minHeight: 220, padding: 12, lineHeight: 1.5, resize: 'vertical', fontSize: fs(14) }} />

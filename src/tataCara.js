@@ -43,7 +43,7 @@ const T = {
   tahallulAwwal: ['Setelah melontar Jumrah Aqabah, mencukur atau memotong rambut minimal tiga helai.',
     'Setelah tahallul awwal, semua larangan ihram gugur kecuali hubungan suami istri.',
     'Boleh berganti pakaian biasa.'],
-  mabitMina: ['Bermalam di Mina pada malam 11, 12 (dan 13 bagi nafar tsani) — sebagian besar malam berada di Mina.',
+  mabitMina: ['Bermalam di Mina pada malam 11, 12 (dan 13 bagi nafar tsani), sebagian besar malam berada di Mina.',
     'Jamaah yang mendapat izin tanazul (kembali ke hotel) mengikuti ketentuan petugas.',
     'Isi malam dengan dzikir dan istirahat yang cukup untuk melontar esok hari.'],
   jumroh3: ['Tanggal 11, 12 (dan 13) melontar tiga jumrah berurutan: Ula, Wustha, lalu Aqabah, masing-masing 7 kali.',

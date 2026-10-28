@@ -5,7 +5,9 @@
   --fs: 1;
   --font-heading: Figtree, system-ui, sans-serif;
   --font-body: Figtree, system-ui, sans-serif;
-  --font-arab: "Amiri", "Scheherazade New", "Traditional Arabic", "Noto Naskh Arabic", serif;
+  /* Nastaliq butuh tinggi baris sekitar 2× agar harakat tidak terpotong */
+  --font-arab: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Traditional Arabic", serif;
+  --font-arti: Fraunces, Georgia, serif;
 
   --mk-outer: #e8e2d2;
   --color-bg: #f6f0e2;
@@ -14,6 +16,9 @@
   --color-text: #1d2a24;
   --color-divider: #e2dac8;
   --on-accent: #ffffff;
+  --on-red: #ffffff;
+  --on-emas: #ffffff;
+  --on-isi: #ffffff;
 
   --color-accent: #0f6b4c;
   --color-accent-100: #e3f1e9;
@@ -56,7 +61,7 @@
   --red-800: #7d2219;
 
   --nav-bg: #fffdf8;
-  --nav-fg: #8a8474;
+  --nav-fg: #6d675a;
   --hero: linear-gradient(140deg, #1c7a56 0%, #0b3f2d 100%);
   --shadow-lg: 0 12px 32px color-mix(in srgb, #1d2a24 22%, transparent);
   --shadow-md: 0 3px 10px color-mix(in srgb, #1d2a24 16%, transparent);
@@ -71,6 +76,10 @@
     --color-surface-2: #183327;
     --color-text: #e8efe9;
     --color-divider: #24443a;
+    --on-accent: #06251a;
+    --on-red: #3a0d08;
+    --on-emas: #2b1d00;
+    --on-isi: #06251a;
     --color-accent: #2fa877;
     --color-accent-100: #15382b;
     --color-accent-200: #1c4a39;
@@ -122,6 +131,10 @@
   --color-surface-2: #183327;
   --color-text: #e8efe9;
   --color-divider: #24443a;
+  --on-accent: #06251a;
+  --on-red: #3a0d08;
+  --on-emas: #2b1d00;
+  --on-isi: #06251a;
   --color-accent: #2fa877;
   --color-accent-100: #15382b;
   --color-accent-200: #1c4a39;
@@ -168,7 +181,26 @@
 html, body { background: var(--mk-outer); }
 body { color: var(--color-text); }
 input, select, textarea { color: var(--color-text); background-color: var(--color-surface); }
-input::placeholder, textarea::placeholder { color: var(--color-neutral-500); }
+input::placeholder, textarea::placeholder { color: var(--color-neutral-600); }
+
+/* Palet kartu Home "Emas Klasik": selalu gelap di kedua mode, jadi tidak ikut berubah tema.
+   Emas = aksen, hijau = selesai/berjalan, merah = belum dicentang/risiko. */
+:root {
+  --emas-muda: #f6e2a4; --emas: #e8cf86; --emas-tua: #c9a34b; --emas-garis: #5c4a1b; --emas-cincin: #8a7433; --emas-gelap: #2b1d00; --emas-latar: #2e2610;
+  --kartu-gelap: #13291f; --kartu-tepi: #3b5f4c; --kartu-trek: #24443a;
+  --teks-gelap: #f1ead9; --teks-gelap-2: #c9d8cf; --teks-gelap-3: #9fb8aa;
+  --hijau-status: #2fa877; --hijau-muda: #9ff0c9;
+  --merah-tua: #6b3029; --merah-latar: #2b1714; --merah-trek: #3a2420; --merah-teks: #ffd7d0; --merah-redup: #c9b0aa; --merah-judul: #f0a196; --merah-garis: #e8796b;
+}
+
+/* Semua kontrol menunjukkan bisa diketuk; yang nonaktif tidak */
+button:not(:disabled), a[href], summary, select, label[for], [role="button"] { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+button:not(:disabled):active { opacity: .78; }
+@media (hover: hover) { button:not(:disabled):hover { filter: brightness(1.05); } }
+
+/* Baris atau area yang bisa diketuk, ditulis sebagai <button> tanpa gaya bawaan */
+.ketuk { appearance: none; background: none; border: 0; margin: 0; padding: 0; font: inherit; color: inherit; text-align: left; width: 100%; box-sizing: border-box; }
 
 /* Tombol tengah bilah bawah */
 .mk-fab { box-shadow: 0 6px 16px -4px color-mix(in srgb, #0b3f2d 55%, transparent), inset 0 1px 0 rgba(255, 255, 255, .35); }
@@ -182,19 +214,24 @@ input::placeholder, textarea::placeholder { color: var(--color-neutral-500); }
 :root {
   --kartu-bg: linear-gradient(165deg, #fffdf8 0%, #f8f0de 100%);
   --kartu-garis: color-mix(in srgb, #c4951f 26%, transparent);
-  --kartu-bayang: 0 1px 2px rgba(16, 40, 30, .05), 0 10px 24px -16px rgba(16, 40, 30, .28);
+  --kartu-bayang: none;
   /* Pola bintang delapan (rub el hizb) untuk kartu utama */
   --pola: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%23e8cf86' stroke-width='1' opacity='.16'%3E%3Crect x='14' y='14' width='20' height='20'/%3E%3Crect x='14' y='14' width='20' height='20' transform='rotate(45 24 24)'/%3E%3Ccircle cx='24' cy='24' r='4'/%3E%3Cpath d='M0 24h6M42 24h6M24 0v6M24 42v6'/%3E%3C/g%3E%3C/svg%3E");
 }
 :root[data-tema="gelap"] {
   --kartu-bg: linear-gradient(165deg, #173428 0%, #10251c 100%);
   --kartu-garis: rgba(226, 189, 90, .2);
-  --kartu-bayang: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 26px -16px rgba(0, 0, 0, .7);
+  --kartu-bayang: none;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-tema="terang"]) {
     --kartu-bg: linear-gradient(165deg, #173428 0%, #10251c 100%);
     --kartu-garis: rgba(226, 189, 90, .2);
-    --kartu-bayang: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 26px -16px rgba(0, 0, 0, .7);
+    --kartu-bayang: none;
   }
+}
+
+/* Hormati pengaturan "kurangi gerakan" di HP */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }

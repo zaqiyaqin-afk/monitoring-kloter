@@ -9,7 +9,7 @@ const label = { display: 'grid', gap: 6, fontSize: fs(14), fontWeight: 600, minW
 const isian = { minHeight: 44, width: '100%', boxSizing: 'border-box', borderRadius: 12, border: '1.5px solid var(--color-divider)', padding: '10px 12px', font: `400 ${fs(15)} var(--font-body)`, background: 'var(--color-surface)', color: 'var(--color-text)' };
 const tombol = { minHeight: 46, padding: '8px 12px', lineHeight: 1.25, borderRadius: 14, border: '1.5px solid var(--color-divider)', background: 'transparent', color: 'var(--color-text)', font: `600 ${fs(15)} var(--font-body)`, cursor: 'pointer' };
 const utama = { ...tombol, background: 'var(--color-accent)', color: 'var(--on-accent)', borderColor: 'var(--color-accent)' };
-const pil = on => ({ minHeight: 40, padding: '6px 12px', lineHeight: 1.2, borderRadius: 999, border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent)' : 'transparent', color: on ? 'var(--on-accent)' : 'var(--color-text)', font: `600 ${fs(14)} var(--font-body)`, cursor: 'pointer' });
+const pil = on => ({ minHeight: 44, padding: '6px 12px', lineHeight: 1.2, borderRadius: 999, border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent)' : 'transparent', color: on ? 'var(--on-accent)' : 'var(--color-text)', font: `600 ${fs(14)} var(--font-body)`, cursor: 'pointer' });
 const Ikon = ({ d, s = 22 }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 
 const jenisDari = (d, v) => d.jenis.find(j => j.v === v) || d.jenis[d.jenis.length - 1];
@@ -26,7 +26,7 @@ function Foto({ f, d }) {
     let hidup = true; tautanFoto(f.link.slice(9)).then(u => { if (hidup) setSrc(u); }, () => {});
     return () => { hidup = false; };
   }, [f.src, f.link]);
-  const isi = src ? <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <Ikon d="M4 7h3l2-2h6l2 2h3v12H4zM12 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />;
+  const isi = src ? <img src={src} alt="" width="76" height="76" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <Ikon d="M4 7h3l2-2h6l2 2h3v12H4zM12 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />;
   const gaya = { width: 76, height: 76, borderRadius: 14, overflow: 'hidden', flex: 'none', display: 'grid', placeItems: 'center', background: 'var(--color-neutral-100)', color: 'var(--color-neutral-700)', border: '1px solid var(--color-divider)', position: 'relative' };
   return f.link
     ? <a href={f.link} onClick={e => d.bukaFoto(e, f.link)} target="_blank" rel="noopener noreferrer" style={gaya} aria-label="Buka foto">{isi}</a>
@@ -99,9 +99,9 @@ function Formulir({ d }) {
           {lama.map(x => <Foto key={x.id} f={x} d={d} />)}
           {f.berkas.map((b, i) => (
             <div key={b.prev} style={{ width: 76, height: 76, borderRadius: 14, overflow: 'hidden', position: 'relative', flex: 'none' }}>
-              <img src={b.prev} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              <img src={b.prev} alt="" width="76" height="76" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               <button onClick={() => { URL.revokeObjectURL(b.prev); d.ubah({ berkas: f.berkas.filter((_, k) => k !== i) }); }} aria-label="Batalkan foto"
-                style={{ position: 'absolute', top: 4, right: 4, width: 28, height: 28, borderRadius: 999, border: 0, background: 'rgba(0,0,0,.6)', color: '#fff', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+                style={{ position: 'absolute', top: 0, right: 0, width: 44, height: 44, borderRadius: 999, border: 0, background: 'rgba(0,0,0,.6)', color: '#fff', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
             </div>))}
         </div>
         <input ref={fileRef} type="file" accept="image/*" multiple onChange={tambah} style={{ display: 'none' }} />

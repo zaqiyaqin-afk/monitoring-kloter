@@ -98,7 +98,7 @@ export default class AppLogic extends DCLogic {
     return { tab: p.startTab || 'beranda', mode, udz, mq: {}, done, sel: null, tg: {}, ex, safDlg: null, ulDlg: null, susDlg: null, slotDlg: null, confirm: null, toast: null, picker: null, undo: null, notes: { 13: 'Kursi roda', 77: 'Dirawat di KKHI', 141: 'Lansia, ikut murur' }, noteDraft: '',
       locked: !!(this.cfg && this.cfg.pin) && !this.perluPindahAkun(), pin: '', pinErr: false, setup: !this.cfg || this.perluPindahAkun(),
       su: { url: (this.cfg && this.cfg.url) || '', key: (this.cfg && this.cfg.key) || '', kloter: (this.cfg && this.cfg.kloter) || '', device: (this.cfg && this.cfg.device) || 'HP', pin: (this.cfg && this.cfg.pin) || '', ppih: (this.cfg && this.cfg.ppih) || '', embarkasi: (this.cfg && this.cfg.embarkasi) || '', gelombang: (this.cfg && this.cfg.gelombang) || '', err: '', busy: false, ...this.suDariAkun() },
-      sync: { pending: this.queue.length, last: '—', err: '' }, syncOpen: false,
+      sync: { pending: this.queue.length, last: '-', err: '' }, syncOpen: false,
       badal: { haji: { [Hk('Badal Jumroh Aqobah')]: { 13: 'p2', 77: 'p2' } }, umrah: {}, madinah: {} },
       jl: { q: '', f: 'semua', r: 0, v: 'semua', kf: 'semua' }, bd: { v: 'jamaah', q: '', day: 0 }, pp: null,
       kh: (() => { const o = {}; this.jm.forEach(j => { const i = j.id, l = (i * 13) % 17 === 0, kr = (i * 7) % 29 === 0 || i === 13; if (l || kr || j.risti) { const mate = this.jm.find(x => x.r === j.r && x.g === j.g && x.id !== i && !x.risti && x.idx % 3 === 1); o[i] = { lansia: l, kroda: kr, pend: i % 4 !== 0 && mate ? mate.name + ' (' + mate.porsi + ')' : '' }; } }); return o; })(),
@@ -260,7 +260,7 @@ export default class AppLogic extends DCLogic {
     if (this.live()) { this.saveQueue(); this.push(items); } else try { localStorage.setItem('mk.tgldemo', JSON.stringify(demo)); } catch (e) {}
     this.forceUpdate();
   }
-  /* ---------- Foto kegiatan ---------- */
+  /* Foto kegiatan */
   fotoInput = React.createRef();
   fotoList = [];
   _thumbs = {};
@@ -638,8 +638,8 @@ export default class AppLogic extends DCLogic {
   }
   inSlot(j, s) { return (!s.sex || j.sex === s.sex) && (!s.romb.length || s.romb.includes(j.r)); }
   slotLabel(s) { return s.tgl + ' · ' + s.jam + ' · ' + (s.sex === 'P' ? 'Perempuan' : s.sex === 'L' ? 'Laki-laki' : 'Campur') + (s.romb.length ? ' · R' + s.romb.join(',') : ''); }
-  ketuaR(r) { return this.jm.find(j => j.r === r && j.role === 'Ketua Rombongan') || { name: '—' }; }
-  ketuaG(r, g) { return this.jm.find(j => j.r === r && j.g === g && j.role === 'Ketua Regu') || { name: '—' }; }
+  ketuaR(r) { return this.jm.find(j => j.r === r && j.role === 'Ketua Rombongan') || { name: '-' }; }
+  ketuaG(r, g) { return this.jm.find(j => j.r === r && j.g === g && j.role === 'Ketua Regu') || { name: '-' }; }
   mem(r, g) { return this.jm.filter(j => (!r || j.r === r) && (!g || j.g === g) && (!this._slotF || this._slotF(j))); }
   scopeList(s) { return s.scope === 'kloter' ? this.mem() : s.scope === 'rombongan' ? this.mem(s.r) : this.mem(s.r, s.g); }
   scopeLabel(s) { return s.scope === 'kloter' ? 'Seluruh kloter' : s.scope === 'rombongan' ? 'Rombongan ' + s.r : `Rombongan ${s.r} · Regu ${s.g}`; }
@@ -703,7 +703,7 @@ export default class AppLogic extends DCLogic {
     this.reqCheck(d.ids, d.k, { pil: 'Safari', alasan: d.why + ((d.cat || '').trim() ? ' · ' + d.cat.trim() : '') }, d.c); }
   group(items) { const out = []; items.forEach(it => { let g = out[out.length - 1]; if (!g || g.day !== it.day) out.push(g = { day: it.day, items: [] }); g.items.push(it); }); return out; }
   petugas = [{ key: 'p1', name: 'Hasan Basri', role: 'Ketua Kloter' }, { key: 'p2', name: 'Ust. Mahfudz Ali', role: 'Pembimbing Ibadah' }, { key: 'p3', name: 'Ust. Ridwan Kamil', role: 'Pembimbing Ibadah' }];
-  pelName(key) { if (!key) return ''; if (key.slice(0, 2) === 'x:') return key.slice(2); if (key[0] === 'p') return (this.petugas.find(p => p.key === key) || { name: '—' }).name; return (this.jm[+key.slice(1)] || { name: '—' }).name; }
+  pelName(key) { if (!key) return ''; if (key.slice(0, 2) === 'x:') return key.slice(2); if (key[0] === 'p') return (this.petugas.find(p => p.key === key) || { name: '-' }).name; return (this.jm[+key.slice(1)] || { name: '-' }).name; }
   pelRole(key) { if (!key) return ''; if (key.slice(0, 2) === 'x:') return 'Nama lain'; if (key[0] === 'p') return (this.petugas.find(p => p.key === key) || { role: '' }).role; const j = this.jm[+key.slice(1)]; return j ? `Jamaah R${j.r} · Regu ${j.g}` : ''; }
   ownRite(k) { const R = this.data[this.state.mode].rites; for (let i = k - 1; i >= 0; i--) if (!R[i].badal && /Aq[ao]bah/.test(R[i].n)) return i; return -1; }
   openPicker(k, ids, cand) { this.setState({ picker: { k, sel: ids, cand: cand || null, q: '', pel: null, src: 'jamaah' } }); }
@@ -732,7 +732,7 @@ export default class AppLogic extends DCLogic {
   badalHtml(list, ks, esc) {
     const S = this.state, X = this.data[S.mode], D = S.done[S.mode];
     return ks.filter(k => X.rites[k].badal).map(k => { const map = S.badal[S.mode][k] || {};
-      const rows = list.filter(j => S.udz[j.id]).map(j => `<tr><td>${esc(j.name)}</td><td>R${j.r}·${j.g}</td><td>${esc(this.pelName(map[j.id]) || '—')}</td><td class="c">${D[k][j.id] ? '✓' : ''}</td></tr>`).join('');
+      const rows = list.filter(j => S.udz[j.id]).map(j => `<tr><td>${esc(j.name)}</td><td>R${j.r}·${j.g}</td><td>${esc(this.pelName(map[j.id]) || '-')}</td><td class="c">${D[k][j.id] ? '✓' : ''}</td></tr>`).join('');
       return rows ? `<h2>${esc(X.rites[k].n)}</h2><table><thead><tr><th>Jamaah udzur</th><th>Romb·Regu</th><th>Pelaksana badal</th><th class="c">Selesai</th></tr></thead><tbody>${rows}</tbody></table>` : ''; }).join('');
   }
   sigs(sc) { return sc === 'regu' ? ['Ketua Regu', 'Ketua Rombongan'] : sc === 'rombongan' ? ['Ketua Rombongan', 'Ketua Kloter'] : ['Ketua Kloter', 'Pembimbing Ibadah']; }
@@ -887,7 +887,7 @@ export default class AppLogic extends DCLogic {
     return out.map(g => { const pl = [...g.places].filter(Boolean); return { label: String(g.day).replace('Dzulhijjah', 'Dzh').replace('Dzulqa’dah', 'Dzq') + (pl.length === 1 ? ' · ' + pl[0] : ''), span: g.span, col: 'span ' + g.span }; }); }
   cellOf(m, col, j, foot) {
     const S = this.state, R = this.data[m].rites, D = S.done[m];
-    if (this.naLock(m, col.k0, j, D)) return { t: 'na', v: '—' };
+    if (this.naLock(m, col.k0, j, D)) return { t: 'na', v: '-' };
     const k = this.satBy(m, col.g, j, D);
     if (k < 0) return col.ks.some(x => (S.ex[m + '|' + x + '|' + j.id] || {}).stUlang === 'Perlu ulang') ? { t: 'pu', v: 'PU' } : { t: 'box', v: '' };
     const r = R[k], e = S.tg[m + '|' + k + '|' + j.id] || {}, x = S.ex[m + '|' + k + '|' + j.id] || {}, sus = !!e.s;
@@ -931,7 +931,7 @@ export default class AppLogic extends DCLogic {
     const sigs = `<div class="sig">${sig('Ketua Rombongan', kr)}${sig('PPIH Bimbingan Ibadah Kloter', ppih)}${sig('Mengetahui,<br>Ketua Kloter', '')}</div>`;
     const legend = `<div class="lg"><b>Simbol:</b><span><i style="color:#1e6b52;font-size:10pt">✓</i> hadir/selesai</span><span><i style="background:#fdf0c4;color:#5a3f00">&nbsp;&nbsp;</i> latar amber = susulan</span><span><span class="bx"></span> belum (centang manual)</span></div>`;
     const AB = { Tr: 'Tarwiyah', NT: 'Non Tarwiyah', S: 'Safari Wukuf', MM: 'Murur Mabit', Mr: 'Murur', M: 'Mabit', T: 'Tanazul', NA: 'Nafar Awwal', L: 'Lanjut Nafar Tsani' };
-    const legendFor = t => `<div class="lg"><b>Simbol:</b><span><i style="color:#1e6b52;font-size:10pt">✓</i> selesai</span><span><i style="background:#fdf0c4;color:#5a3f00">&nbsp;&nbsp;</i> latar amber = susulan</span>${[...t.used].map(a => `<span><i>${a}</i> ${AB[a] || a}</span>`).join('')}${t.hasB ? '<span><i style="background:#e3eaf3;color:#2f5f9e">B</i> Badal (nomor = keterangan di bawah)</span>' : ''}${t.hasNA ? '<span><i>NA</i> Nafar Awwal · <i>—</i> hari 13 tidak wajib</span>' : ''}${t.umrah ? '<span><i>U2</i> ulang ke-2</span><span><i style="background:#fde2d3;color:#8a3b12">PU</i> perlu ulang</span>' : ''}<span><span class="bx"></span> belum (centang manual)</span></div>`;
+    const legendFor = t => `<div class="lg"><b>Simbol:</b><span><i style="color:#1e6b52;font-size:10pt">✓</i> selesai</span><span><i style="background:#fdf0c4;color:#5a3f00">&nbsp;&nbsp;</i> latar amber = susulan</span>${[...t.used].map(a => `<span><i>${a}</i> ${AB[a] || a}</span>`).join('')}${t.hasB ? '<span><i style="background:#e3eaf3;color:#2f5f9e">B</i> Badal (nomor = keterangan di bawah)</span>' : ''}${t.hasNA ? '<span><i>NA</i> Nafar Awwal · <i>-</i> hari 13 tidak wajib</span>' : ''}${t.umrah ? '<span><i>U2</i> ulang ke-2</span><span><i style="background:#fde2d3;color:#8a3b12">PU</i> perlu ulang</span>' : ''}<span><span class="bx"></span> belum (centang manual)</span></div>`;
     const cellH = c => c.t === 'box' ? '<td class="c"><span class="bx"></span></td>' : `<td class="c ${c.t}${c.sus ? ' su' : ''}">${c.v}</td>`;
     const tbl = (m, ks, lst) => {
       const R = this.data[m].rites, cols = this.sheetCols(m, ks), notes = [], fmap = {}, foot = (j, k) => { const key = j.id + '|' + k; if (!fmap[key]) { notes.push(this.badalTxt(j, k)); fmap[key] = notes.length; } return fmap[key]; };
@@ -1084,7 +1084,7 @@ export default class AppLogic extends DCLogic {
     const S = this.state, X = this.data[S.mode], D = S.done[S.mode], ci = X.cur, ck = S.ck, P = S.pr, J = S.jl;
     const nR = X.rites.length, udzN = S.udz.filter(Boolean).length, lockOn = ((this.cfg && this.cfg.lockUntil) || 0) > Date.now();
     const go = (tab, extra) => () => this.setState({ tab, ...(tab === 'checklist' ? { ckPilih: false, ckDariPilih: false } : {}), ...(extra || {}) });
-    const pill = a => ({ bg: a ? 'var(--color-accent)' : 'transparent', fg: a ? '#fff' : 'var(--color-neutral-800)' });
+    const pill = a => ({ bg: a ? 'var(--color-accent)' : 'transparent', fg: a ? 'var(--on-isi)' : 'var(--color-neutral-800)' });
     const chip = a => ({ bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? 'var(--color-bg)' : 'var(--color-text)' });
     const doneCnt = k => D[k].filter(Boolean).length;
     const days = [...new Set(X.rites.map(r => r.day))], missed = this.missedFn(), M0 = this.meta(S.mode), sat = (k, j) => this.sat(S.mode, k, j, D);
@@ -1094,7 +1094,7 @@ export default class AppLogic extends DCLogic {
     const cd = doneCnt(ci), verb = X.rites[ci].verb || 'selesai';
     const belum = this.jm.filter(j => this.tgt(S.mode, ci, j, D) && !sat(ci, j)).length, tert = this.jm.filter(missed).length;
     const rites = X.rites.map((r, i) => { const st = i < ci ? 'done' : i === ci ? 'now' : 'next', n = doneCnt(i), sn = this.susN(S.mode, i, D);
-      return { ...r, hasSus: sn > 0, sus: sn + ' susulan', cnt: n === 0 && st === 'next' ? '—' : (M0.slots[M0.slotOf[i]] || []).length > 1 || r.opt ? n + ' jamaah' : `${n}/${this.jm.filter(j => this.tgt(S.mode, i, j, D)).length}`, mark: st === 'done' ? '✓' : st === 'now' ? String(i + 1) : '',
+      return { ...r, hasSus: sn > 0, sus: sn + ' susulan', cnt: n === 0 && st === 'next' ? '-' : (M0.slots[M0.slotOf[i]] || []).length > 1 || r.opt ? n + ' jamaah' : `${n}/${this.jm.filter(j => this.tgt(S.mode, i, j, D)).length}`, mark: st === 'done' ? '✓' : st === 'now' ? String(i + 1) : '',
         dotBg: st === 'done' ? 'var(--color-accent-2)' : st === 'now' ? 'var(--color-accent)' : 'var(--color-neutral-200)', locked: st === 'next', isNow: st === 'now', nameFg: st === 'next' ? 'var(--color-neutral-700)' : 'var(--color-text)',
         ring: st === 'done' ? 'var(--color-accent-2)' : st === 'now' ? 'var(--color-accent)' : 'var(--color-neutral-400)',
         tagBg: r.k === 'Rukun' ? 'var(--color-accent-100)' : r.k === 'Wajib' ? 'var(--color-accent-2-100)' : 'var(--color-neutral-200)', tagFg: r.k === 'Rukun' ? 'var(--color-accent-800)' : r.k === 'Wajib' ? 'var(--color-accent-2-800)' : 'var(--color-neutral-800)',
@@ -1123,7 +1123,7 @@ export default class AppLogic extends DCLogic {
       { v: belum, l: 'Belum', icon: 'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z', bg: 'var(--color-accent-100)', fg: 'var(--color-accent)', ring: 'transparent', on: go('jamaah', { jl: { ...J, f: 'belum', r: 0 } }) },
       { v: udzN, l: 'Udzur', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v5M12 16.5v.01', bg: 'var(--color-accent-2-100)', fg: 'var(--color-accent-2-700)', ring: 'transparent', on: go('jamaah', { jl: { ...J, f: 'udzur', r: 0 } }) },
       { v: tert, l: 'Tertinggal', icon: 'M5 21V4M5 4h11l-2 4 2 4H5', bg: 'var(--red-100)', fg: 'var(--red-700)', ring: 'transparent', on: go('jamaah', { jl: { ...J, f: 'tert', r: 0 } }) },
-      { v: RS.susN, l: 'Susulan', icon: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 8v4l3 2', bg: '#FFF1DB', fg: '#C77700', ring: 'transparent', on: go('jamaah', { jl: { ...J, f: 'sus', r: 0 } }) }
+      { v: RS.susN, l: 'Susulan', icon: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 8v4l3 2', bg: '#FFF1DB', fg: '#8A5300', ring: 'transparent', on: go('jamaah', { jl: { ...J, f: 'sus', r: 0 } }) }
     ];
     // jamaah
     const q = J.q.trim().toLowerCase();
@@ -1139,7 +1139,7 @@ export default class AppLogic extends DCLogic {
           avBg: u || j.risti ? 'var(--red-100)' : 'var(--color-accent-100)', avFg: u || j.risti ? 'var(--red-700)' : 'var(--color-accent-800)', risti: j.risti, note: S.notes[j.id] || '', hasNote: !!S.notes[j.id],
           tag: u ? 'Udzur' : pu ? '↺ Perlu ulang' : m ? 'Tertinggal' : sa ? 'Susulan' : d ? 'Sudah' : 'Belum',
           tagBg: u ? 'var(--red-600)' : pu ? '#fdf0c4' : m ? 'var(--red-100)' : sa ? '#fdf0c4' : d ? 'var(--color-accent-100)' : 'var(--color-neutral-100)',
-          tagFg: u ? '#fff' : pu ? '#5a3f00' : m ? 'var(--red-700)' : sa ? '#5a3f00' : d ? 'var(--color-accent-800)' : 'var(--color-neutral-800)' }; }) };
+          tagFg: u ? 'var(--on-isi)' : pu ? '#5a3f00' : m ? 'var(--red-700)' : sa ? '#5a3f00' : d ? 'var(--color-accent-800)' : 'var(--color-neutral-800)' }; }) };
     // detail
     let sel = {};
     if (S.sel != null) { const j = this.jm[S.sel], u = S.udz[j.id];
@@ -1155,7 +1155,7 @@ export default class AppLogic extends DCLogic {
         udzBtnCls: u ? 'btn btn-secondary' : 'btn btn-primary', udzBtnStyle: u ? 'height:46px;width:100%' : 'height:46px;width:100%;background:var(--red-600);border-color:var(--red-600)',
         udzForm: S.udzForm && S.udzForm.id === j.id ? (() => { const f = S.udzForm;
           return { title: f.udzur ? 'Tandai ' + j.name + ' udzur' : 'Hapus status udzur ' + j.name, alasan: f.alasan,
-            chips: (f.udzur ? ['Sakit', 'Dirawat di KKHI', 'Dirawat di RSAS', 'Lansia / risti berat', 'Kursi roda'] : ['Sudah sehat', 'Keluar dari RS', 'Salah tandai']).map(t => ({ l: t, on: () => this.patch('udzForm', { alasan: t }), bg: f.alasan === t ? 'var(--color-accent)' : 'var(--color-surface)', fg: f.alasan === t ? '#fff' : 'var(--color-neutral-800)' })),
+            chips: (f.udzur ? ['Sakit', 'Dirawat di KKHI', 'Dirawat di RSAS', 'Lansia / risti berat', 'Kursi roda'] : ['Sudah sehat', 'Keluar dari RS', 'Salah tandai']).map(t => ({ l: t, on: () => this.patch('udzForm', { alasan: t }), bg: f.alasan === t ? 'var(--color-accent)' : 'var(--color-surface)', fg: f.alasan === t ? 'var(--on-isi)' : 'var(--color-neutral-800)' })),
             onAlasan: e => this.patch('udzForm', { alasan: e.target.value.slice(0, 120) }),
             ok: () => this.simpanUdzur(j, f.udzur, f.alasan), okLabel: f.udzur ? 'Simpan · tandai udzur' : 'Simpan · hapus udzur', okStyle: f.udzur ? 'background:var(--red-600);border-color:var(--red-600)' : '',
             batal: () => this.setState({ udzForm: null }) }; })() : null,
@@ -1165,8 +1165,8 @@ export default class AppLogic extends DCLogic {
         toggleUdz: () => this.setState({ udzForm: { id: j.id, udzur: !u, alasan: '' } }),
         canUlang: S.mode === 'umrah' && X.rites.some((r, k) => r.ulang && D[k][j.id]), openUlang: () => this.setState({ sel: null, ulDlg: { id: j.id, tahap: 'Thawaf', why: '', cat: '', rencana: '' } }),
         rites: X.rites.map((r, k) => { const d = D[k][j.id], tgE = S.tg[S.mode + '|' + k + '|' + j.id] || {}, ee = S.ex[S.mode + '|' + k + '|' + j.id] || {}, na = this.naLock(S.mode, k, j, D), alt = !d && !r.opt ? this.satBy(S.mode, M0.slotOf[k], j, D) : -1, bkey = r.badal ? (S.badal[S.mode][k] || {})[j.id] : null;
-          const st = na ? 'Nafar Awwal · tidak wajib' : d ? (r.badal ? 'Badal · oleh ' + (bkey ? this.pelName(bkey) : '—') : ee.ulangKe >= 2 ? 'Ulang ke-' + ee.ulangKe + (tgE.t ? ' · ' + this.fmtTgl(tgE.t) : '') : tgE.s ? 'Susulan · ' + this.fmtH(tgE.t) + (ee.pend ? ' · didampingi ' + this.pelName(ee.pend) : '') : r.safari ? 'Safari' + (ee.alasan ? ' · ' + ee.alasan : '') : (ee.pil && ee.pil !== r.p && ee.pil !== r.pil ? ee.pil : 'Selesai'))
-            : ee.stUlang === 'Perlu ulang' ? '↺ Perlu ulang' : alt >= 0 ? 'Dipilih: ' + X.rites[alt].p : r.opt ? '—' : k < ci ? 'Tertinggal' : k === ci ? 'Berlangsung' : '—';
+          const st = na ? 'Nafar Awwal · tidak wajib' : d ? (r.badal ? 'Badal · oleh ' + (bkey ? this.pelName(bkey) : '-') : ee.ulangKe >= 2 ? 'Ulang ke-' + ee.ulangKe + (tgE.t ? ' · ' + this.fmtTgl(tgE.t) : '') : tgE.s ? 'Susulan · ' + this.fmtH(tgE.t) + (ee.pend ? ' · didampingi ' + this.pelName(ee.pend) : '') : r.safari ? 'Safari' + (ee.alasan ? ' · ' + ee.alasan : '') : (ee.pil && ee.pil !== r.p && ee.pil !== r.pil ? ee.pil : 'Selesai'))
+            : ee.stUlang === 'Perlu ulang' ? '↺ Perlu ulang' : alt >= 0 ? 'Dipilih: ' + X.rites[alt].p : r.opt ? '-' : k < ci ? 'Tertinggal' : k === ci ? 'Berlangsung' : '-';
           return { n: r.n, day: r.day, mark: d ? '✓' : '', bg: d ? (r.badal ? 'var(--color-accent-2)' : tgE.s ? '#c98a00' : 'var(--color-accent)') : na ? 'var(--color-neutral-200)' : 'transparent', ring: d ? 'transparent' : 'var(--color-neutral-400)', st,
             fg: na || alt >= 0 ? 'var(--color-neutral-700)' : tgE.s || ee.stUlang === 'Perlu ulang' ? '#7a5200' : d ? 'var(--color-accent-2-700)' : k <= ci ? 'var(--color-accent-700)' : 'var(--color-neutral-700)',
             tglTxt: d && tgE.t ? this.fmtHari(tgE.t) : '', ubahTgl: d ? () => this.setState({ tgJ: { id: j.id, k, tgl: tgE.t || this.defTgl(r) } }) : null,
@@ -1180,21 +1180,21 @@ export default class AppLogic extends DCLogic {
     const scopes = (cur, key) => [['kloter', 'Kloter'], ['rombongan', 'Rombongan'], ['regu', 'Regu']].map(([k, l]) => ({ l, on: () => this.patch(key, { scope: k }), ...pill(cur.scope === k) }));
     const rs = (cur, key) => Array.from({ length: 9 }, (_, i) => ({ l: 'R' + (i + 1), on: () => this.patch(key, { r: i + 1 }), ...chip(cur.r === i + 1) }));
     const gs = (cur, key) => [1, 2, 3, 4].map(g => ({ l: 'Regu ' + g, on: () => this.patch(key, { g }), ...chip(cur.g === g) }));
-    const box = (d, n) => d === n && n > 0 ? { mark: '✓', bg: 'var(--color-accent)', fg: '#fff', ring: 'var(--color-accent)', cntFg: 'var(--color-accent-700)' }
+    const box = (d, n) => d === n && n > 0 ? { mark: '✓', bg: 'var(--color-accent)', fg: 'var(--on-accent)', ring: 'var(--color-accent)', cntFg: 'var(--color-accent-700)' }
       : d === 0 ? { mark: '', bg: 'transparent', fg: 'var(--color-text)', ring: 'var(--color-neutral-400)', cntFg: 'var(--color-neutral-700)' }
       : { mark: '–', bg: 'var(--color-accent-2-200)', fg: 'var(--color-accent-2-800)', ring: 'var(--color-accent-2-400)', cntFg: 'var(--color-accent-700)' };
     const rk0 = ck.rite, isBad = !!X.rites[rk0].badal, bmap = S.badal[S.mode][rk0] || {};
     const tgOf = j => S.tg[S.mode + '|' + rk0 + '|' + j.id];
     const pelOf = j => { const mm = S.badal[S.mode] || {}; let key = bmap[j.id]; if (!key) for (const kk in mm) if (mm[kk][j.id]) { key = mm[kk][j.id]; break; } return key ? this.pelName(key).split(' ').slice(0, 2).join(' ') : ''; };
     const dotOf = j => { const d = CD[j.id], e = tgOf(j), sf = d && e && e.s, na = this.naLock(S.mode, rk0, j, D), alt = !d && !R0.opt && sat(rk0, j);
-      return { ini: j.ini, bg: na ? 'var(--color-neutral-200)' : sf ? '#fdf0c4' : d ? (S.udz[j.id] || isBad ? 'var(--color-accent-2)' : 'var(--color-accent)') : alt ? 'var(--color-accent-2-200)' : 'transparent', fg: na ? 'var(--color-neutral-700)' : sf ? '#5a3f00' : d ? '#fff' : alt ? 'var(--color-accent-2-900)' : 'var(--color-neutral-700)', bd: sf ? '2px solid #c98a00' : d || alt || na ? '2px solid transparent' : '2px dashed var(--color-neutral-500)' }; };
+      return { ini: j.ini, bg: na ? 'var(--color-neutral-200)' : sf ? '#fdf0c4' : d ? (S.udz[j.id] || isBad ? 'var(--color-accent-2)' : 'var(--color-accent)') : alt ? 'var(--color-accent-2-200)' : 'transparent', fg: na ? 'var(--color-neutral-700)' : sf ? '#5a3f00' : d ? 'var(--on-isi)' : alt ? 'var(--color-accent-2-900)' : 'var(--color-neutral-700)', bd: sf ? '2px solid #c98a00' : d || alt || na ? '2px solid transparent' : '2px dashed var(--color-neutral-500)' }; };
     const missF = this.missedFn(), ckPeople = [];
     const person = (j, onCheck) => { const m0 = S.mode, d = !!CD[j.id], e = tgOf(j) || {}, ee = S.ex[m0 + '|' + rk0 + '|' + j.id] || {}, sf = d && e.s, note = S.notes[j.id], tags = [], na = this.naLock(m0, rk0, j, D), altK = !d && !R0.opt ? this.satBy(m0, M0.slotOf[rk0], j, D) : -1, alt = altK >= 0 ? X.rites[altK] : null;
       if (j.risti) tags.push({ t: note ? 'Risti · ' + note : 'Risti', bg: 'var(--red-100)', fg: 'var(--red-700)' }); else if (note) tags.push({ t: note, bg: 'var(--color-neutral-100)', fg: 'var(--color-neutral-800)' });
       if (na) tags.push({ t: 'Nafar Awwal · tidak wajib', bg: 'var(--color-neutral-200)', fg: 'var(--color-neutral-800)' });
       const bk = isBad && d ? bmap[j.id] : alt && alt.badal ? ((S.badal[m0] || {})[altK] || {})[j.id] : null;
       if ((isBad && d) || (alt && alt.badal)) tags.push({ t: 'Badal · oleh ' + (bk ? this.pelName(bk) : 'pelaksana belum dicatat'), bg: bk ? 'var(--color-accent-2-100)' : 'var(--red-100)', fg: bk ? 'var(--color-accent-2-700)' : 'var(--red-700)' });
-      else if (S.udz[j.id]) { const p = pelOf(j); tags.push({ t: 'Udzur · ' + (p ? 'dibadalkan ' + p : 'belum dibadalkan'), bg: 'var(--red-600)', fg: '#fff' }); }
+      else if (S.udz[j.id]) { const p = pelOf(j); tags.push({ t: 'Udzur · ' + (p ? 'dibadalkan ' + p : 'belum dibadalkan'), bg: 'var(--red-600)', fg: 'var(--on-isi)' }); }
       if (alt && !alt.badal) tags.push({ t: 'Dipilih: ' + alt.p, bg: 'var(--color-accent-2-100)', fg: 'var(--color-accent-2-800)' });
       if (d && R0.safari) tags.push({ t: 'Safari · ' + (ee.alasan || 'alasan belum diisi'), bg: 'var(--color-accent-2-100)', fg: 'var(--color-accent-2-700)' });
       if (d && /^Tarwiyah \d/.test(ee.pil || '')) tags.push({ t: ee.pil, bg: 'var(--color-accent-100)', fg: 'var(--color-accent-800)' });
@@ -1202,8 +1202,8 @@ export default class AppLogic extends DCLogic {
       if (d && ee.ulangKe >= 2) tags.push({ t: '↺ Ulang ke-' + ee.ulangKe + (e.t ? ' · ' + this.fmtTgl(e.t) : '') + (ee.pend && !sf ? ' · didampingi ' + this.pelName(ee.pend) : ''), bg: '#fdf0c4', fg: '#5a3f00' });
       if (!d && ee.stUlang === 'Perlu ulang') tags.push({ t: '↺ Perlu ulang' + (ee.alasan ? ' · ' + ee.alasan : ''), bg: '#fdf0c4', fg: '#5a3f00' });
       else if (!d && !alt && !na && !isBad && missF(j)) tags.push({ t: 'Tertinggal', bg: 'var(--red-100)', fg: 'var(--red-700)' });
-      const c = na ? { bg: 'var(--color-neutral-100)', ring: 'var(--color-neutral-300)', fg: 'var(--color-neutral-700)', mk: '—' } : sf ? { bg: '#fdf0c4', ring: '#c98a00', fg: '#5a3f00', mk: isBad ? 'B' : '✓' }
-        : d ? (isBad || S.udz[j.id] ? { bg: 'var(--color-accent-2)', ring: 'var(--color-accent-2)', fg: '#fff', mk: isBad ? 'B' : '✓' } : { bg: 'var(--color-accent)', ring: 'var(--color-accent)', fg: '#fff', mk: '✓' })
+      const c = na ? { bg: 'var(--color-neutral-100)', ring: 'var(--color-neutral-300)', fg: 'var(--color-neutral-700)', mk: '-' } : sf ? { bg: '#fdf0c4', ring: '#c98a00', fg: '#5a3f00', mk: isBad ? 'B' : '✓' }
+        : d ? (isBad || S.udz[j.id] ? { bg: 'var(--color-accent-2)', ring: 'var(--color-accent-2)', fg: 'var(--on-isi)', mk: isBad ? 'B' : '✓' } : { bg: 'var(--color-accent)', ring: 'var(--color-accent)', fg: 'var(--on-accent)', mk: '✓' })
         : alt ? { bg: alt.badal ? 'var(--color-accent-2-100)' : 'var(--color-accent-2-100)', ring: alt.badal ? 'var(--color-accent-2)' : 'var(--color-accent-2-400)', fg: alt.badal ? 'var(--color-accent-2-700)' : 'var(--color-accent-2-900)', mk: alt.ab && alt.ab !== '✓' ? alt.ab : '•' } : { bg: 'var(--color-surface)', ring: 'var(--color-neutral-500)', fg: 'transparent', mk: '✓' };
       const red = S.udz[j.id] || j.risti, canUl = m0 === 'umrah' && X.rites.some((r, k) => r.ulang && D[k][j.id]);
       return { name: j.name, ini: j.ini, sub: (j.role ? j.role + ' · ' : '') + 'R' + j.r + ' · Regu ' + j.g, tags, hasTags: tags.length > 0, cb: c.bg, cr: c.ring, cf: c.fg, mark: c.mk, mfs: c.mk.length > 1 ? '15px' : '22px',
@@ -1222,15 +1222,15 @@ export default class AppLogic extends DCLogic {
     const ckBadal = !!R0.badal, tl = this.scopeList(ck), tt = tl.filter(j => this.tgt(S.mode, rk0, j, D)), td = cnt(tt), elig = tl.filter(j => this.eligible(j, rk0)), todoN = elig.filter(j => !sat(rk0, j)).length, allE = elig.length > 0 && todoN === 0, un = tl.filter(j => S.udz[j.id]).length;
     let ckSum = { label: this.scopeLabel(ck), done: td, total: tt.length, rite: X.rites[ck.rite].n, pct: (tt.length ? Math.round(td / tt.length * 100) : 0) + '%',
       action: allE ? 'Batalkan centang semua' : 'Centang ' + todoN + ' jamaah tersisa di ' + (ck.scope === 'regu' ? 'Regu ' + ck.g : ck.scope === 'rombongan' ? 'Rombongan ' + ck.r : 'seluruh kloter'), onAll: () => this.askMass(tl, this.scopeLabel(ck)),
-      hasNote: un > 0 && (!ckBadal || elig.length > 0), note: ckBadal ? `Kegiatan badal: hanya ${elig.length} jamaah udzur yang dicentang massal.` : `${un} jamaah udzur tidak ikut dicentang massal — tandai satu per satu bila sudah dibadalkan.` };
+      hasNote: un > 0 && (!ckBadal || elig.length > 0), note: ckBadal ? `Kegiatan badal: hanya ${elig.length} jamaah udzur yang dicentang massal.` : `${un} jamaah udzur tidak ikut dicentang massal. Tandai satu per satu bila sudah dibadalkan.` };
     if (R0.pend && rk0 < ci && !allE) ckSum = { ...ckSum, action: 'Catat susulan berkelompok · ' + todoN + ' jamaah', onAll: () => { const cand = elig.filter(j => !sat(rk0, j)).map(j => j.id); this.setState({ susDlg: { ids: [], cand, rite: rk0, tgl: this.todayKey(), pend: '', pq: '', group: true } }); } };
     let pelGroups = [];
     if (ckBadal) { const cand = this.badalCand(rk0, tl), dn = tl.filter(j => CD[j.id]), k = rk0, tot2 = dn.length + cand.length;
       ckSum = { ...ckSum, done: dn.length, total: tot2, pct: (tot2 ? Math.round(dn.length / tot2 * 100) : 0) + '%',
         action: cand.length ? 'Catat badal berkelompok · ' + cand.length + ' jamaah' : 'Tidak ada jamaah yang perlu dibadalkan', onAll: () => { if (cand.length) this.openPicker(k, cand.filter(j => S.udz[j.id]).map(j => j.id), cand.map(j => j.id)); },
         hasNote: true, note: 'Pelaksana badal wajib diisi. Satu pelaksana boleh membadali beberapa jamaah sekaligus; pelaksana yang juga jamaah boleh mencentang lontarnya sendiri.' };
-      const g = {}; dn.forEach(j => { const key = bmap[j.id] || '—'; (g[key] = g[key] || []).push(j); });
-      pelGroups = Object.entries(g).map(([key, js]) => ({ name: key === '—' ? 'Belum ada pelaksana' : this.pelName(key), role: key === '—' ? 'Data lama · ketuk nama untuk melengkapi' : this.pelRole(key), count: js.length, names: js.map(j => j.name.split(' ')[0]).join(', ') })); }
+      const g = {}; dn.forEach(j => { const key = bmap[j.id] || '-'; (g[key] = g[key] || []).push(j); });
+      pelGroups = Object.entries(g).map(([key, js]) => ({ name: key === '-' ? 'Belum ada pelaksana' : this.pelName(key), role: key === '-' ? 'Data lama · ketuk nama untuk melengkapi' : this.pelRole(key), count: js.length, names: js.map(j => j.name.split(' ')[0]).join(', ') })); }
     this._slotF = null;
     // picker
     let pk = {};
@@ -1259,7 +1259,7 @@ export default class AppLogic extends DCLogic {
     if (isMad && P.slot != null && this.jadwal[P.slot]) { const sp = this.jadwal[P.slot]; this._slotF = j => this.inSlot(j, sp); }
     const pl = this.scopeList(P); this._slotF = null; const ks = P.rites.filter(k => k < nR).sort((a, b) => a - b), shown = ks.slice(0, 4), rek = P.fmt === 'rekap';
     const shd = this.sheetDef(P.sheet || 'armuzna'), PPN = this.ppih();
-    const SY = { pu: { v: 'PU', fg: '#8a3b12', bg: '#fde2d3', bd: '#e07b39' }, ok: { v: '✓', fg: '#1e6b52', bg: 'transparent', bd: 'transparent' }, s: { v: 'S', fg: '#5a3f00', bg: '#fdf0c4', bd: '#c98a00' }, b: { v: 'B', fg: 'var(--color-accent-2-700)', bg: 'var(--color-accent-2-100)', bd: 'var(--color-accent-2-700)' }, box: { v: '', fg: 'inherit', bg: 'var(--color-surface)', bd: 'var(--color-neutral-700)' }, na: { v: '–', fg: 'var(--color-neutral-700)', bg: 'transparent', bd: 'transparent' } };
+    const SY = { pu: { v: 'PU', fg: '#8a3b12', bg: '#fde2d3', bd: '#e07b39' }, ok: { v: '✓', fg: 'var(--color-accent-700)', bg: 'transparent', bd: 'transparent' }, s: { v: 'S', fg: '#5a3f00', bg: '#fdf0c4', bd: '#c98a00' }, b: { v: 'B', fg: 'var(--color-accent-2-700)', bg: 'var(--color-accent-2-100)', bd: 'var(--color-accent-2-700)' }, box: { v: '', fg: 'inherit', bg: 'var(--color-surface)', bd: 'var(--color-neutral-700)' }, na: { v: '–', fg: 'var(--color-neutral-700)', bg: 'transparent', bd: 'transparent' } };
     let pr;
     if (shd.kind === 'khusus' || shd.kind === 'badal') { const isK = shd.kind === 'khusus', pl3 = this.scopeList(P).filter(j => isK ? this.isKh(j) : this.needBadal(j)), BR = this.badalRites(), Dh = S.done.haji;
       const cellB = (j, b) => this.naLock('haji', b.k, j, Dh) ? SY.na : Dh[b.k][j.id] ? SY.ok : SY.box;
@@ -1300,11 +1300,11 @@ export default class AppLogic extends DCLogic {
       const groups = Object.keys(gm).sort((a, b) => { const [ar, ag] = a.split('|').map(Number), [br, bg] = b.split('|').map(Number); return ar - br || ag - bg; }).map(key => { const [r, g] = key.split('|').map(Number), js = gm[key];
         return { title: 'Rombongan ' + r + ' · Regu ' + g, sub: 'Ketua regu: ' + this.ketuaG(r, g).name, n: js.length + ' jamaah', rows: js.map(j => { const k = this.khOf(j.id), pk = this.pendKey(j.id);
           const tags = [j.risti ? { t: 'Risti', bg: 'var(--red-100)', fg: 'var(--red-700)' } : null, k.lansia ? { t: 'Lansia', bg: '#FFF1DB', fg: '#8a5200' } : null, k.kroda ? { t: 'Kursi roda', bg: 'var(--color-accent-2-100)', fg: 'var(--color-accent-2-700)' } : null].filter(Boolean);
-          return { name: j.name, ini: j.ini, avBg: j.risti ? 'var(--red-100)' : k.kroda ? 'var(--color-accent-2-100)' : '#FFF1DB', avFg: j.risti ? 'var(--red-700)' : k.kroda ? 'var(--color-accent-2-700)' : '#C77700', tags, pend: pk ? 'Pendamping: ' + this.pendDesc(j.id) : 'Belum ada pendamping · ketuk untuk memilih', pendFg: pk ? 'var(--color-neutral-800)' : 'var(--red-700)', pendIni: pk ? (this.pelName(pk).split(/\s+/).slice(0, 2).map(w => w[0] || '').join('')) : '!', pendBg: pk ? 'var(--color-accent-100)' : 'var(--red-100)', pendIc: pk ? 'var(--color-accent)' : 'var(--red-700)', on: () => this.setState({ sel: j.id }) }; }) }; });
+          return { name: j.name, ini: j.ini, avBg: j.risti ? 'var(--red-100)' : k.kroda ? 'var(--color-accent-2-100)' : '#FFF1DB', avFg: j.risti ? 'var(--red-700)' : k.kroda ? 'var(--color-accent-2-700)' : '#8A5300', tags, pend: pk ? 'Pendamping: ' + this.pendDesc(j.id) : 'Belum ada pendamping · ketuk untuk memilih', pendFg: pk ? 'var(--color-neutral-800)' : 'var(--red-700)', pendIni: pk ? (this.pelName(pk).split(/\s+/).slice(0, 2).map(w => w[0] || '').join('')) : '!', pendBg: pk ? 'var(--color-accent-100)' : 'var(--red-100)', pendIc: pk ? 'var(--color-accent)' : 'var(--red-700)', on: () => this.setState({ sel: j.id }) }; }) }; });
       return { isAll: J.v !== 'kh', isKh: J.v === 'kh', groups, empty: !l.length, segs: [['semua', 'Semua jamaah'], ['kh', 'Jamaah khusus · ' + khCnt.semua]].map(([v, lb]) => ({ l: lb, on: () => this.patch('jl', { v }), ...pill((J.v || 'semua') === v) })),
         chips: [['semua', 'Semua'], ['risti', 'Risti'], ['lansia', 'Lansia'], ['kroda', 'Kursi roda'], ['tanpa', 'Tanpa pendamping']].map(([k, lb]) => { const a = f === k; return { l: lb, n: khCnt[k], on: () => this.patch('jl', { kf: k }), bg: a ? 'var(--color-accent-100)' : 'var(--color-surface)', fg: a ? 'var(--color-accent-800)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)' }; }) }; })();
     const skV = (() => { if (S.sel == null || !this.jm[S.sel]) return {}; const j = this.jm[S.sel], k = this.khOf(j.id), pk = this.pendKey(j.id), bk = this.pelbKey(j.id);
-      const tg = (l, a, on) => ({ l, on, bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? '#fff' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', mark: a ? '✓ ' : '' });
+      const tg = (l, a, on) => ({ l, on, bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? 'var(--on-isi)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', mark: a ? '✓ ' : '' });
       return { chips: [tg('Lansia', k.lansia, () => this.setKh(j.id, { lansia: !k.lansia })), tg('Kursi roda', k.kroda, () => this.setKh(j.id, { kroda: !k.kroda })), tg(S.udz[j.id] ? 'Perlu badal (udzur)' : 'Perlu badal', S.udz[j.id] || k.pb, () => { if (S.udz[j.id]) this.flash('Jamaah udzur otomatis masuk daftar badal'); else this.setKh(j.id, { pb: !k.pb }); })],
         pend: pk ? this.pendDesc(j.id) : 'Belum ada pendamping', pendFg: pk ? 'var(--color-text)' : 'var(--red-700)', pendCta: pk ? 'Ganti' : 'Pilih', onPend: () => this.setState({ pp: { kind: 'pend', id: j.id, q: '', sel: pk, src: 'jamaah' } }),
         showPelb: this.needBadal(j), pelb: bk ? this.pelText(bk) : 'Belum ada pelaksana tetap', pelbFg: bk ? 'var(--color-text)' : 'var(--red-700)', pelbCta: bk ? 'Ganti' : 'Pilih', onPelb: () => this.setState({ pp: { kind: 'pelb', id: j.id, q: '', sel: bk, src: 'jamaah' } }) }; })();
@@ -1326,7 +1326,7 @@ export default class AppLogic extends DCLogic {
       const day = st.day || curB.d, B = BR.find(b => b.d === day) || BR[0], bk = B.k, q = (st.q || '').trim().toLowerCase();
       const all = this.jm.filter(j => this.needBadal(j)), match = j => { if (!q) return true; const p = this.pelOfB(j); return j.name.toLowerCase().includes(q) || j.porsi.includes(q) || (p && this.pelName(p).toLowerCase().includes(q)); };
       const list = all.filter(match), act = all.filter(j => !this.naLock('haji', bk, j, Dh)), doneN = act.filter(j => Dh[bk][j.id]).length, todo = act.filter(j => !Dh[bk][j.id]), ready = todo.filter(j => this.pelOfB(j, bk));
-      const dayCell = (j, b) => { const na = this.naLock('haji', b.k, j, Dh), d = Dh[b.k][j.id], cur = b.d === day; return { l: b.d + (na ? ' NA' : d ? ' ✓' : cur ? ' •' : ''), bg: na ? 'var(--color-neutral-100)' : d ? 'var(--color-accent)' : cur ? '#FFF1DB' : 'var(--color-neutral-100)', fg: na ? 'var(--color-neutral-600)' : d ? '#fff' : cur ? '#C77700' : 'var(--color-neutral-600)', on: () => this.badalToggle(j, b.k) }; };
+      const dayCell = (j, b) => { const na = this.naLock('haji', b.k, j, Dh), d = Dh[b.k][j.id], cur = b.d === day; return { l: b.d + (na ? ' NA' : d ? ' ✓' : cur ? ' •' : ''), bg: na ? 'var(--color-neutral-100)' : d ? 'var(--color-accent)' : cur ? '#FFF1DB' : 'var(--color-neutral-100)', fg: na ? 'var(--color-neutral-600)' : d ? 'var(--on-accent)' : cur ? '#8A5300' : 'var(--color-neutral-600)', on: () => this.badalToggle(j, b.k) }; };
       const rows = list.map(j => { const pk = this.pelOfB(j, bk); return { ini: j.ini, name: j.name, tag: S.udz[j.id] ? 'Udzur' : 'Ditambahkan', tagBg: S.udz[j.id] ? 'var(--red-100)' : 'var(--color-accent-2-100)', tagFg: S.udz[j.id] ? 'var(--red-700)' : 'var(--color-accent-2-700)',
         sub: `R${j.r}·${j.g} · ` + (pk ? 'oleh ' + this.pelText(pk) : 'Belum ada pelaksana · ketuk untuk memilih'), subFg: pk ? 'var(--color-neutral-700)' : 'var(--red-700)', days: BR.map(b => dayCell(j, b)), on: () => this.setState({ pp: { kind: 'pelb', id: j.id, q: '', sel: this.pelbKey(j.id), src: 'jamaah' } }) }; });
       const gm = {}; list.forEach(j => { const p = this.pelOfB(j, bk) || '_'; (gm[p] = gm[p] || []).push(j); });
@@ -1377,15 +1377,15 @@ export default class AppLogic extends DCLogic {
       whys: ['Kurang putaran', 'Batal wudhu', 'Salah urutan', "Tidak di area Mas'a", 'Lainnya'].map(l => ({ l, ...amb(uld.why === l), on: () => this.patch('ulDlg', { why: l }) })) }; })() : {};
     const cs = isMad && ck.slot != null ? this.jadwal[ck.slot] : null, mdDaysL = [...new Set(this.jadwal.map(x => x.tgl))];
     const mdT = cs ? cs.tgl : mdDaysL.includes(ck.mdTgl) ? ck.mdTgl : mdDaysL[0], mdS = cs && cs.sex ? cs.sex : (ck.mdSex || 'L');
-    const mdDays = mdDaysL.map(t => { const a = t === mdT; return { l: t, bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? '#fff' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', on: () => this.patch('ck', { mdTgl: t, slot: null }) }; });
+    const mdDays = mdDaysL.map(t => { const a = t === mdT; return { l: t, bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? 'var(--on-isi)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', on: () => this.patch('ck', { mdTgl: t, slot: null }) }; });
     const mdSexBtns = [['L', 'Laki-laki'], ['P', 'Perempuan']].map(([k, l]) => ({ l, ...pill(mdS === k), on: () => this.patch('ck', { mdSex: k, slot: null }) }));
     const mdJams = isMad ? this.jadwal.map((x, i) => ({ x, i })).filter(o => o.x.tgl === mdT && (!o.x.sex || o.x.sex === mdS)).map(({ x, i }) => { const l = this.jm.filter(j => this.inSlot(j, x) && !S.udz[j.id]), d = l.filter(j => MD[j.id]).length, a = ck.slot === i;
       return { l: x.jam, sub: x.romb.length ? 'R' + x.romb.join(', R') : 'Semua rombongan', cnt: d + '/' + l.length, rw: a ? '2.5px' : '1.5px', bg: a ? 'var(--color-accent-100)' : 'var(--color-surface)', fg: 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', on: () => this.patch('ck', { slot: a ? null : i, scope: 'kloter', mdTgl: x.tgl, mdSex: x.sex || mdS }) }; }) : [];
     const sdl = S.slotDlg, updSd = p => this.setState(st => ({ slotDlg: { ...st.slotDlg, ...p } }));
     const sd = sdl ? { tgl: sdl.tgl, a: sdl.a, b: sdl.b, ket: sdl.ket, noSave: !(sdl.tgl && sdl.a && sdl.b && sdl.romb.length),
       sexBtns: [['L', 'Laki-laki'], ['P', 'Perempuan']].map(([k, l]) => ({ l, ...pill(sdl.sex === k), on: () => updSd({ sex: k }) })),
-      rs: [1, 2, 3, 4, 5, 6, 7, 8, 9].map(r => { const a = sdl.romb.includes(r); return { l: 'R' + r, bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? '#fff' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', on: () => updSd({ romb: a ? sdl.romb.filter(x => x !== r) : [...sdl.romb, r].sort((x, y) => x - y) }) }; }),
-      prev: 'Akan tersimpan: ' + (this.fmtTgl(sdl.tgl) || '—') + ' · ' + (sdl.a && sdl.b ? sdl.a.replace(':', '.') + '–' + sdl.b.replace(':', '.') : 'jam belum diisi') + ' · ' + (sdl.sex === 'P' ? 'Perempuan' : 'Laki-laki') + ' · ' + (sdl.romb.length ? 'R' + sdl.romb.join(', R') : 'pilih rombongan') } : {};
+      rs: [1, 2, 3, 4, 5, 6, 7, 8, 9].map(r => { const a = sdl.romb.includes(r); return { l: 'R' + r, bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? 'var(--on-isi)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', on: () => updSd({ romb: a ? sdl.romb.filter(x => x !== r) : [...sdl.romb, r].sort((x, y) => x - y) }) }; }),
+      prev: 'Akan tersimpan: ' + (this.fmtTgl(sdl.tgl) || '-') + ' · ' + (sdl.a && sdl.b ? sdl.a.replace(':', '.') + '–' + sdl.b.replace(':', '.') : 'jam belum diisi') + ' · ' + (sdl.sex === 'P' ? 'Perempuan' : 'Laki-laki') + ' · ' + (sdl.romb.length ? 'R' + sdl.romb.join(', R') : 'pilih rombongan') } : {};
     const LOGO = this;
     const allSel = ks.length === nR;
     return {
@@ -1395,7 +1395,7 @@ export default class AppLogic extends DCLogic {
       rk: (() => { const due = this.rekapDue(), hr = this.remindHour();
         return { due, bg: due ? 'var(--red-100)' : 'var(--color-surface)', ring: due ? '2px var(--red-500)' : '0 transparent',
           sub: (this.cfg && this.cfg.lastRekap === this.todayKey()) ? 'Sudah dikirim hari ini · ' + X.rites[ci].n : 'Kegiatan: ' + X.rites[ci].day + ' · pengingat ' + hr + '.00 WAS',
-          hours: [19, 20, 21, 22].map(x => ({ l: x + '.00', bg: hr === x ? 'var(--color-accent)' : 'var(--color-neutral-100)', fg: hr === x ? '#fff' : 'var(--color-text)', on: () => { this.saveCfg({ remindHour: x }); this.forceUpdate(); } })),
+          hours: [19, 20, 21, 22].map(x => ({ l: x + '.00', bg: hr === x ? 'var(--color-accent)' : 'var(--color-neutral-100)', fg: hr === x ? 'var(--on-isi)' : 'var(--color-text)', on: () => { this.saveCfg({ remindHour: x }); this.forceUpdate(); } })),
           canNotif: typeof Notification !== 'undefined' && Notification.permission === 'default' }; })(),
       askNotif: () => { try { Notification.requestPermission().then(() => this.forceUpdate()); } catch (e) {} },
       hasWa: !!S.wa, openWa: () => this.setState({ wa: true }), closeWa: () => this.setState({ wa: false }),
@@ -1429,9 +1429,9 @@ export default class AppLogic extends DCLogic {
         status: () => this.statusExcel(), kloter: this.klLabel(), bisaUnggah: this.pakaiAkun(), porsiAda: () => new Set(this.jm.map(j => j.porsi)),
         sesudahUnggah: () => this.syncNow() },
       hasSel: S.sel != null, sel, onNote: e => { const v = e.target.value, id = S.sel; this.setState(s => ({ notes: { ...s.notes, [id]: v } })); this.push([{ jenis: 'jamaah', porsi: this.jm[id].porsi, catatan: v }]); }, hasPelNote: !!sel.pelNote, closeSel: () => this.setState({ sel: null }), stop: e => e.stopPropagation(),
-      ckDays: days.map((day, di) => { const sel = X.rites[ck.rite].day === day, td = day === X.rites[ci].day, fut = di > days.indexOf(X.rites[ci].day); return { l: day.replace(' Dzulhijjah', ' Dzh').replace(' Dzulqa’dah', ' Dzq'), today: td ? 'y' : '', dot: 'none', dotBg: 'transparent', rw: sel ? '3px' : '1.5px', bg: td ? 'var(--color-accent)' : fut ? 'var(--color-neutral-100)' : 'var(--color-surface)', fg: td ? '#fff' : fut ? 'var(--color-neutral-700)' : 'var(--color-text)', ring: sel ? (td ? 'var(--color-accent-800)' : 'var(--color-accent-2)') : fut ? 'var(--color-neutral-300)' : 'var(--color-divider)', on: () => this.patch('ck', { rite: X.rites.findIndex(r => r.day === day) }) }; }),
+      ckDays: days.map((day, di) => { const sel = X.rites[ck.rite].day === day, td = day === X.rites[ci].day, fut = di > days.indexOf(X.rites[ci].day); return { l: day.replace(' Dzulhijjah', ' Dzh').replace(' Dzulqa’dah', ' Dzq'), today: td ? 'y' : '', dot: 'none', dotBg: 'transparent', rw: sel ? '3px' : '1.5px', bg: td ? 'var(--color-accent)' : fut ? 'var(--color-neutral-100)' : 'var(--color-surface)', fg: td ? 'var(--on-isi)' : fut ? 'var(--color-neutral-700)' : 'var(--color-text)', ring: sel ? (td ? 'var(--color-accent-800)' : 'var(--color-accent-2)') : fut ? 'var(--color-neutral-300)' : 'var(--color-divider)', on: () => this.patch('ck', { rite: X.rites.findIndex(r => r.day === day) }) }; }),
       ckPills: X.rites.map((r, i) => ({ r, i })).filter(o => o.r.day === X.rites[ck.rite].day).map(({ r, i }) => { const a = ck.rite === i;
-        const lk = i > ci; return { l: r.p, locked: lk, now: i === ci, done: i < ci, on: () => this.patch('ck', { rite: i }), bg: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-100)' : 'transparent', fg: a ? '#fff' : lk ? 'var(--color-neutral-700)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-300)' : 'var(--color-divider)' }; }),
+        const lk = i > ci; return { l: r.p, locked: lk, now: i === ci, done: i < ci, on: () => this.patch('ck', { rite: i }), bg: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-100)' : 'transparent', fg: a ? 'var(--on-isi)' : lk ? 'var(--color-neutral-700)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-300)' : 'var(--color-divider)' }; }),
       ckScopes: scopes(ck, 'ck'), ckRs: rombPills, ckGs: gs(ck, 'ck'), ckShowR: ck.scope !== 'kloter', ckShowG: ck.scope === 'regu', ckRows, ckSum,
       ckEmpty: ckRows.length + ckPeople.length === 0, ckHasRows: ckRows.length > 0, ckPeople, ckHasPeople: ckPeople.length > 0, hasPel: pelGroups.length > 0, pelGroups,
       hasPicker: !!S.picker, pk, closePicker: () => this.setState({ picker: null }), applyPicker: () => this.applyPicker(),
@@ -1494,7 +1494,7 @@ export default class AppLogic extends DCLogic {
           rs: romb.map(r => ({ l: 'R' + r, ...pill(d.r === r), on: () => upd({ r, g: (this.jm.find(j => j.r === r) || {}).g || 1 }) })),
           gs: regu.map(g => ({ l: 'Regu ' + g, ...pill(d.g === g), on: () => upd({ g }) })),
           opts: (jj ? ['Ikut miqat kloter'] : []).concat(MIQAT).map(m => { const v = m === 'Ikut miqat kloter' ? '' : m, on = jj ? (d.val || '') === v : d.val === v;
-            return { l: m, bg: on ? 'var(--color-accent)' : 'var(--color-surface)', fg: on ? '#fff' : 'var(--color-neutral-800)', on: () => upd({ val: v }) }; }),
+            return { l: m, bg: on ? 'var(--color-accent)' : 'var(--color-surface)', fg: on ? 'var(--on-isi)' : 'var(--color-neutral-800)', on: () => upd({ val: v }) }; }),
           val: d.val || '', onVal: e => upd({ val: e.target.value.slice(0, 60) }),
           note: d.scope === 'kloter' ? 'Semua jamaah memakai miqat ini; pengecualian per jamaah dihapus.' : jj ? '' : 'Berlaku untuk ' + target + ' jamaah di cakupan ini. Jamaah lain tetap.',
           simpan: () => this.setMiqat(d.scope, d.val, d), cta: 'Simpan miqat' + (jj ? '' : ' · ' + target + ' jamaah'), batal: () => this.setState({ mqDlg: null }) }; })() : null,
@@ -1537,7 +1537,7 @@ export default class AppLogic extends DCLogic {
         ['checklist', 'Massal', 'M3 12l3 3 6-6M10 17l2 2 9-9', ['checklist'], true],
         ['kirim', 'Kirim', 'M21 3L10 14M21 3l-7 18-4-7-7-4z', ['kirim']],
         ['profil', 'Profil', 'M12 4a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM5 20c0-3.5 3-6 7-6s7 2.5 7 6', ['profil']]].map(([k, l, d, grup, fab]) => { const a = grup.includes(S.tab);
-        return { l, d, on: k === 'checklist' ? go(k, { ckPilih: true }) : go(k), fab: !!fab, fg: fab ? '#0b2a1f' : a ? 'var(--color-accent)' : 'var(--nav-fg)', bg: a && !fab ? 'var(--color-accent-100)' : 'transparent', ring: a ? 'var(--color-accent)' : 'transparent' }; }),
+        return { l, d, on: k === 'checklist' ? go(k, { ckPilih: true }) : go(k), fab: !!fab, fg: fab ? '#0b2a1f' : a ? 'var(--color-accent-700)' : 'var(--nav-fg)', bg: a && !fab ? 'var(--color-accent-100)' : 'transparent', ring: a ? 'var(--color-accent)' : 'transparent' }; }),
       ckPilih: S.tab === 'checklist' && !!S.ckPilih, pilihIbadah: S.tab === 'checklist' && S.ckPilih ? this.pilihIbadah() : [],
       kePilihIbadah: () => this.setState({ ckPilih: true, ckDariPilih: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }), labelIbadah: this.modeLabel(S.mode),
       judulKegiatan: S.mode === 'madinah' ? 'Kegiatan sunnah Madinah' : 'Rukun & wajib ' + this.modeLabel(S.mode),

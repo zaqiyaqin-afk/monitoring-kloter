@@ -29,7 +29,7 @@ function KartuIbadah({ x }) {
       <span style={{ position: 'relative', height: 8, borderRadius: 9, background: 'rgba(0,0,0,.35)', overflow: 'hidden' }} aria-hidden="true">
         <span style={{ display: 'block', height: '100%', width: Math.max(2, x.pct) + '%', borderRadius: 9, background: emas ? `linear-gradient(90deg, ${EMAS.tua}, ${EMAS.muda})` : w.aksen }} />
       </span>
-      <span style={{ position: 'relative', justifySelf: 'start', fontSize: fs(14), fontWeight: 800, padding: '11px 18px', borderRadius: 14, minHeight: 44, boxSizing: 'border-box', ...(emas ? { background: `linear-gradient(160deg, #f3dd9b, ${EMAS.tua})`, color: '#2b1d00' } : { border: '1.5px solid ' + w.tepi, color: w.aksen }) }}>{x.cta} ›</span>
+      <span style={{ position: 'relative', justifySelf: 'start', fontSize: fs(14), fontWeight: 800, padding: '11px 18px', borderRadius: 14, minHeight: 44, boxSizing: 'border-box', ...(emas ? { background: `linear-gradient(160deg, var(--emas-muda), ${EMAS.tua})`, color: 'var(--emas-gelap)' } : { border: '1.5px solid ' + w.tepi, color: w.aksen }) }}>{x.cta}</span>
     </button>
   );
 }
@@ -45,7 +45,7 @@ export default function PilihIbadah({ v }) {
       {(v.pilihIbadah || []).map(x => <KartuIbadah key={x.m} x={x} />)}
       <div style={{ position: 'relative', borderRadius: 24, padding: 18, background: EMAS.kartu, border: '1px solid ' + EMAS.tepi, color: EMAS.teks, display: 'grid', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ width: 40, height: 40, borderRadius: 12, display: 'grid', placeItems: 'center', background: `linear-gradient(160deg, #f3dd9b, ${EMAS.tua})`, color: '#2b1d00', flex: 'none' }}>
+          <span style={{ width: 40, height: 40, borderRadius: 12, display: 'grid', placeItems: 'center', background: `linear-gradient(160deg, var(--emas-muda), ${EMAS.tua})`, color: 'var(--emas-gelap)', flex: 'none' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h3l2-2h6l2 2h3v12H4zM12 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
           </span>
           <div style={{ display: 'grid', minWidth: 0 }}>
@@ -53,9 +53,9 @@ export default function PilihIbadah({ v }) {
             <span style={{ fontSize: fs(12.5), color: EMAS.redup, lineHeight: 1.4 }}>Foto setelah kegiatan selesai, atau foto catatan kegiatan</span>
           </div>
         </div>
-        <div style={{ fontSize: fs(13), lineHeight: 1.45 }}><b>{f.judul}</b>{f.sub ? <span style={{ color: '#c9d8cf' }}> · {f.sub}</span> : null}</div>
+        <div style={{ fontSize: fs(13), lineHeight: 1.45 }}><b>{f.judul}</b>{f.sub ? <span style={{ color: 'var(--teks-gelap-2)' }}> · {f.sub}</span> : null}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 8 }}>
-          <button onClick={v.ambilFoto} style={{ border: 0, borderRadius: 14, minHeight: 46, background: `linear-gradient(160deg, #f3dd9b, ${EMAS.tua})`, color: '#2b1d00', font: `800 ${fs(14)} var(--font-body)`, cursor: 'pointer' }}>Ambil foto</button>
+          <button onClick={v.ambilFoto} style={{ border: 0, borderRadius: 14, minHeight: 46, background: `linear-gradient(160deg, var(--emas-muda), ${EMAS.tua})`, color: 'var(--emas-gelap)', font: `800 ${fs(14)} var(--font-body)`, cursor: 'pointer' }}>Ambil foto</button>
           <button onClick={v.bukaGaleri} style={{ borderRadius: 14, minHeight: 46, background: 'transparent', border: '1.5px solid ' + EMAS.garis, color: EMAS.utama, font: `800 ${fs(14)} var(--font-body)`, cursor: 'pointer' }}>Lihat semua</button>
         </div>
         <input ref={v.fotoInput} type="file" accept="image/*" capture="environment" onChange={v.onFotoFile} style={{ display: 'none' }} />

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 const label = { display: 'grid', gap: 5, fontSize: fs(12.5), fontWeight: 700, color: 'var(--color-neutral-700)', minWidth: 0 };
-const input = { height: 42, borderRadius: 12, border: '1.5px solid var(--color-divider)', padding: '0 12px', fontSize: fs(15), fontFamily: 'inherit',
+const input = { height: 44, borderRadius: 12, border: '1.5px solid var(--color-divider)', padding: '0 12px', fontSize: fs(15), fontFamily: 'inherit',
   background: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', boxSizing: 'border-box', minWidth: 0 };
 const grup = { display: 'grid', gap: 10, background: 'var(--color-surface)', borderRadius: 18, padding: 14, border: '1px solid var(--color-divider)' };
 const judul = { fontSize: fs(13), fontWeight: 800, color: 'var(--color-accent-700)' };
@@ -25,7 +25,7 @@ function Form({ d }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {[['L', 'Laki-laki'], ['P', 'Perempuan']].map(([v, l]) => (
               <button key={v} type="button" onClick={() => set('jk', f.jk === v ? '' : v)} aria-pressed={f.jk === v}
-                style={{ minHeight: 40, borderRadius: 12, border: '1.5px solid ' + (f.jk === v ? 'var(--color-accent)' : 'var(--color-divider)'), background: f.jk === v ? 'var(--color-accent)' : 'transparent',
+                style={{ minHeight: 44, borderRadius: 12, border: '1.5px solid ' + (f.jk === v ? 'var(--color-accent)' : 'var(--color-divider)'), background: f.jk === v ? 'var(--color-accent)' : 'transparent',
                   color: f.jk === v ? 'var(--on-accent)' : 'var(--color-text)', font: `600 ${fs(14)} var(--font-body)`, cursor: 'pointer' }}>{l}</button>
             ))}
           </div>
