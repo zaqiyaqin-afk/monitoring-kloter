@@ -602,6 +602,7 @@ export default class AppLogic extends DCLogic {
   kembali() {
     const S = this.state, tutup = ['sel', 'syncOpen', 'tglOpen', 'galeri', 'fotoDlg', 'susDlg', 'safDlg', 'ulDlg', 'slotDlg', 'mqDlg', 'tgJ', 'pp', 'confirm', 'pdf', 'kejForm'].find(k => S[k] != null && S[k] !== false);
     if (tutup) { this.setState({ [tutup]: ['syncOpen', 'tglOpen', 'galeri', 'pdf'].includes(tutup) ? false : null }); return true; }
+    if (S.tab === 'checklist' && !S.ckPilih && S.ckDariPilih) { this.setState({ ckPilih: true, ckDariPilih: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }); return true; }
     const r = this._riwayat || [];
     if (r.length) { this._dariKembali = true; const t = r[r.length - 1]; this._riwayat = r.slice(0, -1); this.setState({ tab: t }); return true; }
     if (S.tab !== 'beranda') { this._dariKembali = true; this.setState({ tab: 'beranda' }); return true; }
@@ -769,7 +770,7 @@ export default class AppLogic extends DCLogic {
     const S = this.state, jm = this.jm, hit = f => jm.filter(f).length, kh = j => this.khOf(j.id) || {};
     const hari = this.todayKey(), besok = new Date(hari + 'T00:00:00Z'); besok.setUTCDate(besok.getUTCDate() + 1); const tglBesok = besok.toISOString().slice(0, 10);
     const keJamaah = p => () => this.setState(s => ({ tab: 'jamaah', jl: { ...s.jl, ...p } }));
-    const keCk = (m, k) => () => { this.saveCfg({ mode: m }); this.setState(s => ({ mode: m, tab: 'checklist', ck: { ...s.ck, rite: k } })); };
+    const keCk = (m, k) => () => { this.saveCfg({ mode: m }); this.setState(s => ({ mode: m, tab: 'checklist', ckPilih: false, ck: { ...s.ck, rite: k } })); };
     const L = hit(j => j.sex === 'L'), P = hit(j => j.sex === 'P'), lansia = hit(j => kh(j).lansia), pend = hit(j => this.pendKey(j.id));
     const ringkas = [
       { n: L, l: 'Laki-laki' }, { n: P, l: 'Perempuan' }, { n: lansia, l: 'Lansia', on: keJamaah({ v: 'kh', kf: 'lansia' }) }, { n: pend, l: 'Didampingi', on: keJamaah({ v: 'kh', kf: 'semua' }) },
@@ -781,15 +782,52 @@ export default class AppLogic extends DCLogic {
         if (tgl >= hari) return;
         const n = jm.filter(j => !S.udz[j.id] && !this.skip(m, ks[0], j, D) && this.satBy(m, g, j, D) < 0).length; if (!n) return;
         const r = X.rites[M.firstK[g]];
-        peringatan.push({ key: m + g, label: r.p, sub: this.modeLabel(m) + ' · ' + this.fmtHari(tgl), n, tgl, on: keCk(m, M.firstK[g]) }); });
+        const tot = jm.filter(j => !S.udz[j.id] && !this.skip(m, ks[0], j, D)).length;
+        peringatan.push({ key: m + g, label: r.p, sub: this.modeLabel(m) + ' · ' + this.fmtHari(tgl), n, tot, tgl, on: keCk(m, M.firstK[g]) }); });
       X.rites.forEach((r, k) => { if (!r.tgl || r.tgl < hari || r.tgl > tglBesok || r.opt) return;
         const jam = r.jam || '', lewat = r.tgl === hari && jam && jam.replace('.', ':') < this.hhmmWas();
         if (lewat) return;
         pengingat.push({ key: m + k, label: r.p, sub: this.modeLabel(m) + ' · ' + (r.place || ''), kapan: (r.tgl === hari ? 'Hari ini' : 'Besok') + (jam ? ' ' + jam.replace(':', '.') : ''), urut: r.tgl + (jam || '99'), on: keCk(m, k) }); }); });
     peringatan.sort((a, b) => b.tgl.localeCompare(a.tgl)); pengingat.sort((a, b) => a.urut.localeCompare(b.urut));
+    const khBase = jm.filter(j => this.isKh(j)), kejTerbuka = this.pakaiAkun() || !this.live() ? this.daftarKejadian().filter(k => k.status !== 'selesai').length : 0;
+    const X = this.data[S.mode], ci = X.cur, R = X.rites[ci], RS = this.rekapStats();
     return { total: jm.length, ringkas, peringatan: peringatan.slice(0, 5), pengingat: pengingat.slice(0, 4), tanpaTanggal: !adaTgl,
+      khusus: { n: khBase.length, tanpa: khBase.filter(j => !this.pendKey(j.id)).length, on: keJamaah({ v: 'kh', kf: 'semua' }) },
+      kejadian: { n: kejTerbuka, on: () => this.setState({ tab: 'kejadian' }) },
+      cur: { mode: this.modeLabel(S.mode), n: R.n, day: R.day || '', place: R.place || '', k: S.mode === 'madinah' ? 'Sunnah' : (R.k || ''), done: RS.done, tot: RS.tot, pct: RS.pct,
+        ket: X.deadline || '', on: () => this.setState(s => ({ tab: 'checklist', ckPilih: false, ck: { ...s.ck, rite: ci } })) },
+      jalan: ['haji', 'umrah', 'madinah'].map(m => this.perjalanan(m)),
       kota: S.mode === 'madinah' ? 'Madinah' : 'Makkah',
       catatanData: jm.length - L - P > 0 ? 'Jenis kelamin dan tanggal lahir bisa diisi di detail jamaah atau lewat Unggah Excel (Profil).' : '' };
+  }
+  // Tahapan perjalanan per ibadah (Madinah: tiap kegiatan satu tahap) dan kemajuannya
+  tahapan(m) {
+    const X = this.data[m], idx = re => X.rites.map((r, k) => re.test(r.n) ? k : -1).filter(k => k >= 0), span = (a, b) => Array.from({ length: Math.max(0, b - a) }, (_, i) => a + i), nR = X.rites.length;
+    if (m === 'madinah') return X.rites.map((r, k) => [r.p || r.n, [k]]);
+    if (m === 'haji') { const f = n => X.rites.findIndex(r => r.n === n), w = f('Wukuf di Arafah'), mu = f('Murur Mabit'), a = f('Jumroh Aqobah'), t = f('Thawaf Ifadzoh');
+      return [['Mina 8', span(0, w)], ['Arafah 9', span(w, mu)], ['Muzdalifah', span(mu, a)], ['Mina 10–13', span(a, t)], ['Makkah', span(t, nR)]].filter(x => x[1].length); }
+    return [['Miqat', idx(/^(Niat|Ihram) Umrah$|^Miqat$/)], ['Thawaf', idx(/^Thawaf/)], ["Sa'i", idx(/^Sa'i/)], ['Tahallul', idx(/^Tahallul/)]].filter(x => x[1].length);
+  }
+  perjalanan(m) {
+    const S = this.state, X = this.data[m], D = (S.done || {})[m] || [], n = this.jm.length || 1;
+    const isi = k => (D[k] || []).filter(Boolean).length / n, wajib = X.rites.map((r, k) => k).filter(k => !X.rites[k].opt && X.rites[k].k !== 'Opsi');
+    const pct = wajib.length ? Math.round(wajib.reduce((a, k) => a + Math.min(1, isi(k)), 0) / wajib.length * 100) : 0;
+    const titik = this.tahapan(m).map(([l, ks]) => { const kw = ks.filter(k => wajib.includes(k)), sel = (kw.length ? kw : ks).every(k => isi(k) >= 0.95);
+      return { l, s: sel ? 'ok' : ks.includes(X.cur) && pct > 0 ? 'now' : 'todo' }; });
+    const now = titik.find(t => t.s === 'now');
+    return { m, nama: m === 'madinah' ? 'Ibadah Madinah' : 'Perjalanan ' + this.modeLabel(m), pct,
+      sub: pct >= 100 ? 'Selesai semua' : now ? 'Sekarang · ' + now.l : pct > 0 ? 'Sedang berjalan' : m === 'madinah' ? 'Semua sunnah · belum dimulai' : 'Belum dimulai', titik,
+      on: () => this.gantiIbadah(m, { tab: 'checklist', ckPilih: false, ckDariPilih: false }) };
+  }
+  // Pindah ibadah: kegiatan terpilih ikut pindah ke kegiatan berlangsung ibadah itu (seperti tombol mode lama)
+  gantiIbadah(m, extra) { const c = this.data[m].cur; this.saveCfg({ mode: m }); this.setState(s => ({ mode: m, ck: { ...s.ck, rite: c }, pr: { ...s.pr, rites: [c] }, ...extra }), () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }); }
+  pilihIbadah() {
+    const S = this.state, ket = { haji: 'Rukun · wajib · sunnah', umrah: 'Umrah wajib', madinah: 'Semua sunnah' }, judul = { haji: 'Armuzna & Makkah', umrah: 'Umrah Wajib', madinah: 'Masjid Nabawi' };
+    return ['haji', 'umrah', 'madinah'].map(m => { const p = this.perjalanan(m), X = this.data[m], r = X.rites[X.cur] || {};
+      return { m, label: this.modeLabel(m).toUpperCase(), judul: judul[m], badge: p.pct >= 100 ? 'Selesai ✓' : ket[m], pct: p.pct,
+        sub: m === 'madinah' ? 'Raudhoh per jadwal' : p.pct >= 100 ? 'Semua kegiatan selesai' : 'Sekarang: ' + (r.n || '-'), aktif: S.mode === m,
+        cta: 'Buka checklist ' + (m === 'madinah' ? 'Madinah' : this.modeLabel(m).toLowerCase()),
+        on: () => { this.gantiIbadah(m, { ckPilih: false, ckDariPilih: true }); try { history.pushState({ mk: 1 }, ''); } catch (e) {} } }; });
   }
   hhmmWas() { return new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Riyadh', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()); }
   statusExcel() {
@@ -1045,7 +1083,7 @@ export default class AppLogic extends DCLogic {
     const K = this.kloter(), full = window.innerWidth < 900 || (window.matchMedia && matchMedia('(pointer:coarse)').matches), off = !navigator.onLine;
     const S = this.state, X = this.data[S.mode], D = S.done[S.mode], ci = X.cur, ck = S.ck, P = S.pr, J = S.jl;
     const nR = X.rites.length, udzN = S.udz.filter(Boolean).length, lockOn = ((this.cfg && this.cfg.lockUntil) || 0) > Date.now();
-    const go = (tab, extra) => () => this.setState({ tab, ...(extra || {}) });
+    const go = (tab, extra) => () => this.setState({ tab, ...(tab === 'checklist' ? { ckPilih: false, ckDariPilih: false } : {}), ...(extra || {}) });
     const pill = a => ({ bg: a ? 'var(--color-accent)' : 'transparent', fg: a ? '#fff' : 'var(--color-neutral-800)' });
     const chip = a => ({ bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? 'var(--color-bg)' : 'var(--color-text)' });
     const doneCnt = k => D[k].filter(Boolean).length;
@@ -1241,7 +1279,7 @@ export default class AppLogic extends DCLogic {
     pr = { hasMore: false, more: 0, hasExtra: false, extra: 0, ...pr, ppih: PPN };
     const cirDash = (p, c) => (Math.min(100, p) * c / 100).toFixed(1) + ' ' + c;
     const remain = this.jm.filter(j => this.tgt(S.mode, ci, j, D) && !sat(ci, j)).length;
-    const toCk = (rite, scope, r, g) => () => this.setState(s => ({ tab: 'checklist', ck: { ...s.ck, rite, scope, r: r || s.ck.r, g: g || s.ck.g } }));
+    const toCk = (rite, scope, r, g) => () => this.setState(s => ({ tab: 'checklist', ckPilih: false, ck: { ...s.ck, rite, scope, r: r || s.ck.r, g: g || s.ck.g } }));
     const rgCol = p => p < 70 ? 'var(--red-600)' : 'var(--color-accent)', rgFg = p => p < 70 ? 'var(--red-700)' : 'var(--color-accent-800)';
     const rg = RS.rombs.map(o => ({ l: 'R' + o.r, name: 'Rombongan ' + o.r, sub: 'Ketua ' + o.ketua, dn: o.d + '/' + o.n, soft: o.pct < 70 ? 'var(--red-100)' : 'var(--color-accent-100)', pct: o.pct + '%', col: rgCol(o.pct), fg: rgFg(o.pct), dash: cirDash(o.pct, 144.5), aria: 'Rombongan ' + o.r + ' ' + o.pct + ' persen', on: toCk(ci, 'rombongan', o.r) }));
     const jrSt = (() => { if (S.mode === 'madinah') return null; const idx = re => X.rites.map((r, k) => re.test(r.n) ? k : -1).filter(k => k >= 0), span = (a, b) => Array.from({ length: Math.max(0, b - a) }, (_, i) => a + i);
@@ -1494,20 +1532,23 @@ export default class AppLogic extends DCLogic {
       pinKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map(l => ({ l, vis: l ? 'visible' : 'hidden', bg: l === '⌫' ? 'transparent' : 'var(--color-accent-600)', op: lockOn ? 0.4 : 1, on: () => l && this.pressPin(l === '⌫' ? 'del' : l) })),
       hasToast: !!S.toast, toastMsg: S.toast || '',
       // Bilah bawah: Home · Menu · [Massal] · Kirim · Profil. Layar lama (Jamaah, Badal, Rekap, Cetak) dibuka dari Menu.
-      tabs: [['beranda', 'Home', 'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10', ['beranda']],
+      tabs: [['beranda', 'Home', 'M12 2v2M8.5 7.5A4 4 0 0 1 12 4a4 4 0 0 1 3.5 3.5M5 21v-8a7 7 0 0 1 14 0v8M3 21h18M10 21v-4a2 2 0 0 1 4 0v4', ['beranda']],
         ['menu', 'Menu', 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z', ['menu', 'jamaah', 'badal', 'rekap', 'cetak', 'kejadian']],
         ['checklist', 'Massal', 'M3 12l3 3 6-6M10 17l2 2 9-9', ['checklist'], true],
         ['kirim', 'Kirim', 'M21 3L10 14M21 3l-7 18-4-7-7-4z', ['kirim']],
         ['profil', 'Profil', 'M12 4a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM5 20c0-3.5 3-6 7-6s7 2.5 7 6', ['profil']]].map(([k, l, d, grup, fab]) => { const a = grup.includes(S.tab);
-        return { l, d, on: go(k), fab: !!fab, fg: fab ? '#0b2a1f' : a ? 'var(--color-accent)' : 'var(--nav-fg)', bg: a && !fab ? 'var(--color-accent-100)' : 'transparent', ring: a ? 'var(--color-accent)' : 'transparent' }; }),
+        return { l, d, on: k === 'checklist' ? go(k, { ckPilih: true }) : go(k), fab: !!fab, fg: fab ? '#0b2a1f' : a ? 'var(--color-accent)' : 'var(--nav-fg)', bg: a && !fab ? 'var(--color-accent-100)' : 'transparent', ring: a ? 'var(--color-accent)' : 'transparent' }; }),
+      ckPilih: S.tab === 'checklist' && !!S.ckPilih, pilihIbadah: S.tab === 'checklist' && S.ckPilih ? this.pilihIbadah() : [],
+      kePilihIbadah: () => this.setState({ ckPilih: true, ckDariPilih: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }), labelIbadah: this.modeLabel(S.mode),
+      judulKegiatan: S.mode === 'madinah' ? 'Kegiatan sunnah Madinah' : 'Rukun & wajib ' + this.modeLabel(S.mode),
       isMenu: S.tab === 'menu', isKirim: S.tab === 'kirim', isProfil: S.tab === 'profil', isKejadian: S.tab === 'kejadian',
       kejadian: S.tab === 'kejadian' ? this.kejadianVals() : null,
       menuItems: [['jamaah', 'Jamaah', 'Rombongan, regu, detail', 'M12 4a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM5 20c0-3.5 3-6 7-6s7 2.5 7 6'],
-        ['checklist', 'Ibadah', 'Haji, Umrah, Madinah', 'M4 6l2 2 3-3M4 14l2 2 3-3M13 7h8M13 15h8'],
-        ['badal', 'Badal', 'Lempar jumrah', 'M7 11V6a2 2 0 0 1 4 0v4M11 9V4a2 2 0 0 1 4 0v6M15 8a2 2 0 0 1 4 0v6a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-3l-2.5-4.3a1.8 1.8 0 0 1 3-1.9L7 14'],
+        ['checklist', 'Ibadah', 'Haji, Umrah, Madinah', 'M12 3l8 4v10l-8 4-8-4V7zM4 7l8 4 8-4M12 11v10M4 10.5l8 4 8-4'],
+        ['badal', 'Badal', 'Lempar jumrah', 'M4 17.5a3 3 0 1 0 6 0 3 3 0 1 0-6 0zM14 17.5a3 3 0 1 0 6 0 3 3 0 1 0-6 0zM9 8.5a3 3 0 1 0 6 0 3 3 0 1 0-6 0z'],
         ['rekap', 'Rekap', 'Progres ibadah', 'M5 20V11M12 20V4M19 20v-6'],
         ['cetak', 'Cetak', 'Simpan PDF', 'M7 9V3h10v6M7 17H4v-6h16v6h-3M7 14h10v7H7z'],
-        ['kejadian', 'Catatan Kejadian', 'Sakit, terpisah, dll', 'M12 8v5M12 16h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z']].map(([k, l, s, d]) => ({ l, s, d, on: go(k) })),
+        ['kejadian', 'Catatan Kejadian', 'Sakit, terpisah, dll', 'M12 8v5M12 16h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z']].map(([k, l, s, d]) => ({ l, s, d, on: k === 'checklist' ? go(k, { ckPilih: true }) : go(k) })),
       goTab: k => this.setState({ tab: k })
     };
   }

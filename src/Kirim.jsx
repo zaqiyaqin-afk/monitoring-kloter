@@ -16,7 +16,7 @@ const JENIS = [
   { k: 'pengingat', l: 'Pengingat ibadah', s: 'Jadwal kegiatan dan tata caranya', d: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
   { k: 'karom', l: 'Undangan karom & karu', s: 'Pertemuan ketua rombongan dan regu', d: 'M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M10 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 20v-2a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8' },
   { k: 'pengajian', l: 'Undangan pengajian', s: 'Untuk seluruh jamaah', d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5' },
-  { k: 'kesehatan', l: 'Undangan cek kesehatan', s: 'Bersama tim kesehatan kloter', d: 'M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9zM12 10v4M10 12h4' }
+  { k: 'kesehatan', l: 'Undangan cek kesehatan', s: 'Bersama tim kesehatan kloter', d: 'M6 3v6a4 4 0 0 0 8 0V3M10 13v2a5 5 0 0 0 10 0v-1M20 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z' }
 ];
 
 const simpanLokal = (k, v) => { try { localStorage.setItem('mk.kirim.' + k, JSON.stringify(v)); } catch (e) {} };

@@ -153,7 +153,7 @@ export default function Kejadian({ d }) {
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       {d.contoh && <div style={{ fontSize: fs(13), color: 'var(--color-neutral-700)' }}>Mode contoh · catatan tidak disimpan ke server.</div>}
-      <button style={{ ...utama, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={d.baru}><Ikon d="M12 5v14M5 12h14" s={20} />Catat kejadian</button>
+      <button style={{ ...utama, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={d.baru}><Ikon d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" s={20} />Catat kejadian</button>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {[['terbuka', 'Terbuka'], ['selesai', 'Selesai'], ['semua', 'Semua']].map(([v, l]) =>
           <button key={v} style={pil(saring === v)} aria-pressed={saring === v} onClick={() => setSaring(v)}>{l} ({n[v]})</button>)}
