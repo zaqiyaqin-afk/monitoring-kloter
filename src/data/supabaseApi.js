@@ -42,15 +42,17 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
     if (error) throw error;
     if (!k) throw new Error('Akun belum tersambung ke kloter. Hubungi admin.');
     if (ping) return { ok: true, pong: true, waktu: new Date().toISOString() };
+    // Admin boleh membaca semua kloter (RLS), jadi setiap tabel tetap disaring ke kloter akun ini
+    const kl = q => q.eq('kloter_id', k.id);
     const [jm, pt, jr, ct, jd, ru, kj, fk] = await Promise.all([
-      semua('jamaah', 'id, porsi, nama, rombongan, regu, jabatan, hp, resti, udzur, catatan, jk, lansia, kursi_roda, pendamping, perlu_badal, pelaksana_badal, miqat, tgl_lahir, hotel_makkah, lantai_makkah, kamar_makkah, tenda_arafah, tenda_mina, hotel_madinah, lantai_madinah, kamar_madinah', 'porsi'),
-      semua('petugas', 'nama, jabatan, urutan', 'urutan'),
-      semua('jadwal_raudhoh', 'tanggal, jam, jk, rombongan, keterangan', 'tanggal'),
-      semua('centang', 'jamaah_id, kegiatan, status, tanggal, jam, susulan, waktu, pelaksana_badal, keterangan, pendamping, pilihan, alasan, ulang_ke, status_ulang', 'waktu'),
-      semua('jadwal', 'mode, kegiatan, hari, tempat, tanggal, jam', 'kegiatan'),
-      semua('riwayat_udzur', 'jamaah_id, udzur, alasan, petugas, perangkat, waktu, id_kirim', 'waktu'),
-      semua('kejadian', 'id, jenis, waktu, lokasi, kronologi, tindak_lanjut, status, jamaah_ids, petugas, diubah', 'waktu'),
-      semua('foto', 'kejadian_id, path, id_kirim', 'dibuat', q => q.not('kejadian_id', 'is', null))
+      semua('jamaah', 'id, porsi, nama, rombongan, regu, jabatan, hp, resti, udzur, catatan, jk, lansia, kursi_roda, pendamping, perlu_badal, pelaksana_badal, miqat, tgl_lahir, hotel_makkah, lantai_makkah, kamar_makkah, tenda_arafah, tenda_mina, hotel_madinah, lantai_madinah, kamar_madinah', 'porsi', kl),
+      semua('petugas', 'nama, jabatan, urutan', 'urutan', kl),
+      semua('jadwal_raudhoh', 'tanggal, jam, jk, rombongan, keterangan', 'tanggal', kl),
+      semua('centang', 'jamaah_id, kegiatan, status, tanggal, jam, susulan, waktu, pelaksana_badal, keterangan, pendamping, pilihan, alasan, ulang_ke, status_ulang', 'waktu', kl),
+      semua('jadwal', 'mode, kegiatan, hari, tempat, tanggal, jam', 'kegiatan', kl),
+      semua('riwayat_udzur', 'jamaah_id, udzur, alasan, petugas, perangkat, waktu, id_kirim', 'waktu', kl),
+      semua('kejadian', 'id, jenis, waktu, lokasi, kronologi, tindak_lanjut, status, jamaah_ids, petugas, diubah', 'waktu', kl),
+      semua('foto', 'kejadian_id, path, id_kirim', 'dibuat', q => kl(q).not('kejadian_id', 'is', null))
     ]);
     const porsiDari = {}; jm.forEach(j => { porsiDari[j.id] = j; });
     const status = {};
