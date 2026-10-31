@@ -79,7 +79,7 @@ function Excel({ x }) {
   const unduh = async () => { setSibuk('unduh'); setGalat(''); try { await unduhExcel(x); } catch (e) { setGalat(e.message || String(e)); } finally { setSibuk(''); } };
   const pilih = async e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
     setSibuk('baca'); setGalat(''); setHasil(''); try { setPra(await bacaExcel(f, x.porsiAda())); } catch (er) { setGalat(er.message || String(er)); } finally { setSibuk(''); } };
-  const kirim = async () => { setSibuk('kirim'); setGalat('');
+  const kirim = async () => { if (x.coba) return; setSibuk('kirim'); setGalat('');
     try { const r = await imporJamaah(pra.rows); setPra(null); setHasil(`Tersimpan: ${r.baru} jamaah baru, ${r.diubah} diperbarui${r.dilewati ? `, ${r.dilewati} dilewati` : ''}.`); x.sesudahUnggah(); }
     catch (er) { setGalat(er.message || String(er)); } finally { setSibuk(''); } };
   return (
@@ -87,6 +87,7 @@ function Excel({ x }) {
       <div style={{ ...judul, color: 'var(--safir-teks)' }}>Excel data jamaah</div>
       <button style={tombol} onClick={unduh} disabled={!!sibuk}>{sibuk === 'unduh' ? 'Menyiapkan…' : 'Unduh Excel'}</button>
       <div style={{ fontSize: fs(13), color: 'var(--color-neutral-700)', lineHeight: 1.45 }}>Berisi lembar Data jamaah dan Status ibadah (Haji, Umrah, Madinah). Lembar Data jamaah bisa dilengkapi di Excel lalu diunggah kembali.</div>
+      {x.coba && <div style={{ fontSize: fs(13), color: 'var(--color-accent-2-800)', background: 'var(--color-accent-2-100)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.45 }}>Mode coba: Unduh Excel berisi data contoh, bisa dipakai sebagai contoh format. File yang diunggah hanya dibaca untuk pratinjau, tidak disimpan.</div>}
       {x.bisaUnggah && <>
         <input ref={fileRef} type="file" accept=".xlsx" onChange={pilih} style={{ display: 'none' }} />
         <button style={tombol} onClick={() => fileRef.current && fileRef.current.click()} disabled={!!sibuk}>{sibuk === 'baca' ? 'Membaca file…' : 'Unggah Excel'}</button>
@@ -97,10 +98,14 @@ function Excel({ x }) {
           <div>{pra.ubah} jamaah diperbarui · {pra.baru} jamaah baru</div>
           <div style={{ fontSize: fs(13), color: 'var(--color-neutral-700)' }}>Kolom terbaca: {pra.kolom.join(', ')}. Sel kosong tidak menghapus isian lama; tidak ada jamaah yang dihapus.</div>
           {pra.galat.length > 0 && <div style={{ fontSize: fs(13), color: 'var(--red-700)' }}>{pra.galat.length} baris dilewati: {pra.galat.slice(0, 3).join('; ')}{pra.galat.length > 3 ? '; …' : ''}</div>}
+          {x.coba ? <>
+            <div style={{ fontSize: fs(13), color: 'var(--color-accent-2-800)' }}>Ini hanya pratinjau. Untuk menyimpan, ketuk Selesai mencoba di Beranda lalu unggah file ini lagi.</div>
+            <button style={tombol} onClick={() => setPra(null)}>Tutup pratinjau</button>
+          </> : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <button style={tombol} onClick={() => setPra(null)} disabled={sibuk === 'kirim'}>Batal</button>
             <button style={{ ...tombol, background: 'var(--color-accent)', color: 'var(--on-accent)', borderColor: 'var(--color-accent)' }} onClick={kirim} disabled={sibuk === 'kirim' || !pra.rows.length}>{sibuk === 'kirim' ? 'Menyimpan…' : 'Simpan'}</button>
-          </div>
+          </div>)}
         </div>
       )}
       {hasil && <div style={{ background: 'var(--color-accent-100)', color: 'var(--color-accent-800)', borderRadius: 12, padding: '10px 12px', fontSize: fs(14) }}>{hasil}</div>}

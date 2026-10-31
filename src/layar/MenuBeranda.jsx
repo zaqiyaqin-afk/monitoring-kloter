@@ -6,6 +6,23 @@ import HomeAtas from '../HomeAtas.jsx';
 export default function MenuBeranda({ v }) {
   return (<>
               <div style={css("padding:8px 20px 24px;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;gap:18px")}>
+                {v.modeCoba ? (
+                  <div role="status" style={css("border-radius:20px;padding:14px 16px;display:grid;gap:10px;background:var(--color-accent-2-100);color:var(--color-accent-2-800)")}>
+                    <div style={css("font-size:calc(14px*var(--fs,1));line-height:1.45")}>
+                      <b>Mode coba · data contoh.</b> Silakan mencentang, mencatat, dan mencoba unggah Excel. Tidak ada yang dikirim ke server; data kloter asli tidak berubah.
+                    </div>
+                    <button className="btn btn-primary" onClick={v.selesaiCoba} style={css("height:46px;font-size:calc(15px*var(--fs,1))")}>Selesai mencoba</button>
+                  </div>
+                ) : null}
+                {v.kloterKosong ? (
+                  <div style={css("border-radius:20px;padding:14px 16px;display:grid;gap:10px;background:var(--color-accent-100);color:var(--color-accent-800)")}>
+                    <div style={css("font-size:calc(14px*var(--fs,1));line-height:1.45")}>
+                      <b>Data jamaah {txt(v.kloterLabel)} belum ada.</b> Unggah file Excel daftar jamaah di Profil, bagian Excel data jamaah. Belum siap? Coba dulu aplikasinya dengan data contoh.
+                    </div>
+                    <button className="btn btn-primary" onClick={v.keUnggah} style={css("height:46px;font-size:calc(15px*var(--fs,1))")}>Unggah Excel data jamaah</button>
+                    <button className="btn btn-secondary" onClick={v.mulaiCoba} style={css("height:46px;font-size:calc(15px*var(--fs,1))")}>Coba dulu dengan data contoh</button>
+                  </div>
+                ) : null}
                 <HomeAtas h={v.home} />
                 {v.net ? (
                   <button onClick={v.openSync} style={css(`border:0;text-align:left;cursor:pointer;font:inherit;display:flex;gap:12px;align-items:flex-start;border-radius:20px;padding:12px 14px;background:${v.net.bg};color:${v.net.fg}`)}>

@@ -107,11 +107,9 @@ export default function Pengaturan({ v }) {
                   {txt(v.suCta)}
                 </button>
                 {" "}
-                {!v.suAkun ? (
                 <button className="btn btn-ghost" onClick={v.suDemo} style={css("font-size:calc(14px*var(--fs,1))")}>
                   Coba dulu dengan data contoh
                 </button>
-                ) : null}
                 {" "}
                 {v.suCanClose ? (<>
                   <button className="btn btn-secondary" onClick={v.suClose} style={css("height:44px")}>
