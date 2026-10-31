@@ -32,7 +32,7 @@ async function semua(tabel, kolom, urut, saring) {
 const tglId = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; };
 const hariRiyadh = w => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(w));
 
-// Bentuk data sama persis dengan doGet di Code.gs
+// Bentuk data memakai nama kolom tab Sheet lama, jadi logika aplikasi tidak berubah
 export async function ambilSemua(_url, _key, { ping = false } = {}) {
   if (!navigator.onLine) throw new Error('Tidak ada sinyal. Sambungkan internet lalu coba lagi.');
   if (!sb || !keadaan().sesi) throw new Error('Sesi akun berakhir. Keluar lalu masuk lagi.');
@@ -98,7 +98,6 @@ export async function kirimPerubahan(_url, _key, items) {
   }, 'Server tidak menjawab dalam 45 detik. Data tetap aman di perangkat dan akan dikirim ulang.');
 }
 
-export async function gantiKunci() { throw new Error('Akun Supabase tidak memakai kode rahasia. Ganti kata sandi lewat Profil.'); }
 
 // Foto ke penyimpanan Supabase (folder per kloter). Unggah ulang dengan id sama tidak membuat file baru.
 export async function unggahFoto(_url, _key, f, base64) {

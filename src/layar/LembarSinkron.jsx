@@ -66,7 +66,7 @@ export default function LembarSinkron({ v }) {
                 <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:14px 16px;display:grid;gap:8px;font-size:calc(13px*var(--fs,1));line-height:1.45;color:var(--color-neutral-800)")}>
                   <b style={css("font-size:calc(14.5px*var(--fs,1));color:var(--color-text)")}>Cara kerja tanpa internet</b>
                   <span>• Semua centang, udzur, dan catatan langsung tersimpan di HP ini, walau tanpa sinyal.</span>
-                  <span>• Begitu ada internet, data terkirim otomatis ke Google Sheet. Kiriman ulang tidak tercatat dua kali.</span>
+                  <span>• Begitu ada internet, data terkirim otomatis ke server. Kiriman ulang tidak tercatat dua kali.</span>
                   <span>• Jangan hapus data browser/aplikasi atau ganti HP sebelum angka “antre” menjadi 0. Bila terpaksa, pilih “Simpan cadangan” dulu.</span>
                   {v.installHint ? <span style={css("color:var(--color-accent-800);font-weight:600")}>• {txt(v.installHint)}</span> : null}
                   {v.canInstall ? (
@@ -178,7 +178,7 @@ export default function LembarSinkron({ v }) {
                         Pengaturan
                       </span>
                       <span style={css("display:block;font-size:calc(12.5px*var(--fs,1));color:var(--color-neutral-700);line-height:1.35")}>
-                        Alamat sheet, kode rahasia, nama kloter, PIN
+                        Identitas petugas, nama kloter, PIN
                       </span>
                     </span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={css("flex:none")}>

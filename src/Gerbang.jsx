@@ -29,7 +29,7 @@ function Kepala({ judul, sub }) {
   );
 }
 
-function Masuk({ keDaftar }) {
+function Masuk({ keDaftar, keLupa }) {
   const [email, setEmail] = useState(''), [sandi, setSandi] = useState(''), [sibuk, setSibuk] = useState(false), [galat, setGalat] = useState('');
   const kirim = async e => {
     e.preventDefault(); setGalat('');
@@ -45,7 +45,56 @@ function Masuk({ keDaftar }) {
       <label style={S.label}>Kata sandi<input style={S.input} type="password" autoComplete="current-password" value={sandi} onChange={e => setSandi(e.target.value)} /></label>
       {galat && <div style={S.galat} role="alert">{galat}</div>}
       <button style={{ ...S.tombol, opacity: sibuk ? 0.6 : 1 }} disabled={sibuk}>{sibuk ? 'Memeriksa…' : 'Masuk'}</button>
+      <button type="button" style={S.tombol2} onClick={() => keLupa(email)}>Lupa kata sandi?</button>
       <button type="button" style={S.tombol2} onClick={keDaftar}>Belum punya akun? Daftar</button>
+    </form>
+  );
+}
+
+function LupaSandi({ emailAwal, keMasuk }) {
+  const [email, setEmail] = useState(emailAwal || ''), [sibuk, setSibuk] = useState(false), [galat, setGalat] = useState(''), [terkirim, setTerkirim] = useState(false);
+  const kirim = async e => {
+    e.preventDefault(); setGalat('');
+    if (!email.trim()) { setGalat('Isi email akun Anda.'); return; }
+    setSibuk(true);
+    try { await akun.lupaSandi(email); setTerkirim(true); } catch (er) { setGalat(er.message); } finally { setSibuk(false); }
+  };
+  if (terkirim) return (
+    <div style={S.kartu}>
+      <div style={{ fontSize: fs(18), fontWeight: 700 }}>Cek email Anda</div>
+      <div style={S.info}>Bila {email.trim()} terdaftar, tautan untuk membuat kata sandi baru sudah dikirim. Buka tautan itu di HP ini. Tidak ada di Kotak Masuk? Periksa folder Spam.</div>
+      <button style={S.tombol} onClick={keMasuk}>Ke halaman Masuk</button>
+    </div>
+  );
+  return (
+    <form style={S.kartu} onSubmit={kirim}>
+      <div style={{ fontSize: fs(18), fontWeight: 700 }}>Lupa kata sandi</div>
+      <div style={{ ...S.kecil, textAlign: 'left' }}>Isi email akun Anda. Kami kirim tautan untuk membuat kata sandi baru.</div>
+      <label style={S.label}>Email<input style={S.input} type="email" autoComplete="email" inputMode="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@email.com" /></label>
+      {galat && <div style={S.galat} role="alert">{galat}</div>}
+      <button style={{ ...S.tombol, opacity: sibuk ? 0.6 : 1 }} disabled={sibuk}>{sibuk ? 'Mengirim…' : 'Kirim tautan'}</button>
+      <button type="button" style={S.tombol2} onClick={keMasuk}>Kembali ke Masuk</button>
+    </form>
+  );
+}
+
+function SandiBaru() {
+  const [sandi, setSandi] = useState(''), [ulang, setUlang] = useState(''), [sibuk, setSibuk] = useState(false), [galat, setGalat] = useState('');
+  const kirim = async e => {
+    e.preventDefault(); setGalat('');
+    if (sandi.length < 6) { setGalat('Kata sandi minimal 6 karakter.'); return; }
+    if (sandi !== ulang) { setGalat('Kedua kata sandi belum sama.'); return; }
+    setSibuk(true);
+    try { await akun.gantiSandi(sandi); } catch (er) { setGalat(er.message); } finally { setSibuk(false); }
+  };
+  return (
+    <form style={S.kartu} onSubmit={kirim}>
+      <div style={{ fontSize: fs(18), fontWeight: 700 }}>Buat kata sandi baru</div>
+      <label style={S.label}>Kata sandi baru<input style={S.input} type="password" autoComplete="new-password" value={sandi} onChange={e => setSandi(e.target.value)} placeholder="Minimal 6 karakter" /></label>
+      <label style={S.label}>Ulangi kata sandi baru<input style={S.input} type="password" autoComplete="new-password" value={ulang} onChange={e => setUlang(e.target.value)} /></label>
+      {galat && <div style={S.galat} role="alert">{galat}</div>}
+      <button style={{ ...S.tombol, opacity: sibuk ? 0.6 : 1 }} disabled={sibuk}>{sibuk ? 'Menyimpan…' : 'Simpan kata sandi'}</button>
+      <button type="button" style={S.tombol2} onClick={akun.batalPulih}>Batal</button>
     </form>
   );
 }
@@ -115,12 +164,22 @@ function Menunggu({ p }) {
 
 export default function Gerbang({ children }) {
   const [st, setSt] = useState(akun.keadaan());
-  const [hal, setHal] = useState('masuk');
+  const [hal, setHal] = useState('masuk'), [emailLupa, setEmailLupa] = useState('');
   useEffect(() => akun.dengar(setSt), []);
   if (!akun.aktif) return children;
   // Hanya saat pengembangan (npm run dev): lewati gerbang untuk menguji layar di dalam.
   if (import.meta.env.DEV && localStorage.getItem('mk.lewatiAkun') === '1') return children;
   if (!st.siap) return <div style={S.layar} />;
+  // Dibuka dari tautan "Lupa kata sandi": buat kata sandi baru dulu, walau sesinya sudah aktif
+  if (st.pulih) return (
+    <div style={S.layar}>
+      <Kepala judul="Monitoring Ibadah Kloter" sub={TUSI} />
+      {st.sesi ? <SandiBaru /> : <div style={S.kartu}>
+        <div style={S.galat}>Tautan sudah tidak berlaku atau sudah dipakai. Minta tautan baru lewat "Lupa kata sandi?".</div>
+        <button style={S.tombol} onClick={akun.batalPulih}>Ke halaman Masuk</button>
+      </div>}
+    </div>
+  );
   const p = st.profil;
   if (st.sesi && !p && !st.galat) return <div style={S.layar} />;
   if (st.sesi && p && p.status === 'aktif') return children;
@@ -129,7 +188,10 @@ export default function Gerbang({ children }) {
   return (
     <div style={S.layar}>
       <Kepala judul="Monitoring Ibadah Kloter" sub={TUSI} />
-      {st.sesi ? <Menunggu p={p} /> : hal === 'masuk' ? <Masuk keDaftar={() => setHal('daftar')} /> : <Daftar keMasuk={() => setHal('masuk')} />}
+      {st.sesi ? <Menunggu p={p} />
+        : hal === 'lupa' ? <LupaSandi emailAwal={emailLupa} keMasuk={() => setHal('masuk')} />
+        : hal === 'masuk' ? <Masuk keDaftar={() => setHal('daftar')} keLupa={e => { setEmailLupa(e); setHal('lupa'); }} />
+        : <Daftar keMasuk={() => setHal('masuk')} />}
       <div style={{ ...S.kecil, margin: '18px 16px 28px' }}>Data tersimpan di HP dan terkirim otomatis saat ada internet.</div>
     </div>
   );

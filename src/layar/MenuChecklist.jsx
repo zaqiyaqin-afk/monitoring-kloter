@@ -92,7 +92,7 @@ export default function MenuChecklist({ v }) {
                       {" "}
                       {v.noSlots ? (<>
                         <div style={css("font-size:calc(13px*var(--fs,1));line-height:1.45;color:var(--color-neutral-700);background:var(--color-surface);border-radius:20px;padding:12px 14px")}>
-                          Belum ada jadwal. Isi tab “Jadwal Raudhoh” di Google Sheet atau ketuk “+ Tambah jadwal”.
+                          Belum ada jadwal. Ketuk “+ Tambah jadwal”.
                         </div>
                       </>) : null}
                       {" "}

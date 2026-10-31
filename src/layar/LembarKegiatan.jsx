@@ -623,7 +623,7 @@ export default function LembarKegiatan({ v }) {
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 <div style={css("font-weight:800;font-size:calc(19px*var(--fs,1))")}>Foto kegiatan</div>
                 <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);line-height:1.45")}>
-                  {v.pakaiAkun ? <>Foto disimpan di <b>penyimpanan kloter</b> (tertutup, hanya petugas kloter ini). Setelah terunggah, HP hanya menyimpan gambar kecilnya.</> : <>Foto disimpan di folder <b>Foto Kegiatan · (nama Sheet)</b> di Google Drive pemilik Sheet, per kegiatan lalu per tanggal. Setelah terunggah, HP hanya menyimpan gambar kecilnya.</>}
+                  Foto disimpan di <b>penyimpanan kloter</b> (tertutup, hanya petugas kloter ini). Setelah terunggah, HP hanya menyimpan gambar kecilnya.
                 </div>
                 {v.galeri.kosong ? <div style={css("padding:20px;text-align:center;color:var(--color-neutral-700);font-size:calc(14px*var(--fs,1))")}>Belum ada foto.</div> : null}
                 {v.galeri.adaAntre ? <button className="btn btn-secondary" onClick={v.galeri.unggah} style={css("height:44px")}>Unggah sekarang</button> : null}

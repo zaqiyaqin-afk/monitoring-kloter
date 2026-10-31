@@ -21,7 +21,7 @@ export default function Pengaturan({ v }) {
                   </div>
                   {" "}
                   <div style={css("font-size:calc(13.5px*var(--fs,1));line-height:1.5;color:var(--color-neutral-700);margin-top:6px")}>
-                    Lengkapi identitas petugas, lalu hubungkan ke Google Sheet kloter Anda.
+                    Lengkapi identitas petugas dan buat PIN untuk HP ini.
                   </div>
                   {" "}
                 </div>
@@ -63,22 +63,11 @@ export default function Pengaturan({ v }) {
                     <span style={css("font-size:calc(12px*var(--fs,1));font-weight:500;color:var(--color-neutral-700)")}>{txt(v.suGelombangNote)}</span>
                   </div>
                 </div>
-                {v.suSb ? (
+                {v.suAkun ? (
                   <div style={css("background:var(--color-accent-100);color:var(--color-accent-800);border-radius:16px;padding:12px 14px;font-size:calc(13.5px*var(--fs,1));line-height:1.5")}>
-                    <b>Data dari akun Anda.</b> Jamaah dan semua centang kloter {txt(v.su?.kloter)} diambil dari server aplikasi. Tidak perlu alamat Sheet atau kode rahasia.
+                    <b>Data dari akun Anda.</b> Jamaah dan semua centang kloter {txt(v.su?.kloter)} diambil dari server aplikasi.
                   </div>
-                ) : (<>
-                <b style={css("font-size:calc(15px*var(--fs,1));margin-top:4px")}>Koneksi Google Sheet</b>
-                <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
-                  Web App URL
-                  <input className="input" value={v.su?.url ?? ''} onChange={v.suUrl} placeholder="https://script.google.com/macros/s/…/exec" style={css("height:46px;font-size:calc(14px*var(--fs,1))")} />
-                </label>
-                {" "}
-                <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
-                  Kode rahasia
-                  <input className="input" type="password" autoComplete="off" value={v.su?.key ?? ''} onChange={v.suKey} placeholder="Angka, sama dengan kode di menu Atur kode rahasia" inputMode="numeric" style={css("height:46px;font-size:calc(14px*var(--fs,1))")} />
-                </label>
-                </>)}
+                ) : null}
                 {" "}
                 <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
                   Perangkat ini{" "}
@@ -98,25 +87,6 @@ export default function Pengaturan({ v }) {
                   PIN aplikasi (4 angka · terkunci 5 menit setelah 5 kali salah)
                   <input className="input" value={v.su?.pin ?? ''} onChange={v.suPin} inputMode="numeric" maxLength="4" placeholder="••••" style={css("height:46px;font-size:calc(18px*var(--fs,1));letter-spacing:.3em")} />
                 </label>
-                {v.suLive && v.suSheet ? (
-                  <div style={css("background:var(--color-surface);border-radius:22px;padding:14px 16px;display:grid;gap:12px;box-shadow:inset 0 0 0 1px var(--color-divider)")}>
-                    <b style={css("font-size:calc(15px*var(--fs,1))")}>Pengaturan Sheet</b>
-                    <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
-                      Jam pengingat email harian (waktu Arab Saudi, 0–23)
-                      <div style={css("display:flex;gap:8px")}>
-                        <input className="input" value={v.suJam ?? ''} onChange={v.suJamIn} inputMode="numeric" maxLength="2" style={css("height:46px;font-size:calc(15px*var(--fs,1));flex:1")} />
-                        <button className="btn btn-secondary" onClick={v.suJamSave} style={css("height:46px;padding:0 18px")}>Simpan jam</button>
-                      </div>
-                    </label>
-                    <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
-                      Ganti kode rahasia (butuh internet)
-                      <div style={css("display:flex;gap:8px")}>
-                        <input className="input" type="password" autoComplete="new-password" value={v.suKodeBaru} onChange={v.suKodeIn} inputMode="numeric" placeholder="Kode baru, min. 4 angka" style={css("height:46px;font-size:calc(14px*var(--fs,1));flex:1;min-width:0")} />
-                        <button className="btn btn-secondary" onClick={v.suKodeSave} disabled={v.su?.gantiBusy} style={css("height:46px;padding:0 18px")}>{txt(v.suKodeCta)}</button>
-                      </div>
-                    </label>
-                  </div>
-                ) : null}
                 {v.suHasErr ? (<>
                   <div style={css("background:var(--red-100);color:var(--red-700);border-radius:16px;padding:10px 14px;font-size:calc(13px*var(--fs,1));font-weight:600;line-height:1.4")}>
                     {txt(v.su?.err)}
@@ -130,17 +100,14 @@ export default function Pengaturan({ v }) {
                 </>) : null}
                 {" "}
                 <div style={css("background:var(--color-accent-2-100);color:var(--color-accent-2-800);border-radius:16px;padding:10px 14px;font-size:calc(13px*var(--fs,1));line-height:1.45")}>
-                  <b>Butuh internet sekali saja.</b> Saat menekan “Hubungkan”, data jamaah diunduh ke HP ini. Setelah itu aplikasi bisa dipakai tanpa sinyal; semua centang tersimpan di HP dan terkirim otomatis begitu ada internet.
+                  <b>Butuh internet sekali saja.</b> Saat menekan “Mulai”, data jamaah diunduh ke HP ini. Setelah itu aplikasi bisa dipakai tanpa sinyal; semua centang tersimpan di HP dan terkirim otomatis begitu ada internet.
                 </div>
-                <button className="btn btn-secondary" onClick={v.suTest} disabled={v.su?.testing} style={css("height:46px;font-size:calc(15px*var(--fs,1))")}>
-                  {txt(v.suTestCta)}
-                </button>
                 {" "}
                 <button className="btn btn-primary" onClick={v.suConnect} disabled={v.su?.busy} style={css("height:50px;font-size:calc(16px*var(--fs,1))")}>
                   {txt(v.suCta)}
                 </button>
                 {" "}
-                {v.suSheet ? (
+                {!v.suAkun ? (
                 <button className="btn btn-ghost" onClick={v.suDemo} style={css("font-size:calc(14px*var(--fs,1))")}>
                   Coba dulu dengan data contoh
                 </button>

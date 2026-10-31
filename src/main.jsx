@@ -14,7 +14,6 @@ import { registerSW } from 'virtual:pwa-register';
 
 async function mulai() {
   terapkan();
-  if (import.meta.env.DEV && localStorage.getItem('mk.mock') === '1') (await import('./dev/mockSheet.js')).pasangMock();
   mulaiAkun();
   const App = createHost(AppLogic, View);
   createRoot(document.getElementById('root')).render(<Gerbang><App /></Gerbang>);

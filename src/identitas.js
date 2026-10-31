@@ -30,7 +30,7 @@ export function kurangIdentitas(x) {
 
 export const pesanKurang = k => 'Lengkapi identitas: ' + k.join(', ') + '.';
 
-// Nama baris di tab "Pengaturan" pada Sheet <-> kolom identitas di aplikasi
+// Nama kunci pengaturan kloter di server <-> kolom identitas di aplikasi
 const BARIS = { ppih: 'Nama PPIH', kloter: 'Kloter', embarkasi: 'Embarkasi', gelombang: 'Gelombang' };
 
 export function dariPengaturan(p) {

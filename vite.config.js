@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// base './' agar jalan di Netlify, GitHub Pages (sub-folder) maupun APK.
+// base './' agar jalan di Vercel, sub-folder, maupun APK.
 export default defineConfig({
   base: './',
   plugins: [
@@ -34,9 +34,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,ico,png,webp,woff2}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        navigateFallback: 'index.html',
-        // Permintaan ke Google Apps Script selalu lewat jaringan; aplikasi sendiri menyimpan antrean.
-        navigateFallbackDenylist: [/^\/macros\//]
+        navigateFallback: 'index.html'
       }
     })
   ],

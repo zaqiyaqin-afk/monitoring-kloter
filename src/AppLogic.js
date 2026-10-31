@@ -1,7 +1,7 @@
 // Logika aplikasi (state, sinkron, perhitungan). Tampilan ada di View.jsx.
 import React from 'react';
 import { DCLogic } from './dc/runtime.js';
-import { ambilSemua, kirimPerubahan, gantiKunci, unggahFoto, tautanFoto, SB_URL } from './data/server.js';
+import { ambilSemua, kirimPerubahan, unggahFoto, tautanFoto, SB_URL } from './data/server.js';
 import { keadaan as akunKeadaan, dengar as dengarAkun } from './data/akun.js';
 import { kompres, keBase64, simpanFoto, hapusFoto, semuaFoto } from './data/fotoStore.js';
 import { JENIS_KEJADIAN, labelKejadian, dariKejadian, uuid } from './kejadian.js';
@@ -129,8 +129,8 @@ export default class AppLogic extends DCLogic {
   perluPindahAkun() { return !!this.akunSb() && !this.pakaiAkun(); }
   suDariAkun() { const p = this.akunSb(); if (!p) return {};
     return { url: SB_URL, key: 'akun', ppih: p.nama || '', kloter: p.kloter.kode, embarkasi: p.kloter.embarkasi || p.embarkasi || '', gelombang: String(p.kloter.gelombang || p.gelombang || '') }; }
-  namaServer() { return this.pakaiAkun() ? 'server' : 'Google Sheet'; }
-  tempatFoto() { return this.pakaiAkun() ? 'penyimpanan kloter' : 'Google Drive'; }
+  namaServer() { return 'server'; }
+  tempatFoto() { return 'penyimpanan kloter'; }
   // Foto di Supabase dibuka lewat tautan sementara; foto lama di Drive langsung dibuka
   async bukaFoto(e, link) { if (!String(link).startsWith('supabase:')) return; e.preventDefault();
     try { window.open(await tautanFoto(link.slice(9)), '_blank', 'noopener'); } catch (er) { this.flash(er.message || 'Foto tidak bisa dibuka'); } }
@@ -201,7 +201,7 @@ export default class AppLogic extends DCLogic {
       const h = String(x['Hari'] || '').trim(), t = String(x['Tempat'] || '').trim(); if (h) r.day = h; if (t) r.place = t;
       r.tgl = /^\d{4}-\d{2}-\d{2}$/.test(String(x['Tanggal'] || '').trim()) ? String(x['Tanggal']).trim() : '';
       r.jam = /^\d{1,2}[:.]\d{2}/.test(String(x['Jam'] || '')) ? String(x['Jam']).slice(0, 5).replace('.', ':') : ''; });
-    // Tanggal yang diubah di HP ini tetapi belum terkirim (atau mode contoh) menimpa data Sheet
+    // Tanggal yang diubah di HP ini tetapi belum terkirim (atau mode contoh) menimpa data server
     const lokal = this.live() ? this.queue.filter(q => q.jenis === 'tanggal') : Object.entries(this.tglDemo()).map(([k, v]) => { const [mode, kegiatan] = k.split('|'); return { mode, kegiatan, tanggal: v }; });
     lokal.forEach(q => { const X = this.data[String(q.mode).toLowerCase()], r = X && X.rites.find(r => r.n === q.kegiatan); if (r) { r.tgl = q.tanggal || ''; if (q.jam !== undefined) r.jam = q.jam; } });
     // Label hari Hijriyah yang diketik di HP ini (belum terkirim / mode contoh)
@@ -498,8 +498,9 @@ export default class AppLogic extends DCLogic {
     }
   }
   async syncNow(quiet) {
-    if (!this.live()) { if (!quiet) this.flash('Mode contoh · belum terhubung ke Google Sheet'); this.setState(s => ({ sync: { ...s.sync, pending: 0, last: this.hhmm(new Date()) } })); return; }
-    if (this._busy || this.perluPindahAkun()) return;
+    if (!this.live()) { if (!quiet) this.flash('Mode contoh · belum masuk akun kloter'); this.setState(s => ({ sync: { ...s.sync, pending: 0, last: this.hhmm(new Date()) } })); return; }
+    // HP yang masih tercatat memakai Sheet menahan antreannya sampai pindah ke akun
+    if (this._busy || !this.pakaiAkun()) return;
     if (!navigator.onLine) { this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, err: '' } })); if (!quiet) this.flash('Tidak ada sinyal · data aman di perangkat'); return; }
     this._busy = true; this.setState(s => ({ sync: { ...s.sync, busy: true } }));
     const { url, key } = this.cfg;
@@ -518,11 +519,11 @@ export default class AppLogic extends DCLogic {
     if (this.queue.length && !this.state.sync.err) this._sy = setTimeout(() => this.syncNow(true), 800);
   }
   async connect() {
-    const su = this.state.su, url = su.url.trim(), key = su.key.trim();
-    const akun = url === SB_URL, err = akun ? (!/^\d{4}$/.test(su.pin) ? 'PIN harus 4 angka' : '') : !/^https:\/\/script\.google\.com\/.+\/exec/.test(url) ? 'URL harus diawali https://script.google.com/ dan berakhiran /exec' : !key ? 'Kode rahasia belum diisi' : !/^\d{4,}$/.test(key) ? 'Kode rahasia minimal 4 angka' : !/^\d{4}$/.test(su.pin) ? 'PIN harus 4 angka' : '';
+    const su = this.state.su, url = SB_URL, key = 'akun';
+    const err = !this.akunSb() ? 'Masuk dengan akun yang sudah disetujui admin dulu.' : !/^\d{4}$/.test(su.pin) ? 'PIN harus 4 angka' : '';
     if (err) { this.patch('su', { err }); return; }
-    // Sheet sama, hanya identitas/PIN berubah: simpan langsung, tidak perlu internet
-    if (this.live() && url === this.cfg.url && key === this.cfg.key) {
+    // Sudah memakai akun, hanya identitas/PIN berubah: simpan langsung, tidak perlu internet
+    if (this.pakaiAkun()) {
       const kurang = kurangIdentitas(su); if (kurang.length) { this.patch('su', { err: pesanKurang(kurang) }); return; }
       const id = this.identitas(su), lama = this.cfg;
       this.saveCfg({ device: su.device, pin: su.pin, ...id }); this.applyJadwal((this.readSnap() || {}).jadwalKegiatan);
@@ -531,26 +532,21 @@ export default class AppLogic extends DCLogic {
     }
     this.patch('su', { busy: true, err: '' });
     try {
-      const old = this.cfg && !this.cfg.demo && this.cfg.url, changed = !!old && old !== url;
-      // Ganti sheet: antrean milik sheet lama wajib terkirim dulu, jangan pernah dibuang.
-      if (changed && this.queue.length && !akun) {
-        try { await this.flushQueue(old, this.cfg.key); }
-        catch (e) { throw new Error(`Masih ada ${this.queue.length} perubahan yang belum terkirim ke sheet lama (${e.message || e}). Sambungkan internet dan sinkronkan dulu, atau pilih "Simpan cadangan" sebelum mengganti sheet.`); }
-      }
+      // HP yang pindah dari Sheet: antreannya tidak dibuang, terkirim ke akun setelah tersambung
       const data = await this.fetchAll(url, key);
-      if (!(data.jamaah || []).length) throw new Error(akun ? 'Data jamaah kloter ini masih kosong. Hubungi admin.' : 'Sheet "Jamaah" masih kosong');
-      // HP baru: kolom identitas yang kosong diisi dari tab Pengaturan di Sheet
-      const dariSheet = dariPengaturan(data.pengaturan), isi = { ...su };
-      Object.keys(dariSheet).forEach(k => { if (!String(isi[k] || '').trim() && dariSheet[k]) isi[k] = dariSheet[k]; });
+      if (!(data.jamaah || []).length) throw new Error('Data jamaah kloter ini masih kosong. Hubungi admin.');
+      // HP baru: kolom identitas yang kosong diisi dari pengaturan kloter di server
+      const dariServer = dariPengaturan(data.pengaturan), isi = { ...su };
+      Object.keys(dariServer).forEach(k => { if (!String(isi[k] || '').trim() && dariServer[k]) isi[k] = dariServer[k]; });
       const kurang = kurangIdentitas(isi);
       if (kurang.length) { this.patch('su', { ...isi, busy: false, err: pesanKurang(kurang) }); return; }
       const id = this.identitas(isi);
       this.saveCfg({ url, key, device: su.device, pin: su.pin, demo: false, ...id });
-      if (Object.keys(id).some(k => String(id[k]) !== String(dariSheet[k] || ''))) this.pushPengaturan(kePengaturan(id));
+      if (Object.keys(id).some(k => String(id[k]) !== String(dariServer[k] || ''))) this.pushPengaturan(kePengaturan(id));
       simpanSnap(data); this.build(data);
       this.setState(s => ({ setup: false, locked: false, su: { ...s.su, ...id, busy: false }, sync: { pending: this.queue.length, last: this.hhmm(new Date()), err: '' }, tab: 'beranda' }));
-      this.flash(this.jm.length + ' jamaah dibaca dari ' + (akun ? 'akun kloter' : 'Google Sheet'));
-      if (akun && this.queue.length) this.syncNow(true);
+      this.flash(this.jm.length + ' jamaah dibaca dari akun kloter');
+      if (this.queue.length) this.syncNow(true);
     } catch (e) { this.patch('su', { busy: false, err: (e.message || e) }); }
   }
   todayKey() { return this.tz('Asia/Riyadh') && new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh' }).format(new Date()); }
@@ -610,21 +606,13 @@ export default class AppLogic extends DCLogic {
   }
   centerToday() { const c = this.daysRef.current; if (!c) return; const t = c.querySelector('[data-today="y"]'); if (t) c.scrollLeft = t.offsetLeft - (c.clientWidth - t.offsetWidth) / 2; }
   exportCsv() {
-    const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', S = this.state, L = [['Waktu ekspor', 'Mode', 'Nomor Porsi', 'Nama', 'Rombongan', 'Regu', 'Udzur', 'Catatan', 'Kegiatan', 'Status', 'Pelaksana Badal', 'Tanggal Pelaksanaan', 'Susulan', 'Belum terkirim ke sheet'].map(esc).join(',')], now = new Date().toISOString();
+    const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', S = this.state, L = [['Waktu ekspor', 'Mode', 'Nomor Porsi', 'Nama', 'Rombongan', 'Regu', 'Udzur', 'Catatan', 'Kegiatan', 'Status', 'Pelaksana Badal', 'Tanggal Pelaksanaan', 'Susulan', 'Belum terkirim'].map(esc).join(',')], now = new Date().toISOString();
     const pend = new Set(this.queue.filter(q => q.jenis === 'centang').map(q => q.porsi + '|' + q.kegiatan));
     Object.keys(this.data).forEach(m => this.data[m].rites.forEach((r, k) => this.jm.forEach(j => { const key = r.badal ? ((S.badal[m] || {})[k] || {})[j.id] : null;
       L.push([now, m, "'" + j.porsi, j.name, j.r, j.g, S.udz[j.id] ? 'Ya' : 'Tidak', S.notes[j.id] || '', r.n, S.done[m][k][j.id] ? 'Selesai' : 'Belum', key ? this.pelText(key) : '', ((S.done[m][k][j.id] && (S.tg[m + '|' + k + '|' + j.id] || {}).t) || ''), (S.done[m][k][j.id] && (S.tg[m + '|' + k + '|' + j.id] || {}).s ? 'Ya' : 'Tidak'), pend.has(j.porsi + '|' + r.n) ? 'Ya' : ''].map(esc).join(',')); })));
     const blob = new Blob(['\ufeff' + L.join('\r\n')], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = 'cadangan-' + this.klLabel().replace(/\s+/g, '-') + '-' + now.slice(0, 16).replace(/[:T]/g, '') + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     this.flash('CSV cadangan diunduh · ' + (L.length - 1) + ' baris');
-  }
-  async testConn() {
-    const su = this.state.su, url = su.url.trim(), key = su.key.trim();
-    const err = !/^https:\/\/script\.google\.com\/.+\/exec/.test(url) ? 'URL salah: harus diawali https://script.google.com/ dan berakhiran /exec' : !key ? 'Kode rahasia belum diisi' : !/^\d{4,}$/.test(key) ? 'Kode rahasia minimal 4 angka' : '';
-    if (err) { this.patch('su', { err, okMsg: '' }); return; }
-    this.patch('su', { testing: true, err: '', okMsg: '' });
-    try { await this.fetchAll(url, key, true); this.patch('su', { testing: false, okMsg: 'Koneksi berhasil · URL benar dan kode rahasia cocok.' }); }
-    catch (e) { this.patch('su', { testing: false, err: e.message || String(e) }); }
   }
   jadwal = [['Sel, 13 Okt', '02.00–04.00', 'P', [1, 2, 3]], ['Sel, 13 Okt', '22.00–00.00', 'L', [1, 2, 3]], ['Rab, 14 Okt', '02.00–04.00', 'P', [4, 5, 6]], ['Rab, 14 Okt', '22.00–00.00', 'L', [4, 5, 6]], ['Kam, 15 Okt', '02.00–04.00', 'P', [7, 8, 9]], ['Kam, 15 Okt', '22.00–00.00', 'L', [7, 8, 9]]]
     .map(([tgl, jam, sex, romb], i) => ({ id: i, tgl, jam, sex, romb, ket: '' }));
@@ -855,16 +843,7 @@ export default class AppLogic extends DCLogic {
       baris: this.jm.map(j => ({ j, sel: this.data[m].rites.map((r, k) => { if (!(((S.done || {})[m] || [])[k] || [])[j.id]) return '';
         const t = (S.tg || {})[m + '|' + k + '|' + j.id]; return t && t.t ? t.t + (t.j ? ' ' + t.j : '') + (t.s ? ' (susulan)' : '') : '✓'; }) })) }));
   }
-  aturSheet() { const p = { ...(((this.readSnap() || {}).pengaturan) || {}) }; this.queue.forEach(q => { if (q.jenis === 'pengaturan') Object.assign(p, q.nilai); }); return p; }
-  simpanJam() { const j = parseInt(this.state.su.jam ?? this.aturSheet()['Jam Pengingat'] ?? '21', 10);
-    if (!(j >= 0 && j <= 23)) { this.patch('su', { err: 'Jam pengingat harus 0–23 (waktu Arab Saudi)', okMsg: '' }); return; }
-    this.pushPengaturan({ 'Jam Pengingat': String(j) }); this.patch('su', { err: '', okMsg: 'Jam pengingat email diubah ke ' + j + '.00 WAS · terkirim saat ada internet.' }); }
-  async gantiKode() { const su = this.state.su, baru = String(su.kodeBaru || '').trim();
-    if (!/^\d{4,}$/.test(baru)) { this.patch('su', { err: 'Kode baru harus angka saja, minimal 4 angka', okMsg: '' }); return; }
-    this.patch('su', { gantiBusy: true, err: '', okMsg: '' });
-    try { await this.flushQueue(this.cfg.url, this.cfg.key); await gantiKunci(this.cfg.url, this.cfg.key, baru);
-      this.saveCfg({ key: baru }); this.patch('su', { key: baru, kodeBaru: '', gantiBusy: false, okMsg: 'Kode rahasia diganti. HP lain yang memakai Sheet ini perlu diisi kode baru.' }); }
-    catch (e) { this.patch('su', { gantiBusy: false, err: e.message || String(e) }); } }
+  aturKloter() { const p = { ...(((this.readSnap() || {}).pengaturan) || {}) }; this.queue.forEach(q => { if (q.jenis === 'pengaturan') Object.assign(p, q.nilai); }); return p; }
   // Udzur dikirim sebagai catatan tersendiri (tidak digabung) agar riwayat lengkap walau diubah berkali-kali saat offline.
   simpanUdzur(j, udzur, alasan) {
     const it = { jenis: 'udzur', porsi: j.porsi, nama: j.name, udzur, alasan: String(alasan || '').trim(), perangkat: (this.cfg && this.cfg.device) || '', waktu: new Date().toISOString() };
@@ -872,7 +851,7 @@ export default class AppLogic extends DCLogic {
     this.setState(s => { const a = s.udz.slice(); a[j.id] = udzur; return { udz: a, udzForm: null }; });
     this.flash(udzur ? 'Ditandai udzur · masuk daftar badal' : 'Status udzur dihapus');
   }
-  // Riwayat udzur satu jamaah, terbaru dulu: data Sheet + yang masih di antrean.
+  // Riwayat udzur satu jamaah, terbaru dulu: data server + yang masih di antrean.
   riwayatUdzur(porsi) {
     const P = String(porsi), snap = this.readSnap() || {};
     const server = (snap.riwayatUdzur || []).filter(r => String(r['Nomor Porsi']) === P).map(r => ({ waktu: r['Waktu'], udzur: r['Status'] === 'Udzur', alasan: r['Alasan'] || '', petugas: r['Petugas'] || '', id: r['ID Kirim'] }));
@@ -1443,7 +1422,7 @@ export default class AppLogic extends DCLogic {
       selData: S.sel != null && this.jm[S.sel] ? (() => { const j = this.jm[S.sel], raw = (this.raw || {})[j.porsi] || {}, u = this.umur(raw['Tanggal Lahir']);
         return { porsi: j.porsi, kunci: j.porsi + '|' + Object.values(dariKolom(raw)).join('|'), nilai: dariKolom(raw), umur: u, lansia: u >= 65, berangkat: this._berangkat,
           simpan: nilai => this.simpanDataJamaah(j.porsi, nilai) }; })() : null,
-      tglBerangkat: this._berangkat || (this.aturSheet()['Tanggal Berangkat'] || ''), setTglBerangkat: v => this.setTglBerangkat(v),
+      tglBerangkat: this._berangkat || (this.aturKloter()['Tanggal Berangkat'] || ''), setTglBerangkat: v => this.setTglBerangkat(v),
       excel: { jamaah: () => this.jm.map(j => ({ ...j, raw: (this.raw || {})[j.porsi] || {}, umur: this.umur(((this.raw || {})[j.porsi] || {})['Tanggal Lahir']) })),
         status: () => this.statusExcel(), kloter: this.klLabel(), bisaUnggah: this.pakaiAkun(), porsiAda: () => new Set(this.jm.map(j => j.porsi)),
         sesudahUnggah: () => this.syncNow() },
@@ -1522,8 +1501,8 @@ export default class AppLogic extends DCLogic {
       installHint: (() => { const sa = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone; if (sa) return '';
         return /iphone|ipad|ipod/i.test(navigator.userAgent) ? 'Di iPhone: buka di Safari, ketuk Bagikan lalu “Tambah ke Layar Utama” agar data tidak terhapus otomatis.' : 'Pasang aplikasi ke layar utama HP agar bisa dibuka tanpa internet dan datanya lebih aman.'; })(),
       daysRef: this.daysRef, exportCsv: () => this.exportCsv(), bakSave: () => this.backupSave(), bakLoad: () => this.backupLoad(), exportWa: () => this.setState({ syncOpen: false, wa: true }),
-      suTest: () => this.testConn(), suTestCta: S.su.testing ? 'Menguji…' : 'Tes koneksi', suHasOk: !!S.su.okMsg,
-      syncLabel: !this.live() ? 'Mode contoh · belum terhubung' : S.sync.err ? 'Gagal sinkron · ketuk untuk detail' : S.sync.pending ? (off ? `${S.sync.pending} perubahan di perangkat · menunggu sinyal` : 'Mengirim ke ' + this.namaServer() + '…') : off ? 'Offline · data tersimpan di perangkat' : 'Tersinkron ke Google Sheet · ' + S.sync.last,
+      suHasOk: !!S.su.okMsg,
+      syncLabel: !this.live() ? 'Mode contoh · belum terhubung' : S.sync.err ? 'Gagal sinkron · ketuk untuk detail' : S.sync.pending ? (off ? `${S.sync.pending} perubahan di perangkat · menunggu sinyal` : 'Mengirim ke ' + this.namaServer() + '…') : off ? 'Offline · data tersimpan di perangkat' : 'Tersinkron · ' + S.sync.last,
       syncDot: !this.live() ? 'var(--color-neutral-400)' : S.sync.err ? 'var(--red-600)' : S.sync.pending ? (off ? '#e0a100' : 'var(--color-accent-300)') : 'var(--color-accent)',
       openSync: () => this.setState({ syncOpen: true }), closeSync: () => this.setState({ syncOpen: false }), hasSync: !!S.syncOpen,
       syncNow: () => this.syncNow(), syncPending: S.sync.pending, syncLast: S.sync.last, syncOffline: off, hasSyncErr: !!S.sync.err, syncErr: S.sync.err || '',
@@ -1536,18 +1515,17 @@ export default class AppLogic extends DCLogic {
         ubah: () => this.setState(s => ({ setup: true, syncOpen: false, su: { ...s.su, err: '' } }))
       },
       pf: { title: !this.live() ? 'Mode contoh' : S.sync.err ? 'Gagal sinkron' : S.sync.pending ? (off ? 'Menunggu sinyal' : 'Mengirim…') : 'Tersinkron ✓', deg: (this.live() && !S.sync.pending && !S.sync.err ? 360 : Math.max(18, 360 - Math.min(342, S.sync.pending * 6))) + 'deg' }, syncTagCls: this.live() ? 'tag-accent-2' : 'tag-neutral',
-      syncSource: this.live() ? (this.pakaiAkun() ? 'Akun · kloter ' + this.klLabel() + ' · ' : 'Sheet “Jamaah” · ') + (this.cfg.device || 'Perangkat') + ' · ' + this.petugas.length + ' petugas' : 'Data contoh · buka Pengaturan untuk menghubungkan Google Sheet',
+      syncSource: this.live() ? 'Akun · kloter ' + this.klLabel() + ' · ' + (this.cfg.device || 'Perangkat') + ' · ' + this.petugas.length + ' petugas' : 'Data contoh · masuk dengan akun kloter untuk memakai data asli',
       openSetup: () => this.setState(s => ({ setup: true, syncOpen: false, su: { ...s.su, err: '' } })), hasSetup: !!S.setup || (!!this.cfg && !S.locked && !this.idLengkap()), su: S.su,
-      suUrl: e => this.patch('su', { url: e.target.value, err: '', okMsg: '' }), suKey: e => this.patch('su', { key: e.target.value, err: '', okMsg: '' }), suKloter: e => this.patch('su', { kloter: e.target.value }),
-      suPin: e => this.patch('su', { pin: e.target.value.replace(/\D/g, '').slice(0, 4) }), suHasErr: !!S.su.err, suCta: S.su.busy ? 'Menghubungkan…' : this.live() && S.su.url.trim() === this.cfg.url && S.su.key.trim() === this.cfg.key ? 'Simpan' : S.su.url === SB_URL ? 'Mulai' : 'Hubungkan ke Google Sheet',
+      suKloter: e => this.patch('su', { kloter: e.target.value }),
+      suPin: e => this.patch('su', { pin: e.target.value.replace(/\D/g, '').slice(0, 4) }), suHasErr: !!S.su.err, suCta: S.su.busy ? 'Menghubungkan…' : this.pakaiAkun() ? 'Simpan' : 'Mulai',
       idLine: [TUSI, this.klLabel(), this.cfg && this.cfg.embarkasi, this.cfg && this.cfg.gelombang ? 'Gelombang ' + this.cfg.gelombang : ''].filter(Boolean).join(' · '),
       suDevices: ['HP', 'Tablet'].map(l => ({ l, ...pill(S.su.device === l), on: () => this.patch('su', { device: l }) })),
       suConnect: () => this.connect(), suCanClose: this.idLengkap(), suClose: () => this.setState({ setup: false }),
       suDemo: () => { const k = kurangIdentitas(S.su); if (k.length) { this.patch('su', { err: pesanKurang(k) }); return; }
         this.saveCfg({ demo: true, ...this.identitas(S.su), device: S.su.device, pin: /^\d{4}$/.test(S.su.pin) ? S.su.pin : '1234' }); this.applyJadwal([]); this.setState({ setup: false, locked: false }); this.flash('Mode contoh · PIN ' + this.cfg.pin); },
       suEmbarkasi: e => this.patch('su', { embarkasi: e.target.value, err: '' }), embarkasiList: EMBARKASI,
-      suLive: this.live(), suSb: S.su.url === SB_URL, suSheet: S.su.url !== SB_URL, pakaiAkun: this.pakaiAkun(), bukanAkun: !this.pakaiAkun(), suJam: S.su.jam ?? (this.live() ? (this.aturSheet()['Jam Pengingat'] || '21') : ''), suJamIn: e => this.patch('su', { jam: e.target.value.replace(/\D/g, '').slice(0, 2), okMsg: '' }), suJamSave: () => this.simpanJam(),
-      suKodeBaru: S.su.kodeBaru || '', suKodeIn: e => this.patch('su', { kodeBaru: e.target.value.replace(/\D/g, '').slice(0, 12), okMsg: '' }), suKodeSave: () => this.gantiKode(), suKodeCta: S.su.gantiBusy ? 'Mengganti…' : 'Ganti kode',
+      suAkun: !!this.akunSb(), pakaiAkun: this.pakaiAkun(),
       suGelombang: ['1', '2'].map(g => ({ l: 'Gelombang ' + g, ...pill(String(S.su.gelombang) === g), on: () => this.patch('su', { gelombang: g, err: '' }) })),
       suGelombangNote: CATATAN_GELOMBANG[S.su.gelombang] || 'Dipakai untuk usulan miqat umrah.',
       syncCounts: [{ l: 'Jamaah', v: this.jm.length }, { l: 'Rombongan', v: new Set(this.jm.map(j => j.r)).size }, { l: 'Regu', v: new Set(this.jm.map(j => j.r + '-' + j.g)).size }],
