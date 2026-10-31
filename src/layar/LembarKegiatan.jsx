@@ -6,9 +6,9 @@ export default function LembarKegiatan({ v }) {
   return (<>
           {v.hasSlotDlg ? (<>
             {" "}
-            <div onClick={v.closeSlotDlg} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:7")}>
+            <div onClick={v.closeSlotDlg} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:7")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}
@@ -88,9 +88,9 @@ export default function LembarKegiatan({ v }) {
           {" "}
           {v.hasSaf ? (<>
             {" "}
-            <div onClick={v.closeSaf} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:7")}>
+            <div onClick={v.closeSaf} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:7")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}
@@ -133,9 +133,9 @@ export default function LembarKegiatan({ v }) {
           {" "}
           {v.hasUl ? (<>
             {" "}
-            <div onClick={v.closeUl} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:7")}>
+            <div onClick={v.closeUl} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:7")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}
@@ -180,7 +180,7 @@ export default function LembarKegiatan({ v }) {
                   <input className="input" type="date" value={v.ul?.rencana ?? ''} min={v.ul?.min} onChange={v.ulRencana} style={css("height:48px;font-size:calc(15px*var(--fs,1))")} />
                 </label>
                 {" "}
-                <div style={css("background:#fdf0c4;color:#5a3f00;border-radius:18px;padding:12px 14px;font-size:calc(13px*var(--fs,1));font-weight:700;line-height:1.4")}>
+                <div style={css("background:var(--color-accent-2-100);color:var(--color-accent-2-800);border-radius:18px;padding:12px 14px;font-size:calc(13px*var(--fs,1));font-weight:700;line-height:1.4")}>
                   Status menjadi “Perlu ulang”, tidak dihitung selesai, dan masuk “Perlu perhatian”.
                 </div>
                 {" "}
@@ -201,9 +201,9 @@ export default function LembarKegiatan({ v }) {
           {" "}
           {v.hasSus ? (<>
             {" "}
-            <div onClick={v.closeSus} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:7")}>
+            <div onClick={v.closeSus} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:7")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}
@@ -329,7 +329,7 @@ export default function LembarKegiatan({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <div style={css("background:#fdf0c4;color:#5a3f00;border-radius:18px;padding:12px 14px;font-size:calc(14px*var(--fs,1));font-weight:700;line-height:1.4")}>
+                <div style={css("background:var(--color-accent-2-100);color:var(--color-accent-2-800);border-radius:18px;padding:12px 14px;font-size:calc(14px*var(--fs,1));font-weight:700;line-height:1.4")}>
                   Akan tercatat sebagai{" "}{txt(v.ss?.prev)}
                 </div>
                 {" "}
@@ -385,9 +385,9 @@ export default function LembarKegiatan({ v }) {
           {" "}
           {v.hasPicker ? (<>
             {" "}
-            <div onClick={v.closePicker} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:6")}>
+            <div onClick={v.closePicker} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:6")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;gap:14px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}
@@ -559,8 +559,8 @@ export default function LembarKegiatan({ v }) {
           </>) : null}
           {" "}
           {v.tglJadwal ? (
-            <div onClick={v.tglJadwal.tutup} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:7")}>
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+            <div onClick={v.tglJadwal.tutup} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:7")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 <div style={css("font-weight:800;font-size:calc(19px*var(--fs,1))")}>{txt(v.tglJadwal.title)}</div>
                 <div style={css("font-size:calc(13px*var(--fs,1));line-height:1.45;color:var(--color-neutral-700)")}>
@@ -593,8 +593,8 @@ export default function LembarKegiatan({ v }) {
             </div>
           ) : null}
           {v.fotoDlg ? (
-            <div onClick={v.fotoDlg.batal} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:8")}>
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:94%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+            <div onClick={v.fotoDlg.batal} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:8")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:94%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 <div style={css("font-weight:800;font-size:calc(19px*var(--fs,1))")}>Simpan foto kegiatan</div>
                 <img src={v.fotoDlg.prev} alt="Pratinjau foto" width="320" height="220" style={css("width:100%;height:220px;object-fit:contain;border-radius:18px;background:#000")} />
@@ -618,8 +618,8 @@ export default function LembarKegiatan({ v }) {
             </div>
           ) : null}
           {v.galeri ? (
-            <div onClick={v.galeri.tutup} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:7")}>
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:94%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+            <div onClick={v.galeri.tutup} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:7")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:94%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 <div style={css("font-weight:800;font-size:calc(19px*var(--fs,1))")}>Foto kegiatan</div>
                 <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);line-height:1.45")}>
@@ -637,7 +637,7 @@ export default function LembarKegiatan({ v }) {
                         {txt(f.st)}{f.link ? <> · <a href={f.link} onClick={f.buka} target="_blank" rel="noopener">buka</a></> : null}
                       </span>
                     </div>
-                    <button onClick={f.hapus} aria-label="Hapus foto dari HP" style={css("border:0;background:transparent;color:var(--color-neutral-600);cursor:pointer;font-size:calc(12px*var(--fs,1));font-weight:700;flex:none")}>Hapus</button>
+                    <button onClick={f.hapus} aria-label="Hapus foto dari HP" style={css("border:0;background:transparent;color:var(--color-neutral-600);cursor:pointer;font-size:calc(12px*var(--fs,1));font-weight:700;flex:none;min-height:44px;min-width:44px")}>Hapus</button>
                   </div>
                 ))}
                 <button className="btn btn-primary" onClick={v.galeri.tutup} style={css("height:46px")}>Tutup</button>
@@ -645,8 +645,8 @@ export default function LembarKegiatan({ v }) {
             </div>
           ) : null}
           {v.mqDlg ? (
-            <div onClick={v.mqDlg.batal} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:8")}>
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+            <div onClick={v.mqDlg.batal} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:8")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 <div style={css("font-weight:800;font-size:calc(19px*var(--fs,1))")}>{txt(v.mqDlg.title)}</div>
                 <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);line-height:1.45")}>
@@ -681,8 +681,8 @@ export default function LembarKegiatan({ v }) {
             </div>
           ) : null}
           {v.tgJ ? (
-            <div onClick={v.tgJ.batal} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:8")}>
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+            <div onClick={v.tgJ.batal} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:8")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 <div style={css("font-weight:800;font-size:calc(18px*var(--fs,1))")}>Tanggal pelaksanaan</div>
                 <div style={css("font-size:calc(14px*var(--fs,1));font-weight:600")}>{txt(v.tgJ.title)}</div>

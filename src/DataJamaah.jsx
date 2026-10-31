@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 const label = { display: 'grid', gap: 5, fontSize: fs(12.5), fontWeight: 700, color: 'var(--color-neutral-700)', minWidth: 0 };
-const input = { height: 44, borderRadius: 12, border: '1.5px solid var(--color-divider)', padding: '0 12px', fontSize: fs(15), fontFamily: 'inherit',
+const input = { height: 44, borderRadius: 12, border: '1.5px solid var(--kaca-garis)', padding: '0 12px', fontSize: fs(15), fontFamily: 'inherit',
   background: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', boxSizing: 'border-box', minWidth: 0 };
-const grup = { display: 'grid', gap: 10, background: 'var(--color-surface)', borderRadius: 18, padding: 14, border: '1px solid var(--color-divider)' };
+const grup = { display: 'grid', gap: 10, background: 'var(--kaca)', borderRadius: 18, padding: 14, border: '1px solid var(--kaca-garis)' };
 const judul = { fontSize: fs(13), fontWeight: 800, color: 'var(--color-accent-700)' };
 
 function Isian({ nama, k, f, set, ...p }) {

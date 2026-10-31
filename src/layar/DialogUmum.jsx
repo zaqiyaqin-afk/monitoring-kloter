@@ -6,14 +6,15 @@ export default function DialogUmum({ v }) {
   return (<>
           {v.hasToast ? (<>
             {" "}
-            <div style={css(`position:absolute;left:16px;right:16px;bottom:${v.toastBottom ?? ''};background:#16232B;color:#fff;border-radius:999px;padding:8px 8px 8px 18px;min-height:44px;box-sizing:border-box;font-size:calc(13.5px*var(--fs,1));font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:7`)}>
+            <div className="kaca-blur" style={css(`position:absolute;left:16px;right:16px;bottom:${v.toastBottom ?? ''};background:var(--lembar-bg);color:var(--color-text);border:1px solid var(--color-accent);box-shadow:0 12px 28px -10px rgba(0,0,0,.55);border-radius:20px;padding:8px 10px 8px 12px;min-height:48px;box-sizing:border-box;font-size:calc(13.5px*var(--fs,1));font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:7`)}>
               {" "}
-              <span>
-                {txt(v.toastMsg)}
+              <span style={css("display:flex;align-items:center;gap:10px;min-width:0")}>
+                <span aria-hidden="true" style={css("width:28px;height:28px;border-radius:50%;background:var(--color-accent);color:var(--on-accent);display:grid;place-items:center;flex:none;font-weight:800;font-size:14px")}>✓</span>
+                <span style={css("min-width:0")}>{txt(v.toastMsg)}</span>
               </span>
               {" "}
               {v.hasUndo ? (<>
-                <button onClick={v.doUndo} style={css("flex:none;border:0;border-radius:999px;height:44px;padding:0 14px;background:var(--color-accent-300);color:var(--color-accent-900);font:800 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer")}>
+                <button onClick={v.doUndo} style={css("flex:none;border:0;border-radius:999px;height:44px;padding:0 14px;background:var(--emas-isi);color:var(--on-emas);font:800 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer")}>
                   Batalkan
                 </button>
               </>) : null}
@@ -24,9 +25,9 @@ export default function DialogUmum({ v }) {
           {" "}
           {v.hasWa ? (<>
             {" "}
-            <div onClick={v.closeWa} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:9")}>
+            <div onClick={v.closeWa} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:9")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:90%;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:12px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:90%;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:12px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}

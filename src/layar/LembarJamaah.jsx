@@ -7,9 +7,9 @@ export default function LembarJamaah({ v }) {
   return (<>
           {v.hasSel ? (<>
             {" "}
-            <div onClick={v.closeSel} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:5")}>
+            <div onClick={v.closeSel} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:5")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:88%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:16px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:88%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:16px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}

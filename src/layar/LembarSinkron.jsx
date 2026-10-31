@@ -6,9 +6,9 @@ export default function LembarSinkron({ v }) {
   return (<>
           {v.hasSync ? (<>
             {" "}
-            <div onClick={v.closeSync} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:6")}>
+            <div onClick={v.closeSync} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:6")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--color-bg);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:16px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:92%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 28px;box-sizing:border-box;display:grid;gap:16px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}
@@ -114,7 +114,7 @@ export default function LembarSinkron({ v }) {
                     </svg>
                   </button>
                   <button onClick={v.bakLoad} style={css("width:100%;border:0;background:transparent;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 0;min-height:58px;border-bottom:1px solid var(--color-divider);font:inherit;color:inherit")}>
-                    <span style={css("width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:#FFF1DB;color:#8A5300;flex:none")}>
+                    <span style={css("width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--color-accent-2-100);color:var(--color-accent-2-700);flex:none")}>
                       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 21V9M7 14l5-5 5 5M4 5h16" />
                       </svg>
@@ -216,9 +216,9 @@ export default function LembarSinkron({ v }) {
           </>) : null}
           {v.hasPp ? (<>
             {" "}
-            <div onClick={v.closePp} style={css("position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 50%, transparent);display:flex;align-items:flex-end;z-index:8")}>
+            <div onClick={v.closePp} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:8")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:90%;overflow-y:auto;background:var(--color-bg);border-radius:30px 30px 0 0;padding:12px 18px 24px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:90%;overflow-y:auto;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:30px 30px 0 0;padding:12px 18px 24px;box-sizing:border-box;display:grid;gap:12px;box-shadow:var(--shadow-lg)")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}

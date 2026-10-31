@@ -99,7 +99,7 @@ export default function MenuRekap({ v }) {
                   {" "}
                 </>) : null}
                 {" "}
-                <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:18px;display:grid;gap:14px")}>
+                <div className="kaca" style={css("border-radius:22px;padding:18px;display:grid;gap:14px")}>
                   {" "}
                   <div style={css("font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
                     {txt(v.rkp?.n)}
@@ -172,7 +172,7 @@ export default function MenuRekap({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:18px 16px 14px")}>
+                <div className="kaca" style={css("border-radius:22px;padding:18px 16px 14px")}>
                   {" "}
                   <div style={css("padding:0 2px")}>
                     <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(20px*var(--fs,1))")}>
@@ -201,7 +201,7 @@ export default function MenuRekap({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:18px 16px 8px")}>
+                <div className="kaca" style={css("border-radius:22px;padding:18px 16px 8px")}>
                   {" "}
                   <div style={css("padding:0 2px 8px")}>
                     <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(20px*var(--fs,1))")}>
@@ -238,7 +238,7 @@ export default function MenuRekap({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:18px 16px 8px")}>
+                <div className="kaca" style={css("border-radius:22px;padding:18px 16px 8px")}>
                   {" "}
                   <div style={css("padding:0 2px 8px")}>
                     <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(20px*var(--fs,1))")}>
@@ -290,7 +290,7 @@ export default function MenuRekap({ v }) {
                 {" "}
                 {v.rkp?.hasBl ? (<>
                   {" "}
-                  <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:18px 16px 8px")}>
+                  <div className="kaca" style={css("border-radius:22px;padding:18px 16px 8px")}>
                     {" "}
                     <div style={css("padding:0 2px 8px")}>
                       <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(20px*var(--fs,1))")}>

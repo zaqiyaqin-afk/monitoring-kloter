@@ -8,22 +8,34 @@ import Kirim from './Kirim.jsx';
 import Kejadian from './Kejadian.jsx';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
-const kartu = { background: 'var(--color-surface)', borderRadius: 20, padding: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.06)', border: '1px solid var(--color-divider)', display: 'grid', gap: 12 };
+const kartu = { background: 'var(--kaca)', borderRadius: 20, padding: '16px', boxShadow: 'var(--kartu-bayang)', border: '1px solid var(--kaca-garis)', display: 'grid', gap: 12 };
 const judul = { fontSize: fs(14), fontWeight: 700, color: 'var(--color-neutral-700)' };
-const tombolPil = on => ({ minHeight: 44, padding: '6px 4px', lineHeight: 1.2, borderRadius: 12, border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent)' : 'transparent', color: on ? 'var(--on-accent)' : 'var(--color-text)', font: `600 ${fs(14)} var(--font-body)`, cursor: 'pointer' });
-const tombol = { minHeight: 46, padding: '8px 12px', lineHeight: 1.25, borderRadius: 14, border: '1.5px solid var(--color-divider)', background: 'transparent', color: 'var(--color-text)', font: `600 ${fs(15)} var(--font-body)`, cursor: 'pointer' };
+const tombolPil = on => ({ minHeight: 44, padding: '6px 4px', lineHeight: 1.2, borderRadius: 12, border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--kaca-garis)'), background: on ? 'var(--color-accent)' : 'var(--kaca)', color: on ? 'var(--on-accent)' : 'var(--color-text)', font: `700 ${fs(14)} var(--font-body)`, cursor: 'pointer' });
+const tombol = { minHeight: 46, padding: '8px 12px', lineHeight: 1.25, borderRadius: 14, border: '1.5px solid var(--kaca-garis)', background: 'var(--kaca)', color: 'var(--color-text)', font: `700 ${fs(15)} var(--font-body)`, cursor: 'pointer' };
 const Ikon = ({ d, s = 22 }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
+
+const WARNA_MENU = [
+  { kartu: 'kartu-safir', ubin: 'ubin ubin-safir', teks: 'var(--safir-teks)' },
+  { kartu: 'kartu-emas', ubin: 'ubin ubin-emas', teks: 'var(--emas-teks)' },
+  { kartu: 'kartu-zamrud', ubin: 'ubin', teks: 'var(--zamrud-teks)' },
+  { kartu: 'kartu-safir', ubin: 'ubin ubin-safir', teks: 'var(--safir-teks)' },
+  { kartu: 'kartu-zamrud', ubin: 'ubin', teks: 'var(--zamrud-teks)' },
+  { kartu: 'kartu-koral', ubin: 'ubin ubin-koral', teks: 'var(--koral-teks)' }
+];
 
 function Menu({ v }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-      {(v.menuItems || []).map(m => (
-        <button key={m.l} onClick={m.on} style={{ ...kartu, textAlign: 'left', cursor: 'pointer', color: 'var(--color-text)', font: 'inherit', gap: 8 }}>
-          <span style={{ width: 44, height: 44, borderRadius: 14, display: 'grid', placeItems: 'center', background: 'var(--color-accent-100)', color: 'var(--color-accent-700)' }}><Ikon d={m.d} /></span>
-          <span style={{ fontSize: fs(16), fontWeight: 700 }}>{m.l}</span>
-          <span style={{ fontSize: fs(13), color: 'var(--color-neutral-700)' }}>{m.s}</span>
-        </button>
-      ))}
+      {(v.menuItems || []).map((m, i) => {
+        const w = WARNA_MENU[i % WARNA_MENU.length];
+        return (
+          <button key={m.l} onClick={m.on} className={w.kartu} style={{ borderRadius: 22, padding: '18px 14px', textAlign: 'center', justifyItems: 'center', alignContent: 'start', cursor: 'pointer', color: 'var(--color-text)', font: 'inherit', display: 'grid', gap: 8 }}>
+            <span className={w.ubin} style={{ width: 54, height: 54, borderRadius: 16 }}><Ikon d={m.d} s={26} /></span>
+            <span style={{ fontSize: fs(16), fontWeight: 800, marginTop: 2, color: w.teks }}>{m.l}</span>
+            <span style={{ fontSize: fs(12.5), color: 'var(--teks-2)', lineHeight: 1.35 }}>{m.s}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -71,8 +83,8 @@ function Excel({ x }) {
     try { const r = await imporJamaah(pra.rows); setPra(null); setHasil(`Tersimpan: ${r.baru} jamaah baru, ${r.diubah} diperbarui${r.dilewati ? `, ${r.dilewati} dilewati` : ''}.`); x.sesudahUnggah(); }
     catch (er) { setGalat(er.message || String(er)); } finally { setSibuk(''); } };
   return (
-    <div style={kartu}>
-      <div style={judul}>Excel data jamaah</div>
+    <div style={{ ...kartu, background: 'var(--safir-bg)', borderColor: 'var(--safir-tepi)' }}>
+      <div style={{ ...judul, color: 'var(--safir-teks)' }}>Excel data jamaah</div>
       <button style={tombol} onClick={unduh} disabled={!!sibuk}>{sibuk === 'unduh' ? 'Menyiapkan…' : 'Unduh Excel'}</button>
       <div style={{ fontSize: fs(13), color: 'var(--color-neutral-700)', lineHeight: 1.45 }}>Berisi lembar Data jamaah dan Status ibadah (Haji, Umrah, Madinah). Lembar Data jamaah bisa dilengkapi di Excel lalu diunggah kembali.</div>
       {x.bisaUnggah && <>
@@ -102,18 +114,37 @@ function Profil({ v }) {
   const [st, setSt] = useState(akun.keadaan());
   useEffect(() => akun.dengar(setSt), []);
   const p = st.profil;
+  const id = v.identitas || {};
+  const namaLengkap = (akun.aktif && p && (p.nama || p.email)) || id.nama || v.ppihName || '-';
+  const embarkasi = (akun.aktif && p && ((p.kloter && p.kloter.embarkasi) || p.embarkasi)) || id.embarkasi || '-';
+  const kloter = (akun.aktif && p && (p.kloter ? p.kloter.kode : p.kloter_diminta)) || id.kloter || '-';
+  const gelombang = (akun.aktif && p && ((p.kloter && p.kloter.gelombang) || p.gelombang)) || id.gelombang || '-';
+  const barisId = [
+    ['Nama lengkap', namaLengkap],
+    ['Embarkasi', embarkasi],
+    ['Kloter', kloter],
+    ['Gelombang', gelombang]
+  ];
   const ubah = x => setT(tampilan.simpan(x));
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      {akun.aktif && p && (
-        <div style={{ ...kartu, background: 'var(--hero)', color: '#fff', border: 0 }}>
-          <div style={{ fontSize: fs(18), fontWeight: 700 }}>{p.nama || p.email}</div>
-          <div style={{ fontSize: fs(14), opacity: 0.85 }}>{p.tusi}<br />{p.email}</div>
-          <div style={{ fontSize: fs(14) }}>Kloter {p.kloter ? p.kloter.kode : (p.kloter_diminta || '-')} · Gelombang {p.gelombang || '-'}{p.peran === 'admin' ? ' · Admin' : ''}</div>
+      <div style={{ ...kartu, background: 'var(--safir-bg)', borderColor: 'var(--safir-tepi)', gap: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <div style={{ ...judul, color: 'var(--safir-teks)' }}>Identitas Pengguna</div>
+          {akun.aktif && p && p.peran === 'admin' && <span className="tag tag-accent-2">Admin</span>}
         </div>
-      )}
-      <div style={kartu}>
-        <div style={judul}>Tampilan</div>
+        <div style={{ display: 'grid', gap: 8, background: 'var(--color-surface)', borderRadius: 12, padding: '12px 14px', border: '1px solid var(--safir-tepi)' }}>
+          {barisId.map(([lbl, val], i) => (
+            <div key={lbl} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, paddingTop: i ? 8 : 0, borderTop: i ? '1px solid var(--color-neutral-200)' : 0 }}>
+              <span style={{ fontSize: fs(13), fontWeight: 600, color: 'var(--color-neutral-700)' }}>{lbl}</span>
+              <span style={{ fontSize: fs(15), fontWeight: 700, color: 'var(--color-text)', textAlign: 'right' }}>{val}</span>
+            </div>
+          ))}
+        </div>
+        <button style={tombol} onClick={id.ubah || v.openSetup}>Ubah identitas pengguna</button>
+      </div>
+      <div style={{ ...kartu, background: 'var(--zamrud-bg)', borderColor: 'var(--zamrud-tepi)' }}>
+        <div style={{ ...judul, color: 'var(--zamrud-teks)' }}>Tampilan</div>
         <div style={{ fontSize: fs(14), fontWeight: 600 }}>Tema</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
           {tampilan.TEMA.map(x => <button key={x.v} onClick={() => ubah({ tema: x.v })} aria-pressed={t.tema === x.v} style={tombolPil(t.tema === x.v)}>{x.l}</button>)}
@@ -124,17 +155,17 @@ function Profil({ v }) {
         </div>
         <div style={{ fontSize: fs(13), color: 'var(--color-neutral-700)' }}>{tampilan.UKURAN.find(x => x.v === t.huruf).l} · tersimpan di HP ini</div>
       </div>
-      <div style={kartu}>
-        <div style={judul}>Kloter</div>
+      <div style={{ ...kartu, background: 'var(--emas-bg)', borderColor: 'var(--emas-tepi)' }}>
+        <div style={{ ...judul, color: 'var(--emas-teks)' }}>Kloter</div>
         <label style={{ display: 'grid', gap: 6, fontSize: fs(14), fontWeight: 600 }}>Tanggal berangkat
           <input type="date" defaultValue={v.tglBerangkat} key={v.tglBerangkat} onChange={e => v.setTglBerangkat(e.target.value)}
-            style={{ minHeight: 44, borderRadius: 12, border: '1.5px solid var(--color-divider)', padding: '0 12px', font: `400 ${fs(15)} var(--font-body)`, background: 'var(--color-surface)', color: 'var(--color-text)' }} />
+            style={{ minHeight: 44, borderRadius: 12, border: '1.5px solid var(--emas-tepi)', padding: '0 12px', font: `400 ${fs(15)} var(--font-body)`, background: 'var(--color-surface)', color: 'var(--color-text)' }} />
         </label>
         <div style={{ fontSize: fs(13), color: 'var(--color-neutral-700)', lineHeight: 1.45 }}>Jamaah berumur 65 tahun atau lebih pada tanggal ini otomatis dihitung lansia.</div>
       </div>
       <Excel x={v.excel} />
-      <div style={kartu}>
-        <div style={judul}>Data dan sinkron</div>
+      <div style={{ ...kartu, background: 'var(--zamrud-bg)', borderColor: 'var(--zamrud-tepi)' }}>
+        <div style={{ ...judul, color: 'var(--zamrud-teks)' }}>Data dan sinkron</div>
         <button style={tombol} onClick={v.openSync}>Identitas, PIN, dan status sinkron</button>
       </div>
       {akun.aktif && p && p.peran === 'admin' && <Admin />}

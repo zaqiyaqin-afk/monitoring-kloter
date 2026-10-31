@@ -202,7 +202,7 @@ export default function MenuChecklist({ v }) {
                 {" "}
                 <input className="input" type="search" aria-label="Cari jamaah" value={v.ckQ ?? ''} onChange={v.onCkQ} placeholder="Cari jamaah · nama atau nomor porsi" style={css("height:46px;font-size:calc(15px*var(--fs,1));border-radius:999px")} />
                 {" "}
-                <div style={css("background:var(--hero);border-radius:24px;padding:18px;color:#fff;position:relative;overflow:hidden;box-shadow:0 14px 26px -18px rgba(14,92,64,.9);display:grid;gap:12px")}>
+                <div className="mk-gelap" style={css("background:var(--hero);border:1px solid var(--kaca-garis);border-radius:24px;padding:18px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--kartu-bayang);display:grid;gap:12px")}>
                   {" "}
                   <div style={css("display:flex;justify-content:space-between;align-items:flex-end;gap:10px")}>
                     {" "}
@@ -227,8 +227,8 @@ export default function MenuChecklist({ v }) {
                     {" "}
                   </div>
                   {" "}
-                  <div style={css("height:8px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden")}>
-                    <div style={css(`height:100%;width:${v.ckSum?.pct ?? ''};background:var(--color-surface);border-radius:99px;transition:width .4s`)}></div>
+                  <div style={css("height:8px;border-radius:99px;background:rgba(0,0,0,.38);overflow:hidden")}>
+                    <div style={css(`height:100%;width:${v.ckSum?.pct ?? ''};background:linear-gradient(90deg,#1fcfa0,#5ff5ce);border-radius:99px;transition:width .4s`)}></div>
                   </div>
                   {" "}
                   {v.ckSum?.hasNote ? (<>
@@ -288,7 +288,7 @@ export default function MenuChecklist({ v }) {
                     {" "}
                     {arr(v.ckRows).map((r, i0) => (<React.Fragment key={i0}>
                       {" "}
-                      <div style={css("background:var(--color-surface);border-radius:20px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:14px 14px 14px 16px;display:grid;gap:12px")}>
+                      <div className={r?.mark === '✓' ? 'kartu-zamrud' : 'kartu-safir'} style={css("border-radius:20px;padding:14px 14px 14px 16px;display:grid;gap:12px")}>
                         {" "}
                         <div style={css("display:flex;align-items:center;gap:12px")}>
                           {" "}
@@ -337,7 +337,7 @@ export default function MenuChecklist({ v }) {
                 {" "}
                 {v.ckHasPeople ? (<>
                   {" "}
-                  <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:2px 14px")}>
+                  <div className="kaca" style={css("border-radius:22px;padding:2px 14px")}>
                     {" "}
                     {arr(v.ckPeople).map((p, i0) => (<React.Fragment key={i0}>
                       {" "}
@@ -385,7 +385,7 @@ export default function MenuChecklist({ v }) {
                 </>) : null}
                 {" "}
                 <div style={css("position:sticky;bottom:10px;z-index:2")}>
-                  <button className="btn btn-primary" onClick={v.ckSum?.onAll} style={css("width:100%;height:52px;font-size:calc(15px*var(--fs,1));box-shadow:var(--shadow-lg)")}>
+                  <button onClick={v.ckSum?.onAll} style={css("width:100%;height:52px;border:0;border-radius:999px;background:var(--emas-isi);color:var(--on-emas);font:800 calc(15px*var(--fs,1)) var(--font-body);box-shadow:0 12px 26px -10px rgba(0,0,0,.55);cursor:pointer")}>
                     {txt(v.ckSum?.action)}
                   </button>
                 </div>
@@ -468,7 +468,7 @@ export default function MenuChecklist({ v }) {
                               <span style={css(`font-size:calc(13px*var(--fs,1));font-weight:700;min-width:56px;text-align:right;color:${r?.cntFg ?? ''}`)}>
                                 {txt(r?.cnt)}
                                 {r?.hasSus ? (<>
-                                  <span style={css("display:block;color:#7a5200")}>
+                                  <span style={css("display:block;color:var(--emas-teks)")}>
                                     {txt(r?.sus)}
                                   </span>
                                 </>) : null}

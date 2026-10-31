@@ -6,7 +6,7 @@ export default function Pengaturan({ v }) {
   return (<>
           {v.hasSetup ? (<>
             {" "}
-            <div style={css("position:absolute;inset:0;background:var(--color-bg);z-index:25;overflow-y:auto")}>
+            <div className="mk-layar" style={css("position:absolute;inset:0;background:var(--color-bg);z-index:25;overflow-y:auto")}>
               {" "}
               <div style={css("padding:56px 22px 32px;display:grid;gap:16px")}>
                 {" "}
@@ -25,7 +25,7 @@ export default function Pengaturan({ v }) {
                   </div>
                   {" "}
                 </div>
-                <div style={css("background:var(--color-surface);border-radius:22px;padding:14px 16px;display:grid;gap:12px;box-shadow:inset 0 0 0 1px var(--color-divider)")}>
+                <div className="kaca" style={css("border-radius:22px;padding:14px 16px;display:grid;gap:12px")}>
                   <div style={css("display:flex;align-items:center;justify-content:space-between;gap:8px")}>
                     <b style={css("font-size:calc(15px*var(--fs,1))")}>Identitas petugas</b>
                     <span style={css("font-size:calc(12px*var(--fs,1));font-weight:700;color:var(--red-600)")}>wajib diisi</span>

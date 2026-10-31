@@ -113,7 +113,7 @@ export default function MenuCetak({ v }) {
                     Pratinjau ·{" "}{txt(v.pr?.pages)}{" "}halaman A4 ·{" "}{txt(v.pr?.orientL)}
                   </div>
                   {" "}
-                  <div style={css("background:var(--color-neutral-100);border-radius:20px;padding:16px 14px;box-shadow:var(--shadow-md);display:grid;gap:8px")}>
+                  <div className="kaca" style={css("border-radius:20px;padding:16px 14px;display:grid;gap:8px")}>
                     {" "}
                     <div style={css("display:flex;gap:10px;align-items:center;border-bottom:2px solid #16232B;padding-bottom:8px")}>
                       {" "}
@@ -202,7 +202,7 @@ export default function MenuCetak({ v }) {
                         ✓
                       </b>
                       {" "}selesai ·{" "}
-                      <b style={css("background:#fdf0c4;color:#5a3f00;padding:0 4px;border-radius:3px")}>
+                      <b style={css("background:var(--color-accent-2-100);color:var(--color-accent-2-800);padding:0 4px;border-radius:3px")}>
                         amber
                       </b>
                       {" "}susulan ·{" "}
@@ -259,7 +259,7 @@ export default function MenuCetak({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <button className="btn btn-primary" onClick={v.doPrint} style={css("width:100%;height:50px;font-size:calc(16px*var(--fs,1))")}>
+                <button onClick={v.doPrint} style={css("width:100%;height:50px;border:0;border-radius:999px;background:var(--emas-isi);color:var(--on-emas);font:800 calc(16px*var(--fs,1)) var(--font-body);cursor:pointer;box-shadow:0 10px 24px -10px rgba(0,0,0,.5)")}>
                   Simpan PDF
                 </button>
                 {" "}

@@ -4,12 +4,12 @@ import { tautanFoto } from './data/server.js';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 const MAKS_FOTO = 3;
-const kartu = { background: 'var(--kartu-bg, var(--color-surface))', borderRadius: 20, padding: 16, border: '1px solid var(--kartu-garis, var(--color-divider))', boxShadow: 'var(--kartu-bayang, 0 1px 2px rgba(0,0,0,.06))', display: 'grid', gap: 12, minWidth: 0 };
+const kartu = { background: 'var(--kaca)', borderRadius: 20, padding: 16, border: '1px solid var(--kaca-garis)', boxShadow: 'var(--kartu-bayang)', display: 'grid', gap: 12, minWidth: 0 };
 const label = { display: 'grid', gap: 6, fontSize: fs(14), fontWeight: 600, minWidth: 0 };
-const isian = { minHeight: 44, width: '100%', boxSizing: 'border-box', borderRadius: 12, border: '1.5px solid var(--color-divider)', padding: '10px 12px', font: `400 ${fs(15)} var(--font-body)`, background: 'var(--color-surface)', color: 'var(--color-text)' };
-const tombol = { minHeight: 46, padding: '8px 12px', lineHeight: 1.25, borderRadius: 14, border: '1.5px solid var(--color-divider)', background: 'transparent', color: 'var(--color-text)', font: `600 ${fs(15)} var(--font-body)`, cursor: 'pointer' };
-const utama = { ...tombol, background: 'var(--color-accent)', color: 'var(--on-accent)', borderColor: 'var(--color-accent)' };
-const pil = on => ({ minHeight: 44, padding: '6px 12px', lineHeight: 1.2, borderRadius: 999, border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent)' : 'transparent', color: on ? 'var(--on-accent)' : 'var(--color-text)', font: `600 ${fs(14)} var(--font-body)`, cursor: 'pointer' });
+const isian = { minHeight: 44, width: '100%', boxSizing: 'border-box', borderRadius: 12, border: '1.5px solid var(--kaca-garis)', padding: '10px 12px', font: `400 ${fs(15)} var(--font-body)`, background: 'var(--color-surface)', color: 'var(--color-text)' };
+const tombol = { minHeight: 46, padding: '8px 12px', lineHeight: 1.25, borderRadius: 14, border: '1.5px solid var(--kaca-garis)', background: 'var(--kaca)', color: 'var(--color-text)', font: `700 ${fs(15)} var(--font-body)`, cursor: 'pointer' };
+const utama = { ...tombol, background: 'var(--emas-isi)', color: 'var(--on-emas)', borderColor: 'transparent', fontWeight: 800 };
+const pil = on => ({ minHeight: 44, padding: '6px 12px', lineHeight: 1.2, borderRadius: 999, border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--kaca-garis)'), background: on ? 'var(--color-accent)' : 'var(--kaca)', color: on ? 'var(--on-accent)' : 'var(--color-text)', font: `700 ${fs(14)} var(--font-body)`, cursor: 'pointer' });
 const Ikon = ({ d, s = 22 }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 
 const jenisDari = (d, v) => d.jenis.find(j => j.v === v) || d.jenis[d.jenis.length - 1];
@@ -123,7 +123,7 @@ function KartuKejadian({ k, d }) {
   const j = jenisDari(d, k.kategori), selesai = k.status === 'selesai';
   const nama = k.nama.length > 2 ? k.nama.slice(0, 2).join(', ') + ` +${k.nama.length - 2}` : k.nama.join(', ');
   return (
-    <button onClick={() => d.buka(k)} style={{ ...kartu, textAlign: 'left', cursor: 'pointer', color: 'var(--color-text)', font: 'inherit', borderLeft: `5px solid ${j.w}`, gap: 8 }}>
+    <button onClick={() => d.buka(k)} style={{ ...kartu, textAlign: 'left', cursor: 'pointer', color: 'var(--color-text)', font: 'inherit', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         <span style={{ width: 40, height: 40, borderRadius: 12, flex: 'none', display: 'grid', placeItems: 'center', background: j.w, color: '#fff' }}><Ikon d={j.d} s={20} /></span>
         <div style={{ minWidth: 0, flex: 1 }}>
@@ -133,11 +133,11 @@ function KartuKejadian({ k, d }) {
         <span style={{ flex: 'none', fontSize: fs(12), fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: selesai ? 'var(--color-accent-100)' : 'var(--red-100)', color: selesai ? 'var(--color-accent-700)' : 'var(--red-700)' }}>{selesai ? 'Selesai' : 'Terbuka'}</span>
       </div>
       {nama && <div style={{ fontSize: fs(14), fontWeight: 600, overflowWrap: 'anywhere' }}>{nama}</div>}
-      {k.lokasi && <div style={{ fontSize: fs(13), color: 'var(--color-neutral-700)', overflowWrap: 'anywhere' }}>📍 {k.lokasi}</div>}
+      {k.lokasi && <div style={{ fontSize: fs(13), color: 'var(--color-neutral-700)', overflowWrap: 'anywhere' }}>Lokasi: {k.lokasi}</div>}
       {k.kronologi && <div style={{ fontSize: fs(14), lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>{k.kronologi}</div>}
       {(k.foto.length > 0 || k.belum) && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: fs(12), color: 'var(--color-neutral-700)' }}>
-        {k.foto.length > 0 && <span>📷 {k.foto.length} foto</span>}
-        {k.belum && <span style={{ color: '#a86d00', fontWeight: 600 }}>· belum terkirim</span>}
+        {k.foto.length > 0 && <span>{k.foto.length} foto</span>}
+        {k.belum && <span style={{ color: 'var(--emas-teks)', fontWeight: 600 }}>· belum terkirim</span>}
       </div>}
     </button>
   );

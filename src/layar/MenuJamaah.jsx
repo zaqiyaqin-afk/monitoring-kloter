@@ -67,7 +67,7 @@ export default function MenuJamaah({ v }) {
                     {" "}
                   </>) : null}
                   {" "}
-                  <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:2px 16px")}>
+                  <div className="kaca" style={css("border-radius:22px;padding:2px 16px")}>
                     {" "}
                     {arr(v.jl?.rows).map((j, i0) => (<React.Fragment key={i0}>
                       {" "}
@@ -161,7 +161,7 @@ export default function MenuJamaah({ v }) {
                         </span>
                       </div>
                       {" "}
-                      <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:2px 14px")}>
+                      <div className="kaca" style={css("border-radius:22px;padding:2px 14px")}>
                         {" "}
                         {arr(g?.rows).map((r, i1) => (<React.Fragment key={i1}>
                           {" "}

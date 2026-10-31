@@ -5,7 +5,12 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Service worker dan manifest jangan disimpan lama di cache agar pembaruan aplikasi cepat sampai ke HP.
+# Service worker, manifest, dan index.html jangan disimpan lama di cache agar pembaruan aplikasi cepat sampai ke HP.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
 [[headers]]
   for = "/sw.js"
   [headers.values]

@@ -50,7 +50,7 @@ export default function MenuBadal({ v }) {
                   </React.Fragment>))}
                 </div>
                 {" "}
-                <div style={css("background:var(--hero);border-radius:24px;padding:16px 18px;color:#fff;display:grid;gap:8px;box-shadow:0 14px 26px -18px rgba(14,92,64,.9)")}>
+                <div className="mk-gelap" style={css("background:var(--hero);border:1px solid var(--kaca-garis);border-radius:24px;padding:16px 18px;color:#fff;display:grid;gap:8px;box-shadow:var(--kartu-bayang)")}>
                   {" "}
                   <div style={css("font-size:calc(12.5px*var(--fs,1));font-weight:700;opacity:.88")}>
                     Badal ·{" "}{txt(v.bd?.dayLbl)}
@@ -65,8 +65,8 @@ export default function MenuBadal({ v }) {
                     </span>
                   </div>
                   {" "}
-                  <div style={css("height:8px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden")}>
-                    <div style={css(`height:100%;width:${v.bd?.pct ?? ''};background:var(--color-surface);border-radius:99px`)}></div>
+                  <div style={css("height:8px;border-radius:99px;background:rgba(0,0,0,.38);overflow:hidden")}>
+                    <div style={css(`height:100%;width:${v.bd?.pct ?? ''};background:linear-gradient(90deg,#1fcfa0,#5ff5ce);border-radius:99px`)}></div>
                   </div>
                   {" "}
                 </div>
@@ -152,7 +152,7 @@ export default function MenuBadal({ v }) {
                       <div style={css("margin-top:8px;display:grid")}>
                         {" "}
                         {arr(g?.items).map((i, i1) => (<React.Fragment key={i1}>
-                          <button onClick={i?.on} style={css("border:0;background:transparent;font:inherit;color:inherit;cursor:pointer;display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--color-divider);font-size:calc(13.5px*var(--fs,1));text-align:left")}>
+                          <button onClick={i?.on} style={css("border:0;background:transparent;font:inherit;color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:7px 0;border-top:1px solid var(--color-divider);font-size:calc(13.5px*var(--fs,1));text-align:left")}>
                             <span>
                               {txt(i?.name)}{" "}
                               <span style={css("color:var(--color-neutral-700)")}>

@@ -21,4 +21,26 @@ async function mulai() {
 }
 
 mulai();
-registerSW({ immediate: true });
+
+// Pastikan PWA yang sudah terpasang di HP langsung memuat ulang otomatis begitu versi baru tersedia
+if ('serviceWorker' in navigator) {
+  let sedangMuatUlang = false;
+  const sudahAdaPengendali = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!sudahAdaPengendali || sedangMuatUlang) return;
+    sedangMuatUlang = true;
+    location.reload();
+  });
+}
+
+const perbaruiSW = registerSW({
+  immediate: true,
+  onNeedRefresh() { perbaruiSW(true); },
+  onRegisteredSW(_url, reg) {
+    if (!reg) return;
+    reg.update().catch(() => {});
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update().catch(() => {});
+    });
+  }
+});
