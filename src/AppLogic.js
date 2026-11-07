@@ -793,12 +793,16 @@ export default class AppLogic extends DCLogic {
         const r = X.rites[M.firstK[g]];
         const tot = jm.filter(j => !S.udz[j.id] && !this.skip(m, ks[0], j, D)).length;
         peringatan.push({ key: m + g, label: r.p, sub: this.modeLabel(m) + ' · ' + this.fmtHari(tgl), n, tot, tgl, on: keCk(m, M.firstK[g]) }); });
-      X.rites.forEach((r, k) => { if (!r.tgl || r.tgl < hari || r.tgl > tglBesok || r.opt) return;
+      X.rites.forEach((r, k) => { if (!r.tgl || r.tgl < hari || r.opt) return;
+        adaTgl = true;
         const jam = r.jam || '', lewat = r.tgl === hari && jam && jam.replace('.', ':') < this.hhmmWas();
         if (lewat) return;
-        pengingat.push({ key: m + k, label: r.p, sub: this.modeLabel(m) + ' · ' + (r.place || ''), kapan: (r.tgl === hari ? 'Hari ini' : 'Besok') + (jam ? ' ' + jam.replace(':', '.') : ''), urut: r.tgl + (jam || '99'), on: keCk(m, k) }); }); });
+        const selisihHari = Math.round((Date.parse(r.tgl + 'T00:00:00Z') - Date.parse(hari + 'T00:00:00Z')) / 86400000);
+        const labelHari = r.tgl === hari ? 'Hari ini' : r.tgl === tglBesok ? 'Besok' : selisihHari <= 14 ? selisihHari + ' hari lagi' : this.fmtHari(r.tgl);
+        const subTempat = [this.modeLabel(m), r.place, r.tgl > tglBesok && selisihHari <= 14 ? this.fmtHari(r.tgl) : ''].filter(Boolean).join(' · ');
+        pengingat.push({ key: m + k, label: r.p, sub: subTempat, kapan: labelHari + (jam ? ' ' + jam.replace(':', '.') : ''), urut: r.tgl + (jam || '99'), on: keCk(m, k) }); }); });
     peringatan.sort((a, b) => b.tgl.localeCompare(a.tgl)); pengingat.sort((a, b) => a.urut.localeCompare(b.urut));
-    const simulasi = !adaTgl || (!peringatan.length && !pengingat.length && !this.live());
+    const simulasi = !adaTgl;
     if (simulasi) {
       const H = this.data.haji.rites, iWukuf = Math.max(0, H.findIndex(r => /Wukuf/i.test(r.n))), iMuz = Math.max(0, H.findIndex(r => /Muzdalifah|Murur/i.test(r.n)));
       const iAqobah = Math.max(0, H.findIndex(r => /Aqobah/i.test(r.n) && !r.badal)), iMina = Math.max(0, H.findIndex(r => /Malam 11/i.test(r.n))), iJum11 = Math.max(0, H.findIndex(r => /11 Dzh/i.test(r.n) && !r.badal));

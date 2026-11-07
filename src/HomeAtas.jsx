@@ -194,7 +194,6 @@ const Lencana = ({ ikon, cls = '' }) => <span className={`ubin ${cls}`} style={{
 
 function PeringatanPengingat({ h }) {
   const peringatan = h.peringatan || [], pengingat = h.pengingat || [];
-  if (!peringatan.length && !pengingat.length) return null;
   return (
     <div className="kartu-emas" style={{ ...kartu, borderRadius: 26, padding: 20, gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
@@ -211,6 +210,12 @@ function PeringatanPengingat({ h }) {
           </span>
         )}
       </div>
+
+      {!peringatan.length && !pengingat.length && (
+        <div style={{ borderRadius: 16, padding: '12px 14px', background: 'var(--zamrud-lembut)', color: 'var(--zamrud-teks)', fontSize: fs(13), fontWeight: 700, lineHeight: 1.45 }}>
+          Alhamdulillah, semua kegiatan terjadwal sudah tuntas dicentang dan belum ada jadwal kegiatan berikutnya.
+        </div>
+      )}
 
       {peringatan.length > 0 && (
         <div style={{ display: 'grid', gap: 8 }}>
