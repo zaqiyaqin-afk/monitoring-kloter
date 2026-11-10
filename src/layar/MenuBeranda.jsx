@@ -1,21 +1,20 @@
-// Menu Home.
 import React from 'react';
 import { css, txt, arr } from '../dc/runtime.js';
 import HomeAtas from '../HomeAtas.jsx';
 
 export default function MenuBeranda({ v }) {
   return (<>
-              <div style={css("padding:8px 20px 24px;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;gap:18px")}>
+              <div className="mk-kolom" style={css("padding:14px 14px 24px;grid-auto-rows:max-content;gap:14px")}>
                 {v.modeCoba ? (
-                  <div role="status" style={css("border-radius:20px;padding:14px 16px;display:grid;gap:10px;background:var(--color-accent-2-100);color:var(--color-accent-2-800)")}>
+                  <div role="status" className="mk-penuh" style={css("border-radius:22px;padding:14px 16px;display:grid;gap:10px;background:var(--m-kartu);color:var(--m-teks);border:1.5px solid var(--m-emas-isi);box-shadow:var(--m-kartu-bayang)")}>
                     <div style={css("font-size:calc(14px*var(--fs,1));line-height:1.45")}>
-                      <b>Mode coba · data contoh.</b> Silakan mencentang, mencatat, dan mencoba unggah Excel. Tidak ada yang dikirim ke server; data kloter asli tidak berubah.
+                      <b style={css("color:var(--m-emas)")}>Mode coba · data contoh.</b> Silakan mencentang, mencatat, dan mencoba unggah Excel. Tidak ada yang dikirim ke server; data kloter asli tidak berubah.
                     </div>
                     <button className="btn btn-primary" onClick={v.selesaiCoba} style={css("height:46px;font-size:calc(15px*var(--fs,1))")}>Selesai mencoba</button>
                   </div>
                 ) : null}
                 {v.kloterKosong ? (
-                  <div style={css("border-radius:20px;padding:14px 16px;display:grid;gap:10px;background:var(--color-accent-100);color:var(--color-accent-800)")}>
+                  <div className="mk-penuh" style={css("border-radius:22px;padding:14px 16px;display:grid;gap:10px;background:var(--m-kartu);color:var(--m-teks);border:1.5px solid var(--m-tepi);box-shadow:var(--m-kartu-bayang)")}>
                     <div style={css("font-size:calc(14px*var(--fs,1));line-height:1.45")}>
                       <b>Data jamaah {txt(v.kloterLabel)} belum ada.</b> Unggah file Excel daftar jamaah di Profil, bagian Excel data jamaah. Belum siap? Coba dulu aplikasinya dengan data contoh.
                     </div>
@@ -25,7 +24,7 @@ export default function MenuBeranda({ v }) {
                 ) : null}
                 <HomeAtas h={v.home} />
                 {v.net ? (
-                  <button onClick={v.openSync} style={css(`border:0;text-align:left;cursor:pointer;font:inherit;display:flex;gap:12px;align-items:flex-start;border-radius:20px;padding:12px 14px;background:${v.net.bg};color:${v.net.fg}`)}>
+                  <button onClick={v.openSync} className="mk-penuh" style={css(`border:0;text-align:left;cursor:pointer;font:inherit;display:flex;gap:12px;align-items:flex-start;border-radius:20px;padding:12px 14px;background:${v.net.bg};color:${v.net.fg}`)}>
                     <span style={css(`width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none;background:${v.net.dot}`)}></span>
                     <span style={css("display:grid;gap:2px;min-width:0")}>
                       <b style={css("font-size:calc(14px*var(--fs,1))")}>{txt(v.net.title)}</b>
@@ -34,7 +33,7 @@ export default function MenuBeranda({ v }) {
                   </button>
                 ) : null}
                 {v.canInstall ? (
-                  <button onClick={v.doInstall} className="btn btn-secondary" style={css("height:46px;font-size:calc(14.5px*var(--fs,1))")}>
+                  <button onClick={v.doInstall} className="btn btn-secondary mk-penuh" style={css("height:46px;font-size:calc(14.5px*var(--fs,1))")}>
                     Pasang aplikasi di layar utama HP
                   </button>
                 ) : null}

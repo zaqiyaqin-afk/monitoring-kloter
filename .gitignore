@@ -7,3 +7,8 @@ dev-dist/
 !.env.example
 android/
 .netlify/
+
+# File desain & panduan (tidak ikut ke GitHub)
+*.figcraft
+*.figcraft.bak
+Panduan-*.pdf

@@ -99,6 +99,15 @@
 
   --nav-bg: rgba(255, 255, 255, .92);
   --nav-fg: #475569;
+  /* Bilah bawah melayang (desain Cyber-Mint) */
+  --bb-tepi: #b4ddd0;
+  --bb-isi: #ffffff;
+  --bb-soket: #e2f5ee;
+  --bb-fg: #526e68;
+  --bb-aktif: #047857;
+  --bb-sinar: rgba(22, 242, 152, .25);
+  --bb-bayang: 0 10px 24px rgba(9, 30, 25, .13), 0 8px 24px rgba(16, 232, 142, .18);
+  --bb-fab-bayang: 0 8px 24px rgba(16, 232, 142, .50);
   --hero: linear-gradient(135deg, #047857 0%, #0f766e 52%, #1e40af 100%);
   --scrim: rgba(15, 23, 42, .48);
   --lembar-bg: #ffffff;
@@ -196,6 +205,14 @@
 
   --nav-bg: rgba(15, 27, 51, .88);
   --nav-fg: #94a3b8;
+  --bb-tepi: #1e3a36;
+  --bb-isi: #0c1517;
+  --bb-soket: #070d0e;
+  --bb-fg: #7e9894;
+  --bb-aktif: #18f59a;
+  --bb-sinar: rgba(24, 245, 154, .16);
+  --bb-bayang: 0 10px 24px rgba(0, 0, 0, .75), 0 8px 24px rgba(24, 245, 154, .16);
+  --bb-fab-bayang: 0 8px 24px rgba(24, 245, 154, .53);
   --hero: linear-gradient(135deg, #065f46 0%, #0f766e 50%, #1e3a8a 100%);
   --scrim: rgba(4, 9, 20, .68);
   --lembar-bg: #132038;
@@ -260,8 +277,8 @@ button:not(:disabled):active { opacity: .82; }
 /* Baris atau area yang bisa diketuk, ditulis sebagai <button> tanpa gaya bawaan */
 .ketuk { appearance: none; background: none; border: 0; margin: 0; padding: 0; font: inherit; color: inherit; text-align: left; width: 100%; box-sizing: border-box; }
 
-/* Tombol tengah bilah bawah: aksen emas terangkat (R-12, R-13) */
-.mk-fab { box-shadow: 0 8px 20px -4px rgba(217, 119, 6, .50), 0 2px 6px rgba(15, 23, 42, .18), inset 0 1px 0 rgba(255, 255, 255, .55); }
+/* Tombol tengah bilah bawah: bulat mint, menonjol di atas kapsul, tanpa tulisan */
+.mk-fab { background: linear-gradient(135deg, #26ffae 0%, #14f096 55%, #09c878 100%); color: #05120e; box-shadow: var(--bb-fab-bayang); transition: transform .12s; }
 .mk-fab:active { transform: scale(.95); }
 /* Pilihan yang sedang aktif */
 .mk-aktif { box-shadow: 0 0 0 2px var(--color-accent), 0 4px 12px -2px rgba(5, 150, 105, .25); }
@@ -281,4 +298,86 @@ button:not(:disabled):active { opacity: .82; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* Desain Cyber-Mint (file Monitoring-Kloter-EcoFin.figcraft).
+   Token --m-* dipakai layar yang sudah dipindah ke desain baru (bilah bawah, kepala halaman, Home).
+   Latar layar ikut desain baru di kedua mode. */
+:root {
+  --mk-outer: #dcebe6;
+  --color-bg: #edf7f4;
+  --latar-layar: linear-gradient(#edf7f4, #edf7f4);
+  --m-isi: linear-gradient(135deg, #26ffae 0%, #14f096 55%, #09c878 100%);
+  --m-on-isi: #05120e;
+  --m-on-isi-2: #083624;
+  --m-isi-bayang: 0 6px 18px -4px rgba(16, 232, 142, .45);
+  --m-kartu: #ffffff;
+  --m-kartu-bayang: 0 10px 26px -12px rgba(9, 30, 25, .14), 0 1px 3px rgba(9, 30, 25, .05);
+  --m-kartu-2: #f2fbf8;
+  --m-ubin: #e7f6f0;
+  --m-jamaah: linear-gradient(160deg, #ddfdf0 0%, #f0fdf8 50%, #ffffff 100%);
+  --m-teks: #091e19;
+  --m-teks-2: #45635c;
+  --m-aksen: #059669;
+  --m-aksen-teks: #047857;
+  --m-tepi: #0fd884;
+  --m-lembut: #ccfbf1;
+  --m-lembut-teks: #065f46;
+  --m-emas: #b45309;
+  --m-emas-isi: #fbbf24;
+  --m-safir: #0369a1;
+  --m-safir-isi: #38bdf8;
+  --m-koral-bg: #ffe4e6;
+  --m-koral: #be123c;
+  --m-trek: #d5ede4;
+  --m-garis: #b8dcd2;
+  --m-hd: #ffffff;
+  --m-hd-tepi: #d3ebe3;
+  --m-logo: #e6fcf5;
+  --m-jam: #f2fbf8;
+  --m-jam-wib: #b45309;
+}
+:root[data-tema="gelap"] {
+  --mk-outer: #050a0b;
+  --color-bg: #090f10;
+  --latar-layar: linear-gradient(#090f10, #090f10);
+  --m-isi-bayang: 0 6px 18px -4px rgba(24, 245, 154, .40);
+  --m-kartu: #111c1e;
+  --m-kartu-bayang: 0 10px 26px -12px rgba(0, 0, 0, .6);
+  --m-kartu-2: #152526;
+  --m-ubin: #0b1314;
+  --m-jamaah: linear-gradient(160deg, #13332c 0%, #102221 50%, #0d1718 100%);
+  --m-teks: #f2faf8;
+  --m-teks-2: #8ca6a1;
+  --m-aksen: #18f59a;
+  --m-aksen-teks: #18f59a;
+  --m-tepi: #18f59a;
+  --m-lembut: #102e28;
+  --m-lembut-teks: #ccfbf1;
+  --m-emas: #fbbf24;
+  --m-safir: #38bdf8;
+  --m-koral-bg: #2b1219;
+  --m-koral: #fb7185;
+  --m-trek: #081011;
+  --m-garis: #233d3a;
+  --m-hd: #0c1516;
+  --m-hd-tepi: #17292a;
+  --m-logo: #0e2924;
+  --m-jam: #0d1f1d;
+  --m-jam-wib: #fbbf24;
+}
+:root { --m-emas-bg: #fef3c7; --m-safir-bg: #e0f2fe; --m-batang: #7cd9b8; }
+:root[data-tema="gelap"] { --m-emas-bg: #29200b; --m-safir-bg: #0e2433; --m-batang: #1e463f; }
+:root { --m-garis-kartu: #c6e7dd; }
+:root[data-tema="gelap"] { --m-garis-kartu: #1f3735; }
+
+/* Tata letak isi halaman: satu kolom di HP, dua kolom bila layar (tablet) cukup lebar */
+.mk-kolom { display: grid; grid-template-columns: minmax(0, 1fr); }
+.mk-tiga { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.mk-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@container (min-width: 640px) {
+  .mk-kolom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mk-penuh { grid-column: 1 / -1; }
+  .mk-tiga { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mk-menu { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
