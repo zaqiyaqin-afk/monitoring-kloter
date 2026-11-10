@@ -98,7 +98,8 @@ export default class AppLogic extends DCLogic {
     ex['umrah|' + Uk('Thawaf Umrah') + '|6'] = { ulangKe: 2, stUlang: 'Selesai diulang', pend: 'p2' };
     const cur = this.data[mode].cur;
     return { tab: p.startTab || 'beranda', mode, udz, mq: {}, done, sel: null, tg: {}, ex, safDlg: null, ulDlg: null, susDlg: null, slotDlg: null, confirm: null, toast: null, picker: null, undo: null, notes: { 13: 'Kursi roda', 77: 'Dirawat di KKHI', 141: 'Lansia, ikut murur' }, noteDraft: '',
-      locked: !!(this.cfg && this.cfg.pin) && !this.perluPindahAkun() && !this._dariCoba, pin: '', pinErr: false, setup: !this.cfg || this.perluPindahAkun(),
+      // PIN diminta sekali; setelah benar, HP tetap terbuka saat dimuat ulang sampai dikunci lewat "Kunci sekarang"
+      locked: !!(this.cfg && this.cfg.pin && !this.cfg.terbuka) && !this.perluPindahAkun() && !this._dariCoba, pin: '', pinErr: false, setup: !this.cfg || this.perluPindahAkun(),
       su: { url: (this.cfg && this.cfg.url) || '', key: (this.cfg && this.cfg.key) || '', kloter: (this.cfg && this.cfg.kloter) || '', device: (this.cfg && this.cfg.device) || 'HP', pin: (this.cfg && this.cfg.pin) || '', ppih: (this.cfg && this.cfg.ppih) || '', embarkasi: (this.cfg && this.cfg.embarkasi) || '', gelombang: (this.cfg && this.cfg.gelombang) || '', err: '', busy: false, ...this.suDariAkun() },
       sync: { pending: this.queue.length, last: '-', err: '' }, syncOpen: false,
       badal: { haji: { [Hk('Badal Jumroh Aqobah')]: { 13: 'p2', 77: 'p2' } }, umrah: {}, madinah: {} },
@@ -547,7 +548,7 @@ export default class AppLogic extends DCLogic {
     if (this.pakaiAkun()) {
       const kurang = kurangIdentitas(su); if (kurang.length) { this.patch('su', { err: pesanKurang(kurang) }); return; }
       const id = this.identitas(su), lama = this.cfg;
-      this.saveCfg({ device: su.device, pin: su.pin, ...id }); this.applyJadwal((this.readSnap() || {}).jadwalKegiatan);
+      this.saveCfg({ device: su.device, pin: su.pin, terbuka: true, ...id }); this.applyJadwal((this.readSnap() || {}).jadwalKegiatan);
       if (Object.keys(id).some(k => String(id[k]) !== String(lama[k] || ''))) this.pushPengaturan(kePengaturan(id));
       this.setState(s => ({ setup: false, su: { ...s.su, ...id, err: '', okMsg: '' } })); this.flash('Pengaturan disimpan'); return;
     }
@@ -561,7 +562,7 @@ export default class AppLogic extends DCLogic {
       const kurang = kurangIdentitas(isi);
       if (kurang.length) { this.patch('su', { ...isi, busy: false, err: pesanKurang(kurang) }); return; }
       const id = this.identitas(isi);
-      this.saveCfg({ url, key, device: su.device, pin: su.pin, demo: false, ...id });
+      this.saveCfg({ url, key, device: su.device, pin: su.pin, demo: false, terbuka: true, ...id });
       if (Object.keys(id).some(k => String(id[k]) !== String(dariServer[k] || ''))) this.pushPengaturan(kePengaturan(id));
       simpanSnap(data); this.build(data);
       this.setState(s => ({ setup: false, locked: false, su: { ...s.su, ...id, busy: false }, sync: { pending: this.queue.length, last: this.hhmm(new Date()), err: '' }, tab: 'beranda' }));
@@ -658,7 +659,7 @@ export default class AppLogic extends DCLogic {
     const c = this.cfg || {}; if (Date.now() < (c.lockUntil || 0)) return;
     const s = this.state; if (d === 'del') { this.setState({ pin: s.pin.slice(0, -1), pinErr: false }); return; }
     const p = (s.pin + d).slice(0, 4); if (p.length < 4) { this.setState({ pin: p, pinErr: false }); return; }
-    if (p === (c.pin || '1234')) { this.saveCfg({ pinFails: 0, lockUntil: 0 }); this.setState({ pin: '', locked: false, pinErr: false }); return; }
+    if (p === (c.pin || '1234')) { this.saveCfg({ pinFails: 0, lockUntil: 0, terbuka: true }); this.setState({ pin: '', locked: false, pinErr: false }); return; }
     const f = (c.pinFails || 0) + 1; if (f >= 5) this.saveCfg({ pinFails: 0, lockUntil: Date.now() + 300000 }); else this.saveCfg({ pinFails: f });
     this.setState({ pin: '', pinErr: true });
   }
@@ -1583,7 +1584,7 @@ export default class AppLogic extends DCLogic {
       suGelombangNote: CATATAN_GELOMBANG[S.su.gelombang] || 'Dipakai untuk usulan miqat umrah.',
       syncCounts: [{ l: 'Jamaah', v: this.jm.length }, { l: 'Rombongan', v: new Set(this.jm.map(j => j.r)).size }, { l: 'Regu', v: new Set(this.jm.map(j => j.r + '-' + j.g)).size }],
       hasUndo: !!S.undo, doUndo: () => this.doUndo(), locked: S.locked,
-      lockNow: () => this.setState({ locked: true, syncOpen: false, pin: '' }),
+      lockNow: () => { this.saveCfg({ terbuka: false }); this.setState({ locked: true, syncOpen: false, pin: '' }); },
       pinDots: [0, 1, 2, 3].map(n => ({ bg: n < S.pin.length ? '#fff' : 'transparent' })),
       pinMsg: (() => { const left = ((this.cfg && this.cfg.lockUntil) || 0) - Date.now(); if (left > 0) { const t = Math.ceil(left / 1000); return 'Terkunci karena 5 kali salah. Coba lagi dalam ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); } if (S.pinErr) return 'PIN salah · sisa ' + (5 - ((this.cfg && this.cfg.pinFails) || 0)) + ' percobaan'; return this.live() ? '' : 'Mode contoh · PIN ' + ((this.cfg && this.cfg.pin) || '1234'); })(), pinMsgFg: S.pinErr || lockOn ? 'var(--red-200)' : 'var(--color-accent-200)',
       pinKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map(l => ({ l, vis: l ? 'visible' : 'hidden', bg: l === '⌫' ? 'transparent' : 'var(--color-accent-600)', op: lockOn ? 0.4 : 1, on: () => l && this.pressPin(l === '⌫' ? 'del' : l) })),
