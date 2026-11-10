@@ -12,3 +12,6 @@ android/
 *.figcraft
 *.figcraft.bak
 Panduan-*.pdf
+
+# Isi doa untuk uji lokal (isi buku, tidak ikut ke GitHub)
+public/doa-lokal.json

@@ -16,6 +16,8 @@ import LembarKegiatan from './layar/LembarKegiatan.jsx';
 import LembarSinkron from './layar/LembarSinkron.jsx';
 import DialogUmum from './layar/DialogUmum.jsx';
 import Pengaturan from './layar/Pengaturan.jsx';
+import LayarDoa from './doa/LayarDoa.jsx';
+import LayarKultum from './doa/LayarKultum.jsx';
 import { useTutupDenganEscape } from './layar/escape.js';
 import { GAMBAR } from './gambar.jsx';
 
@@ -34,6 +36,8 @@ export default function View({ v }) {
           {v.isBadal ? <MenuBadal v={v} /> : null}
           {v.isRekap ? <MenuRekap v={v} /> : null}
           {v.isCetak ? <MenuCetak v={v} /> : null}
+          {v.isDoa ? <LayarDoa /> : null}
+          {v.isKultum ? <LayarKultum k={v.kultum} /> : null}
         </main>
         <BilahBawah v={v} />
         <LembarJamaah v={v} />

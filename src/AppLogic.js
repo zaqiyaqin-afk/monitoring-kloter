@@ -774,6 +774,21 @@ export default class AppLogic extends DCLogic {
     const snap = this.readSnap(); if (snap) { snap.pengaturan = { ...(snap.pengaturan || {}), 'Tanggal Berangkat': v }; simpanSnap(snap); this.build(snap); }
     this.flash('Tanggal berangkat disimpan · lansia dihitung ulang');
   }
+  // Pengaturan kultum per kloter: tanggal tiba di Saudi (bawaan: tanggal berangkat) dan gelombang
+  aturKultum() {
+    const a = this.live() ? this.aturKloter() : (() => { try { return JSON.parse(localStorage.getItem('mk.kultum.atur') || '{}'); } catch (e) { return {}; } })();
+    return { tiba: a['Tanggal Tiba'] || this._berangkat || '', gelombang: String(a['Gelombang'] || (this.cfg && this.cfg.gelombang) || '1') };
+  }
+  setAturKultum(kunci, v) {
+    if (kunci === 'Tanggal Tiba' && v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+    if (!this.live()) {
+      try { const a = JSON.parse(localStorage.getItem('mk.kultum.atur') || '{}'); a[kunci] = v; localStorage.setItem('mk.kultum.atur', JSON.stringify(a)); } catch (e) {}
+      this.forceUpdate(); this.flash('Mode coba · tersimpan di HP ini saja'); return;
+    }
+    this.pushPengaturan({ [kunci]: v });
+    const snap = this.readSnap(); if (snap) { snap.pengaturan = { ...(snap.pengaturan || {}), [kunci]: v }; simpanSnap(snap); }
+    this.forceUpdate(); this.flash((kunci === 'Gelombang' ? 'Gelombang' : 'Tanggal tiba') + ' disimpan untuk kloter' + (navigator.onLine ? '' : ' · dikirim saat ada internet'));
+  }
   // Data bagian atas Home: ringkasan jamaah, kegiatan terlewat yang belum dicentang, dan kegiatan berikutnya
   // Kartu "Progres Rombongan" di layar Menu: ketuntasan kegiatan yang sedang aktif per rombongan
   menuRomb() {
@@ -1573,10 +1588,12 @@ export default class AppLogic extends DCLogic {
       pinMsg: (() => { const left = ((this.cfg && this.cfg.lockUntil) || 0) - Date.now(); if (left > 0) { const t = Math.ceil(left / 1000); return 'Terkunci karena 5 kali salah. Coba lagi dalam ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); } if (S.pinErr) return 'PIN salah · sisa ' + (5 - ((this.cfg && this.cfg.pinFails) || 0)) + ' percobaan'; return this.live() ? '' : 'Mode contoh · PIN ' + ((this.cfg && this.cfg.pin) || '1234'); })(), pinMsgFg: S.pinErr || lockOn ? 'var(--red-200)' : 'var(--color-accent-200)',
       pinKeys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map(l => ({ l, vis: l ? 'visible' : 'hidden', bg: l === '⌫' ? 'transparent' : 'var(--color-accent-600)', op: lockOn ? 0.4 : 1, on: () => l && this.pressPin(l === '⌫' ? 'del' : l) })),
       hasToast: !!S.toast, toastMsg: S.toast || '',
-      // Bilah bawah: Home · Menu · [Massal] · Kirim · Profil. Layar lama (Jamaah, Badal, Rekap, Cetak) dibuka dari Menu.
+      // Bilah bawah: Home · Menu · Doa · [Massal] · Kultum · Kirim · Profil. Layar lama (Jamaah, Badal, Rekap, Cetak) dibuka dari Menu.
       tabs: [['beranda', 'Home', 'M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z', ['beranda']],
         ['menu', 'Menu', 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z', ['menu', 'jamaah', 'badal', 'rekap', 'cetak', 'kejadian']],
+        ['doa', 'Doa', 'M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2zM4 21h14M9 8h5M9 12h5', ['doa']],
         ['checklist', 'Massal', 'M3 12l3 3 6-6M10 17l2 2 9-9', ['checklist'], true],
+        ['kultum', 'Kultum', 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM6 11a6 6 0 0 0 12 0M12 17v4M9 21h6', ['kultum']],
         ['kirim', 'Kirim', 'M21 3L10 14M21 3l-7 18-4-7-7-4z', ['kirim']],
         ['profil', 'Profil', 'M12 4a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM5 20c0-3.5 3-6 7-6s7 2.5 7 6', ['profil']]].map(([k, l, d, grup, fab]) => { const a = grup.includes(S.tab);
         return { l, d, on: k === 'checklist' ? go(k, { ckPilih: true }) : go(k), fab: !!fab, aktif: a }; }),
@@ -1584,6 +1601,8 @@ export default class AppLogic extends DCLogic {
       kePilihIbadah: () => this.setState({ ckPilih: true, ckDariPilih: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }), labelIbadah: this.modeLabel(S.mode),
       judulKegiatan: S.mode === 'madinah' ? 'Kegiatan sunnah Madinah' : 'Rukun & wajib ' + this.modeLabel(S.mode),
       isMenu: S.tab === 'menu', isKirim: S.tab === 'kirim', isProfil: S.tab === 'profil', isKejadian: S.tab === 'kejadian',
+      isDoa: S.tab === 'doa', isKultum: S.tab === 'kultum',
+      kultum: S.tab === 'kultum' ? { ...this.aturKultum(), coba: !this.live(), setTiba: v => this.setAturKultum('Tanggal Tiba', v), setGelombang: g => this.setAturKultum('Gelombang', g) } : null,
       kloterKosong: this.live() && !this.jm.length, modeCoba: this.coba(),
       mulaiCoba: () => this.mulaiCoba(), selesaiCoba: () => this.selesaiCoba(), keUnggah: () => this.setState({ tab: 'profil' }),
       kejadian: S.tab === 'kejadian' ? this.kejadianVals() : null,

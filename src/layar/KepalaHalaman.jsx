@@ -4,7 +4,7 @@ import React from 'react';
 import { css, txt } from '../dc/runtime.js';
 
 export default function KepalaHalaman({ v }) {
-  const subHalaman = v.bisaKembali && !v.isMenu && !v.isKirim && !v.isProfil && !(v.isChecklist && v.ckPilih);
+  const subHalaman = v.bisaKembali && !v.isMenu && !v.isKirim && !v.isProfil && !v.isDoa && !v.isKultum && !(v.isChecklist && v.ckPilih);
   return (
     <div style={css("height:76px;display:flex;align-items:center;gap:10px;padding:0 14px 0 16px;box-sizing:border-box")}>
       {subHalaman ? (
