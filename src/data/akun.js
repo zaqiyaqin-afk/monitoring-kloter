@@ -33,15 +33,21 @@ export function pesan(e) {
   if (/Auth session missing/i.test(m)) return 'Tautan sudah tidak berlaku. Minta tautan baru lewat "Lupa kata sandi?".';
   // Browser juga melaporkan "Failed to fetch" saat server menolak permintaan, bukan hanya saat tanpa sinyal
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return navigator.onLine === false ? 'Tidak ada internet. Coba lagi saat tersambung.' : 'Server tidak bisa dihubungi. Tunggu beberapa menit lalu coba lagi.';
-  if (/BUKAN_ADMIN/.test(m)) return 'Hanya admin yang boleh melakukan ini.';
+  if (/BUKAN_ADMIN/.test(m)) return 'Hanya admin atau ketua kloter yang boleh melakukan ini.';
   if (/IDENTITAS_BELUM_LENGKAP/.test(m)) return 'Kloter atau embarkasi pendaftar belum diisi.';
   return m || 'Terjadi kesalahan.';
 }
 
-export async function muatProfil() {
+export async function muatProfil(ulang) {
   if (!sb || !st.sesi) return st.profil;
   const { data, error } = await sb.from('profil').select('*, kloter:kloter_id (kode, nomor, embarkasi, gelombang)').eq('id', st.sesi.user.id).maybeSingle();
   if (error) { ubah({ galat: pesan(error) }); return st.profil; }
+  // Kloter yang belum terdaftar langsung dibuat; pendaftarnya menjadi ketua kloter itu.
+  if (data && data.status === 'menunggu' && (ulang || !st.cobaKloterBaru)) {
+    ubah({ cobaKloterBaru: true });
+    const r = await sb.rpc('mulai_kloter_baru');
+    if (!r.error && r.data === 'aktif') return muatProfil();
+  }
   simpanProfil(data); ubah({ profil: data, galat: '' });
   return data;
 }

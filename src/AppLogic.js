@@ -1,6 +1,7 @@
 // Logika aplikasi (state, sinkron, perhitungan). Tampilan ada di View.jsx.
 import React from 'react';
 import { jalankanMundur } from './mundur.js';
+import { ikonKegiatan, TEMPAT_HAJI, tempatHaji } from './kegiatan.js';
 import { DCLogic } from './dc/runtime.js';
 import { ambilSemua, kirimPerubahan, unggahFoto, tautanFoto, SB_URL } from './data/server.js';
 import { keadaan as akunKeadaan, dengar as dengarAkun } from './data/akun.js';
@@ -1171,6 +1172,12 @@ export default class AppLogic extends DCLogic {
     const tglDay = day => (X.rites.find(r => r.day === day && r.tgl) || {}).tgl || '', today0 = this.todayKey();
     const riteGroups = this.group(rites).map(g => { const t = tglDay(g.day), now = t ? t === today0 : g.day === X.rites[ci].day;
       return { ...g, day: g.day + (t ? ' · ' + this.fmtHari(t) : ''), note: now ? 'Hari ini' : t ? '' : 'tanggal belum diatur', fg: now ? 'var(--color-accent-700)' : 'var(--color-neutral-700)' }; });
+    // Haji: kelompok per tempat, dengan subjudul hari di dalamnya
+    const riteGroupsT = S.mode !== 'haji' ? riteGroups.map(g => ({ ...g, items: g.items.map(it => ({ ...it, ikon: ikonKegiatan(it) })) })) : TEMPAT_HAJI.map(T => {
+      const items = [], dg = riteGroups.filter(g => g.items.some(it => tempatHaji(it) === T.k));
+      dg.forEach(g => g.items.filter(it => tempatHaji(it) === T.k).forEach((it, k) => items.push({ ...it, ikon: ikonKegiatan(it), hariSub: k === 0 && dg.length > 1 ? g.day : '' })));
+      const kini = dg.some(g => g.note === 'Hari ini'), semua = dg.every(g => g.note === 'tanggal belum diatur');
+      return { day: T.l, ikon: T.ikon, items, note: kini ? 'Hari ini' : semua ? 'tanggal belum diatur' : '' }; }).filter(g => g.items.length);
     const tglJadwal = S.tglOpen ? {
       title: 'Tanggal kegiatan · ' + X.label,
       groups: this.group(X.rites.map(r => ({ ...r }))).map(g => { const names = X.rites.filter(r => r.day === g.day).map(r => r.n), t = tglDay(g.day);
@@ -1483,7 +1490,10 @@ export default class AppLogic extends DCLogic {
       hasSlotDlg: !!S.slotDlg, sd, closeSlotDlg: () => this.setState({ slotDlg: null }), saveSlot: () => this.saveSlot(), sdTgl: e => updSd({ tgl: e.target.value }), sdA: e => updSd({ a: e.target.value }), sdB: e => updSd({ b: e.target.value }), sdKet: e => updSd({ ket: e.target.value }), sdQ: e => updSd({ q: e.target.value }), suPpih: e => this.patch('su', { ppih: e.target.value }), slotActive: !!slot, clearSlot: () => this.patch('ck', { slot: null }),
       prIsRaud: (P.sheet || 'armuzna') === 'raudhoh', prSheets: [['umrah', 'Umrah wajib', 'Potret'], ['armuzna', 'Haji · Armuzna', '7–10 Dzh · lanskap'], ['tasyrik', 'Haji · Hari Tasyrik', '11–13 Dzh · lanskap'], ['makkah', "Haji · Ifadzoh–Wada'", "Thawaf, Sa'i, Tahallul Tsani · potret"], ['raudhoh', 'Raudhoh per jadwal', 'Potret'], ['harian', 'Rekap harian', 'Per rombongan'], ['khusus', 'Jamaah khusus', 'Risti · lansia · kursi roda · pendamping'], ['badal', 'Badal per pelaksana', '10–13 Dzh · potret']].map(([k, l, sub]) => { const a = (P.sheet || 'armuzna') === k; return { l, sub, bg: a ? 'var(--color-accent-100)' : 'var(--color-surface)', fg: 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', on: () => this.patch('pr', { sheet: k }) }; }),
       prSlots: (P.sheet || 'armuzna') === 'raudhoh' ? [{ l: 'Semua', a: P.slot == null, i: null }].concat(this.jadwal.map((s, i) => ({ l: s.tgl + ' ' + s.jam + ' ' + (s.sex || ''), a: P.slot === i, i }))).map(o => ({ l: o.l, ...chip(o.a), on: () => this.patch('pr', { slot: o.i }) })) : [],
-      ckNotCur: !isMad && ck.rite !== ci, ckSetCur: () => this.setCur(ck.rite), modes, rites, riteGroups, stats,
+      ckNotCur: !isMad && ck.rite !== ci, ckSetCur: () => this.setCur(ck.rite), modes, rites, riteGroups: riteGroupsT, stats,
+      ckTempat: S.mode !== 'haji' ? null : TEMPAT_HAJI.map(T => { const idx = X.rites.map((r, i) => tempatHaji(r) === T.k ? i : -1).filter(i => i >= 0); if (!idx.length) return null;
+        const beres = idx.every(i => i < ci);
+        return { l: T.l, sub: T.sub, ikon: T.ikon, a: tempatHaji(X.rites[ck.rite]) === T.k, kini: idx.includes(ci), beres, on: () => this.patch('ck', { rite: idx.includes(ci) ? ci : idx[0] }) }; }).filter(Boolean),
       cur: { ...X.rites[ci], susTxt: (n => n ? ' · ' + n + ' susulan' : '')(this.susN(S.mode, ci, D)), done: RS.done, tot: RS.tot, pct: RS.pct + '%', dash: cirDash(RS.pct, 339.3), btn: remain ? 'Buka checklist · ' + remain + ' jamaah lagi' : 'Buka checklist · semua selesai' }, total: this.jm.length, rg, jr, hasJr: !!jrSt, rkp, ss: susSheet, jk: jkV, khSum, sk: skV, pp: ppV, hasPp: !!S.pp, closePp: () => this.setState({ pp: null }), savePp: () => this.savePp(), delPp: () => this.delPp(), bd: bdV, isBadal: S.tab === 'badal', ckQ: S.ck.q || '', onCkQ: e => this.patch('ck', { q: e.target.value }), isRekap: S.tab === 'rekap', shareCard: () => this.shareCard(),
       logoBox: this.logoBox,
       hasSaf: !!S.safDlg, sf, closeSaf: () => this.setState({ safDlg: null }), saveSaf: () => this.saveSaf(), safCat: e => this.patch('safDlg', { cat: e.target.value }),
@@ -1508,9 +1518,9 @@ export default class AppLogic extends DCLogic {
         status: () => this.statusExcel(), kloter: this.klLabel(), bisaUnggah: this.pakaiAkun() || this.coba(), coba: this.coba(), porsiAda: () => new Set(this.jm.map(j => j.porsi)),
         sesudahUnggah: () => this.syncNow() },
       hasSel: S.sel != null, sel, onNote: e => { const v = e.target.value, id = S.sel; this.setState(s => ({ notes: { ...s.notes, [id]: v } })); this.push([{ jenis: 'jamaah', porsi: this.jm[id].porsi, catatan: v }]); }, hasPelNote: !!sel.pelNote, closeSel: () => this.setState({ sel: null }), stop: e => e.stopPropagation(),
-      ckDays: days.map((day, di) => { const sel = X.rites[ck.rite].day === day, td = this.hariIni(X, day, ci), fut = this.hariNanti(X, day, di, days, ci); return { l: day.replace(' Dzulhijjah', ' Dzh').replace(' Dzulqa’dah', ' Dzq'), today: td ? 'y' : '', sel, td, dot: 'none', dotBg: 'transparent', rw: sel ? '3px' : '1.5px', bg: td ? 'var(--color-accent)' : fut ? 'var(--color-neutral-100)' : 'var(--color-surface)', fg: td ? 'var(--on-isi)' : fut ? 'var(--teks-3)' : 'var(--color-text)', ring: sel ? (td ? 'var(--color-accent)' : 'var(--color-accent)') : fut ? 'var(--color-neutral-300)' : 'var(--color-divider)', on: () => this.patch('ck', { rite: X.rites.findIndex(r => r.day === day) }) }; }),
+      ckDays: days.map((day, di) => ({ day, di })).filter(o => S.mode !== 'haji' || X.rites.some(r => r.day === o.day && tempatHaji(r) === tempatHaji(X.rites[ck.rite]))).map(({ day, di }) => { const sel = X.rites[ck.rite].day === day, td = this.hariIni(X, day, ci), fut = this.hariNanti(X, day, di, days, ci); return { l: day.replace(' Dzulhijjah', ' Dzh').replace(' Dzulqa’dah', ' Dzq'), today: td ? 'y' : '', sel, td, dot: 'none', dotBg: 'transparent', rw: sel ? '3px' : '1.5px', bg: td ? 'var(--color-accent)' : fut ? 'var(--color-neutral-100)' : 'var(--color-surface)', fg: td ? 'var(--on-isi)' : fut ? 'var(--teks-3)' : 'var(--color-text)', ring: sel ? (td ? 'var(--color-accent)' : 'var(--color-accent)') : fut ? 'var(--color-neutral-300)' : 'var(--color-divider)', on: () => this.patch('ck', { rite: X.rites.findIndex(r => r.day === day) }) }; }),
       ckPills: X.rites.map((r, i) => ({ r, i })).filter(o => o.r.day === X.rites[ck.rite].day).map(({ r, i }) => { const a = ck.rite === i;
-        const t = !!r.tgl, lk = t ? this.belumTiba(r) : i > ci; return { l: r.p, a, locked: lk, now: t ? r.tgl === this.defTgl(r) : !this.adaHariIni(X) && i === ci, done: t ? !lk && r.tgl !== this.defTgl(r) : i < ci, on: () => this.patch('ck', { rite: i }), bg: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-100)' : 'transparent', fg: a ? 'var(--on-isi)' : lk ? 'var(--teks-3)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-300)' : 'var(--color-divider)' }; }),
+        const t = !!r.tgl, lk = t ? this.belumTiba(r) : i > ci; return { l: r.p, ikon: ikonKegiatan(r), a, locked: lk, now: t ? r.tgl === this.defTgl(r) : !this.adaHariIni(X) && i === ci, done: t ? !lk && r.tgl !== this.defTgl(r) : i < ci, on: () => this.patch('ck', { rite: i }), bg: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-100)' : 'transparent', fg: a ? 'var(--on-isi)' : lk ? 'var(--teks-3)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-300)' : 'var(--color-divider)' }; }),
       ckScopes: scopes(ck, 'ck'), ckRs: rombPills, ckGs: gs(ck, 'ck'), ckShowR: ck.scope !== 'kloter', ckShowG: ck.scope === 'regu', ckRows, ckSum,
       ckEmpty: ckRows.length + ckPeople.length === 0, ckHasRows: ckRows.length > 0, ckPeople, ckHasPeople: ckPeople.length > 0, hasPel: pelGroups.length > 0, pelGroups,
       hasPicker: !!S.picker, pk, closePicker: () => this.setState({ picker: null }), applyPicker: () => this.applyPicker(),

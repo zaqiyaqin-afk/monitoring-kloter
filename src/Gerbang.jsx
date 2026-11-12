@@ -115,14 +115,14 @@ function Daftar({ keMasuk }) {
   if (selesai) return (
     <div style={S.kartu}>
       <div style={{ fontSize: fs(18), fontWeight: 500 }}>Pendaftaran terkirim</div>
-      <div style={S.info}>{selesai.perluKonfirmasi ? 'Buka email Anda dan klik tautan konfirmasi. Setelah itu masuk dengan email dan kata sandi tadi.' : 'Akun dibuat.'} Akun baru bisa dipakai setelah disetujui admin.</div>
+      <div style={S.info}>{selesai.perluKonfirmasi ? 'Buka email Anda dan klik tautan konfirmasi. Setelah itu masuk dengan email dan kata sandi tadi.' : 'Akun dibuat.'} Bila kloter Anda belum terdaftar, akun langsung aktif dan Anda menjadi ketua kloter. Bila kloter sudah terdaftar, ketua kloter itu yang menyetujui.</div>
       <button style={S.tombol} onClick={keMasuk}>Ke halaman Masuk</button>
     </div>
   );
   return (
     <form style={S.kartu} onSubmit={kirim}>
       <div style={{ fontSize: fs(18), fontWeight: 500 }}>Daftar akun</div>
-      <div style={S.kecil}>Khusus {TUSI}. Akun aktif setelah disetujui admin.</div>
+      <div style={S.kecil}>Khusus {TUSI}. Kloter baru langsung aktif; bergabung ke kloter yang sudah ada perlu persetujuan ketua kloternya.</div>
       <label style={S.label}>Nama lengkap<input style={S.input} autoComplete="name" value={f.nama} onChange={ubah('nama')} /></label>
       <label style={S.label}>Email<input style={S.input} type="email" autoComplete="email" inputMode="email" value={f.email} onChange={ubah('email')} placeholder="nama@email.com" /></label>
       <label style={S.label}>Kata sandi<input style={S.input} type="password" autoComplete="new-password" value={f.sandi} onChange={ubah('sandi')} placeholder="Minimal 6 karakter" /></label>
@@ -149,13 +149,13 @@ function Daftar({ keMasuk }) {
 function Menunggu({ p }) {
   const [sibuk, setSibuk] = useState(false);
   const ditolak = p && p.status === 'ditolak';
-  const cek = async () => { setSibuk(true); try { await akun.muatProfil(); } finally { setSibuk(false); } };
+  const cek = async () => { setSibuk(true); try { await akun.muatProfil(true); } finally { setSibuk(false); } };
   return (
     <div style={S.kartu}>
-      <div style={{ fontSize: fs(18), fontWeight: 500 }}>{ditolak ? 'Pendaftaran ditolak' : 'Menunggu persetujuan admin'}</div>
+      <div style={{ fontSize: fs(18), fontWeight: 500 }}>{ditolak ? 'Pendaftaran ditolak' : 'Menunggu persetujuan ketua kloter'}</div>
       <div style={ditolak ? S.galat : S.info}>
-        {ditolak ? 'Pendaftaran akun ini tidak disetujui. Hubungi admin bila menurut Anda ini keliru.'
-          : 'Akun Anda sudah terdaftar. Admin perlu menyetujuinya sebelum data kloter bisa dibuka.'}
+        {ditolak ? 'Pendaftaran akun ini tidak disetujui. Hubungi ketua kloter bila menurut Anda ini keliru.'
+          : 'Kloter ini sudah terdaftar. Ketua kloter perlu menyetujui akun Anda sebelum data kloter bisa dibuka. Periksa nomor kloter dan embarkasi bila Anda justru ingin membuat kloter baru.'}
       </div>
       {p && <div style={{ ...S.kecil, textAlign: 'left' }}>{p.nama} · {p.email}<br />Kloter {p.kloter_diminta || '-'} · {p.embarkasi || '-'} · Gelombang {p.gelombang || '-'}</div>}
       {!ditolak && <button style={{ ...S.tombol, opacity: sibuk ? 0.6 : 1 }} disabled={sibuk} onClick={cek}>{sibuk ? 'Memeriksa…' : 'Periksa lagi'}</button>}

@@ -7,6 +7,7 @@ import { imporJamaah } from './data/server.js';
 import Kirim from './Kirim.jsx';
 import Kejadian from './Kejadian.jsx';
 import Panduan from './Panduan.jsx';
+import qrcode from 'qrcode-generator';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 // Gaya desain Cyber-Mint (token --m-* di tema.css)
@@ -19,7 +20,7 @@ const tombolMint = { ...tombol, border: 0, background: 'var(--m-isi)', color: 'v
 const Ubin = ({ d }) => <span aria-hidden="true" style={{ width: 40, height: 40, borderRadius: 20, flex: 'none', display: 'grid', placeItems: 'center', background: 'var(--color-bg)', color: 'var(--m-teks)' }}><Ikon d={d} s={20} /></span>;
 const Ikon = ({ d, s = 22 }) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
 
-function Admin() {
+function Admin({ ketua }) {
   const [rows, setRows] = useState(null), [galat, setGalat] = useState(''), [sibuk, setSibuk] = useState('');
   const muat = () => akun.daftarAkun().then(setRows, e => setGalat(e.message));
   useEffect(() => { muat(); }, []);
@@ -27,7 +28,7 @@ function Admin() {
   const menunggu = (rows || []).filter(r => r.status === 'menunggu'), lain = (rows || []).filter(r => r.status !== 'menunggu');
   return (
     <div style={kartu}>
-      <div style={judul}>Admin · persetujuan akun</div>
+      <div style={judul}>{ketua ? 'Ketua kloter · persetujuan petugas' : 'Admin · persetujuan akun'}</div>
       {galat && <div style={{ background: 'var(--red-100)', color: 'var(--red-700)', borderRadius: 12, padding: '10px 12px', fontSize: fs(14) }}>{galat}</div>}
       {rows === null && !galat && <div style={{ fontSize: fs(14), color: 'var(--m-teks-2)' }}>Memuat…</div>}
       {rows && !menunggu.length && <div style={{ fontSize: fs(14), color: 'var(--m-teks-2)' }}>Tidak ada pendaftar yang menunggu.</div>}
@@ -44,9 +45,34 @@ function Admin() {
       {lain.length > 0 && <details><summary style={{ fontSize: fs(14), cursor: 'pointer', color: 'var(--m-teks-2)' }}>Semua akun ({lain.length})</summary>
         <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>{lain.map(r => (
           <div key={r.id} style={{ fontSize: fs(13), display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-            <span>{r.nama || r.email}{r.peran === 'admin' ? ' · admin' : ''}</span>
+            <span>{r.nama || r.email}{r.peran === 'admin' ? ' · admin' : r.peran === 'ketua' ? ' · ketua' : ''}</span>
             <span style={{ color: r.status === 'aktif' ? 'var(--m-teks)' : 'var(--red-700)' }}>{r.status}{r.kloter ? ' · ' + r.kloter.kode : ''}</span>
           </div>))}</div></details>}
+    </div>
+  );
+}
+
+// Tautan aplikasi untuk petugas lain: kode QR, bagikan, dan pasang ke layar utama.
+function Bagikan({ v }) {
+  const url = location.origin + '/';
+  const [pesan, setPesan] = useState('');
+  const svg = React.useMemo(() => { const q = qrcode(0, 'M'); q.addData(url); q.make(); return q.createSvgTag({ cellSize: 5, margin: 2, scalable: true }); }, [url]);
+  const bagikan = async () => {
+    try { if (navigator.share) { await navigator.share({ title: 'Monitoring Ibadah Kloter', url }); return; } await navigator.clipboard.writeText(url); setPesan('Tautan disalin.'); }
+    catch (e) { if (e && e.name !== 'AbortError') setPesan('Salin tautan ini: ' + url); }
+  };
+  return (
+    <div style={kartu}>
+      <div style={judul}>Bagikan aplikasi</div>
+      <div style={keterangan}>Petugas lain cukup memindai kode ini atau membuka tautannya, lalu mendaftar. Kloter yang belum terdaftar langsung aktif dengan data contoh sampai Excel jamaah diunggah. Data kloter Anda tidak ikut terlihat.</div>
+      <div aria-label={'Kode QR ' + url} role="img" style={{ width: 184, maxWidth: '100%', justifySelf: 'center', background: '#fff', borderRadius: 12, padding: 8, lineHeight: 0 }} dangerouslySetInnerHTML={{ __html: svg }} />
+      <div style={{ fontSize: fs(13), textAlign: 'center', color: 'var(--m-teks-2)', overflowWrap: 'anywhere' }}>{url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: v.canInstall ? '1fr 1fr' : '1fr', gap: 10 }}>
+        <button style={tombol} onClick={bagikan}>Bagikan tautan</button>
+        {v.canInstall && <button style={tombolMint} onClick={v.doInstall}>Pasang aplikasi</button>}
+      </div>
+      {!v.canInstall && <div style={keterangan}>Untuk memasang: buka menu browser lalu pilih Tambahkan ke layar utama (Chrome) atau Bagikan › Tambah ke Layar Utama (Safari).</div>}
+      {pesan && <div role="status" style={{ fontSize: fs(13), color: 'var(--m-teks)' }}>{pesan}</div>}
     </div>
   );
 }
@@ -121,7 +147,7 @@ function Profil({ v }) {
       <div style={{ ...kartu, gap: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           <div style={judul}>Identitas pengguna</div>
-          {akun.aktif && p && p.peran === 'admin' && <span className="mk-lencana">Admin</span>}
+          {akun.aktif && p && (p.peran === 'admin' || p.peran === 'ketua') && <span className="mk-lencana">{p.peran === 'admin' ? 'Admin' : 'Ketua kloter'}</span>}
         </div>
         <div style={{ display: 'grid', gap: 8 }}>
           {barisId.map(([lbl, val], i) => (
@@ -134,6 +160,7 @@ function Profil({ v }) {
         <button style={tombol} onClick={id.ubah || v.openSetup}>Ubah identitas pengguna</button>
       </div>
       <Panduan kartu={kartu} judul={judul} />
+      <Bagikan v={v} />
       <div style={kartu}>
         <div style={judul}>Tampilan</div>
         <div style={{ fontSize: fs(13.5), fontWeight: 500 }}>Ukuran huruf</div>
@@ -161,7 +188,7 @@ function Profil({ v }) {
         </div>
         <button style={tombol} onClick={v.openSync}>Identitas, PIN, dan status sinkron</button>
       </div>
-      {akun.aktif && p && p.peran === 'admin' && <Admin />}
+      {akun.aktif && p && (p.peran === 'admin' || p.peran === 'ketua') && <Admin ketua={p.peran === 'ketua'} />}
       {akun.aktif && st.sesi && <button style={{ ...tombol, color: 'var(--red-700)' }} onClick={akun.keluar}>Keluar dari akun</button>}
     </div>
   );

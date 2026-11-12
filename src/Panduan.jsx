@@ -5,7 +5,7 @@ const fs = n => `calc(${n}px * var(--fs, 1))`;
 
 const BAGIAN = [
   ['Sebelum berangkat', [
-    'Masuk dengan akun Anda. Petugas baru menunggu persetujuan admin kloter.',
+    'Masuk dengan akun Anda. Bila kloter Anda belum terdaftar, akun langsung aktif dan Anda menjadi ketua kloter. Petugas lain yang mendaftar ke kloter yang sama disetujui ketua kloter di Profil.',
     'Di Profil, periksa identitas pengguna dan isi tanggal berangkat kloter. Lansia (65 tahun ke atas) dihitung dari tanggal ini.',
     'Di Profil bagian Excel, ketuk Unduh Excel, lengkapi data jamaah (nama, nomor porsi, rombongan, regu, jenis kelamin, tanggal lahir), lalu ketuk Unggah Excel.',
     'Buka Jamaah dan cocokkan jumlah serta pembagian rombongan dan regu dengan manifes kloter.',

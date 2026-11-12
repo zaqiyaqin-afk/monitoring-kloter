@@ -1,5 +1,5 @@
 // Menu Massal: pilih ibadah, lalu centang per kloter/rombongan/regu/jamaah, dan daftar kegiatan per hari.
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { txt, arr } from '../dc/runtime.js';
 import PilihIbadah from '../PilihIbadah.jsx';
 import { Ikon, Avatar, SEGITIGA } from './MenuJamaah.jsx';
@@ -30,14 +30,31 @@ const merah = t => /red/.test(String(t?.bg || ''));
 
 export default function MenuChecklist({ v }) {
   const [buka, setBuka] = useState({});
+  const tempatRef = useRef(null), tempatAktif = arr(v.ckTempat).findIndex(t => t?.a);
+  // Ubin tempat yang dipilih digeser ke tengah supaya tidak tersembunyi di tepi layar
+  useEffect(() => { const c = tempatRef.current, el = c && c.children[tempatAktif]; if (el) c.scrollLeft = el.offsetLeft - (c.clientWidth - el.offsetWidth) / 2; }, [tempatAktif]);
   if (v.ckPilih) return <PilihIbadah v={v} />;
   const s = v.ckSum || {};
   return (
     <div style={{ padding: '12px 12px 24px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gridAutoRows: 'max-content', gap: 12 }}>
       <div style={kartu}>
         <div style={kecil}>{txt(v.kloterLabel)} · {txt(v.d?.day)}</div>
-        <div style={label}>Hari</div>
-        <div ref={v.daysRef} style={{ ...geser, scrollSnapType: 'x proximity' }}>
+        {v.ckTempat ? (<>
+          <div style={label}>Tempat</div>
+          <div ref={tempatRef} style={{ ...geser, paddingBottom: 2, position: 'relative' }}>
+            {arr(v.ckTempat).map((t, i) => (
+              <button key={i} type="button" onClick={t?.on} aria-pressed={!!t?.a} aria-label={t?.l + ', ' + t?.sub + (t?.beres ? ', selesai' : t?.kini ? ', sedang berlangsung' : '')}
+                style={{ flex: 'none', width: 92, minHeight: 92, borderRadius: 18, padding: '10px 6px 8px', cursor: 'pointer', display: 'grid', justifyItems: 'center', alignContent: 'center', gap: 6, font: 'inherit', position: 'relative',
+                  border: '1px solid ' + (t?.a ? 'var(--color-accent)' : 'var(--m-tepi)'), background: t?.a ? 'var(--color-accent)' : 'var(--color-surface)', color: t?.a ? 'var(--on-accent)' : 'var(--color-text)' }}>
+                <Ikon d={t?.ikon} s={28} w={1.6} />
+                <span style={{ fontSize: fs(13), fontWeight: t?.a ? 600 : 500, lineHeight: 1.15 }}>{txt(t?.l)}</span>
+                <span style={{ fontSize: fs(11), lineHeight: 1.2, opacity: 0.8 }}>{t?.beres ? 'Selesai' : t?.kini ? 'Berlangsung' : txt(t?.sub)}</span>
+              </button>
+            ))}
+          </div>
+        </>) : null}
+        {arr(v.ckDays).length > 1 ? <div style={label}>Hari</div> : null}
+        <div ref={v.daysRef} style={{ ...geser, scrollSnapType: 'x proximity', display: arr(v.ckDays).length > 1 ? 'flex' : 'none' }}>
           {arr(v.ckDays).map((c, i) => (
             <button key={i} type="button" data-today={c?.today} onClick={c?.on} aria-pressed={!!c?.sel} style={pil(c?.sel, { scrollSnapAlign: 'center' })}>
               {txt(c?.l)}{c?.td ? <span style={{ fontWeight: 400 }}>· hari ini</span> : null}
@@ -48,7 +65,7 @@ export default function MenuChecklist({ v }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {arr(v.ckPills).map((p, i) => (
             <button key={i} type="button" onClick={p?.on} aria-pressed={!!p?.a} style={pil(p?.a, { whiteSpace: 'normal', textAlign: 'left', padding: '6px 14px' })}>
-              {p?.locked ? <Ikon d={GEMBOK} s={16} /> : p?.done ? <Ikon d={CENTANG} s={16} w={2.2} /> : null}
+              {p?.locked ? <Ikon d={GEMBOK} s={16} /> : p?.done ? <Ikon d={CENTANG} s={16} w={2.2} /> : p?.ikon ? <Ikon d={p.ikon} s={18} /> : null}
               {txt(p?.l)}{p?.now ? <span style={{ fontWeight: 400 }}>· berjalan</span> : null}
             </button>
           ))}
@@ -191,13 +208,16 @@ export default function MenuChecklist({ v }) {
           return (
             <div key={i} style={{ borderTop: '1px solid var(--color-divider)' }}>
               <button type="button" className="ketuk" onClick={() => setBuka({ ...buka, [i]: !terbuka })} aria-expanded={terbuka} style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 48 }}>
-                {beres ? <span style={{ color: 'var(--color-accent)', display: 'grid' }}><Ikon d={CENTANG} s={18} w={2.2} /></span> : null}
+                {gp?.ikon ? <span style={{ width: 36, height: 36, flex: 'none', borderRadius: 18, display: 'grid', placeItems: 'center', background: beres ? 'var(--color-accent)' : 'var(--color-bg)', color: beres ? 'var(--on-accent)' : 'var(--color-text)' }}><Ikon d={beres ? CENTANG : gp.ikon} s={20} w={beres ? 2.2 : 1.7} /></span>
+                  : beres ? <span style={{ color: 'var(--color-accent)', display: 'grid' }}><Ikon d={CENTANG} s={18} w={2.2} /></span> : null}
                 <span style={{ flex: 1, minWidth: 0, fontSize: fs(14), fontWeight: kini ? 500 : 400 }}>{txt(gp?.day)}</span>
                 {kini ? <span className="mk-lencana" style={{ flex: 'none' }}>Hari ini</span> : <span style={{ ...kecil, flex: 'none' }}>{items.length} kegiatan{beres ? ' · selesai' : gp?.note ? ' · ' + gp.note : ''}</span>}
                 <span style={{ flex: 'none', display: 'grid', transform: terbuka ? 'rotate(180deg)' : 'none' }}><Ikon d={TURUN} /></span>
               </button>
-              {terbuka ? items.map((r, k) => (
-                <button key={k} type="button" className="ketuk" onClick={r?.on} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 10px 12px', minHeight: 48 }}>
+              {terbuka ? items.map((r, k) => (<React.Fragment key={k}>
+                {r?.hariSub ? <div style={{ ...kecil, fontWeight: 500, padding: '8px 0 2px 12px' }}>{txt(r.hariSub)}</div> : null}
+                <button type="button" className="ketuk" onClick={r?.on} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 10px 12px', minHeight: 48 }}>
+                  {r?.ikon ? <span style={{ flex: 'none', display: 'grid', color: 'var(--teks-3)' }}><Ikon d={r.ikon} s={20} w={1.6} /></span> : null}
                   <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 2 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: 500, fontSize: fs(14) }}>{txt(r?.n)}</span>
@@ -210,7 +230,7 @@ export default function MenuChecklist({ v }) {
                     {r?.hasSus ? <span style={{ display: 'block', fontWeight: 400, color: 'var(--teks-3)' }}>{txt(r?.sus)}</span> : null}
                   </span>
                 </button>
-              )) : null}
+              </React.Fragment>)) : null}
             </div>
           );
         })}
