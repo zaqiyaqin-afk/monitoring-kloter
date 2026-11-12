@@ -1,5 +1,6 @@
 // Logika aplikasi (state, sinkron, perhitungan). Tampilan ada di View.jsx.
 import React from 'react';
+import { jalankanMundur } from './mundur.js';
 import { DCLogic } from './dc/runtime.js';
 import { ambilSemua, kirimPerubahan, unggahFoto, tautanFoto, SB_URL } from './data/server.js';
 import { keadaan as akunKeadaan, dengar as dengarAkun } from './data/akun.js';
@@ -384,7 +385,7 @@ export default class AppLogic extends DCLogic {
       buka: k => { const w = new Date(new Date(k.waktuKejadian).getTime() + 3 * 3600000).toISOString();
         this.setState({ kejForm: { ...k, tgl: w.slice(0, 10), jam: w.slice(11, 16), berkas: [], baru: false } }); },
       ubah: x => this.setState(s => ({ kejForm: { ...s.kejForm, ...x } })),
-      batal: () => this.setState({ kejForm: null }),
+      batal: () => this.kembali(),
       simpan: () => { const f = this.state.kejForm; this.simpanKejadian({ ...f, waktuKejadian: f.tgl + 'T' + (f.jam || '00:00') + ':00+03:00' }, f.berkas.map(b => b.file)); },
       hapus: kid => this.hapusKejadian(kid),
       bukaFoto: (e, link) => this.bukaFoto(e, link)
@@ -619,8 +620,11 @@ export default class AppLogic extends DCLogic {
     const sig = S.tab + '|' + S.mode + '|' + this.data[S.mode].cur; if (S.tab !== 'checklist') this._daySig = null; else if (this._daySig !== sig) { this._daySig = sig; requestAnimationFrame(() => this.centerToday()); } }
   // Tutup jendela yang terbuka dulu; bila tidak ada, kembali ke layar sebelumnya. true = ada yang ditangani.
   kembali() {
-    const S = this.state, tutup = ['sel', 'syncOpen', 'tglOpen', 'galeri', 'fotoDlg', 'susDlg', 'safDlg', 'ulDlg', 'slotDlg', 'mqDlg', 'tgJ', 'pp', 'confirm', 'pdf', 'kejForm'].find(k => S[k] != null && S[k] !== false);
-    if (tutup) { this.setState({ [tutup]: ['syncOpen', 'tglOpen', 'galeri', 'pdf'].includes(tutup) ? false : null }); return true; }
+    // Urutan: jendela paling atas dulu, lalu lembar di bawahnya.
+    const S = this.state, tutup = ['udzForm', 'picker', 'tgJ', 'fotoDlg', 'susDlg', 'safDlg', 'ulDlg', 'slotDlg', 'mqDlg', 'pp', 'confirm', 'wa', 'galeri', 'pdf', 'tglOpen', 'syncOpen', 'sel', 'kejForm'].find(k => S[k] != null && S[k] !== false);
+    if (tutup === 'kejForm' && S.kejForm.asal) { const a = S.kejForm.asal, r0 = this._riwayat || []; this._dariKembali = true; this._riwayat = r0[r0.length - 1] === a.tab ? r0.slice(0, -1) : r0; this.setState({ kejForm: null, tab: a.tab, sel: a.sel }); return true; }
+    if (tutup) { this.setState({ [tutup]: ['syncOpen', 'tglOpen', 'galeri', 'pdf', 'wa'].includes(tutup) ? false : null }); return true; }
+    if (jalankanMundur()) return true;
     if (S.tab === 'kirim' && S.kirimLayar) { this.setState({ kirimLayar: S.kirimLayar.ubah ? { ...S.kirimLayar, ubah: false } : null }); return true; }
     if (S.tab === 'checklist' && !S.ckPilih && S.ckDariPilih) { this.setState({ ckPilih: true, ckDariPilih: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }); return true; }
     const r = this._riwayat || [];
@@ -1213,7 +1217,7 @@ export default class AppLogic extends DCLogic {
         baris: [j.role, `Rombongan ${j.r} · Regu ${j.g}`].filter(Boolean).join(' · '), porsi: 'Porsi ' + j.porsi,
         lencana: (() => { const k = this.khOf(j.id); return [k.lansia && 'Lansia', k.kroda && 'Kursi roda', !u && k.pb && 'Perlu badal'].filter(Boolean); })(),
         wa: j.hp ? 'https://wa.me/' + String(j.hp).replace(/\D/g, '').replace(/^0/, '62') : '',
-        catatKejadian: () => this.setState({ sel: null, tab: 'kejadian', kejForm: this.kejBaru([j.porsi]) }),
+        catatKejadian: () => this.setState({ sel: null, tab: 'kejadian', kejForm: { ...this.kejBaru([j.porsi]), asal: { tab: S.tab, sel: S.sel } } }),
         kej: (this.live() && !this.pakaiAkun() ? [] : this.daftarKejadian()).filter(k => (k.porsi || []).includes(j.porsi)).slice(0, 5)
           .map(k => ({ l: labelKejadian(k.kategori), w: this.fmtWaktu(k.waktuKejadian), st: k.status === 'selesai' ? 'Selesai' : 'Terbuka', buka: k.status !== 'selesai' })),
         udzTitle: u ? 'UDZUR · dibadalkan' : 'Kondisi baik', udz: !!u,

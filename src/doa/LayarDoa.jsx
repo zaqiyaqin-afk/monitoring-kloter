@@ -1,6 +1,7 @@
 // Layar Doa: ubin per kegiatan, lalu daftar doa, langkah thawaf/sa'i (dengan penghitung), atau daftar pilihan (wirid).
 // Semua petugas bisa melaporkan kesalahan; admin bisa memperbaiki teks dan mengembalikan versi lama.
 import React, { useEffect, useMemo, useState } from 'react';
+import { useMundur } from '../mundur.js';
 import { createPortal } from 'react-dom';
 import { KEGIATAN } from './rangkaian.js';
 import { ambilDoa, simpanDoa, riwayatDoa, kembalikanDoa, laporkan, daftarLaporan, tandaiLaporan, sayaAdmin, kirimLaporanTertunda, imporDoa } from './data.js';
@@ -177,12 +178,14 @@ export default function LayarDoa() {
   const px = (UKURAN[iUk] || UKURAN[1])[1];
   const k = lihat.k && KEGIATAN.find(x => x.id === lihat.k);
   const satu = lihat.d && perId[lihat.d];
+  const naik = () => setLihat(satu && k ? { k: k.id, d: null } : { k: null, d: null });
+  useMundur(() => { if (ubah) { setUbah(null); return true; } if (lapor) { setLapor(null); return true; } if (k || satu) { naik(); return true; } return false; });
   const kartuDoa = (d, ket, key) => d ? <KartuDoa key={key || d.id} d={d} ket={ket} px={px} admin={admin} onUbah={setUbah} onLapor={setLapor} /> : null;
   const setelahSimpan = baru => { if (baru) setIsi(s => ({ ...s, daftar: s.daftar.map(d => (d.id === baru.id ? baru : d)) })); else muat(); };
 
   const alat = (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-      {k || satu ? <button type="button" onClick={() => setLihat(satu && k ? { k: k.id, d: null } : { k: null, d: null })} style={tombol}>‹ {satu && k ? k.nama : 'Semua kegiatan'}</button> : null}
+      {k || satu ? <button type="button" onClick={naik} style={tombol}>‹ {satu && k ? k.nama : 'Semua kegiatan'}</button> : null}
       <button type="button" onClick={() => { const n = (iUk + 1) % UKURAN.length; setIUk(n); tulis('mk.doa.huruf', n); }} style={tombolTipis} aria-label="Ganti ukuran huruf Arab">Huruf Arab: {UKURAN[iUk][0]}</button>
     </div>
   );

@@ -5,12 +5,12 @@ import { TombolSinkron, TombolProfil } from '../HomeAtas.jsx';
 export default function KepalaHalaman({ v }) {
   // Layar yang dibuka dari bilah bawah adalah akar: tidak perlu tombol kembali.
   const mundur = v.isKejadian && v.kejadian && v.kejadian.form ? v.kejadian.batal : v.isKirim && v.kirim && v.kirim.jenis ? v.kirim.tutup : null, dalam = !!mundur;
-  const keluar = mundur || (v.isChecklist && !v.ckPilih ? v.kePilihIbadah : v.kembali);
+  // Tombol ini memakai jalur yang sama dengan tombol back HP.
   const akar = !dalam && (v.isKirim || v.isKejadian || v.isJamaah || (v.isChecklist && v.ckPilih));
   return (
     <div style={{ minHeight: 64, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', boxSizing: 'border-box' }}>
       {!akar ? (
-        <button type="button" onClick={keluar} aria-label="Kembali" className="mk-kaca-putih" style={{ width: 44, height: 44, borderRadius: 22, flex: 'none', display: 'grid', placeItems: 'center', padding: 0, cursor: 'pointer' }}>
+        <button type="button" onClick={v.kembali} aria-label="Kembali" className="mk-kaca-putih" style={{ width: 44, height: 44, borderRadius: 22, flex: 'none', display: 'grid', placeItems: 'center', padding: 0, cursor: 'pointer' }}>
           <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
         </button>
       ) : null}

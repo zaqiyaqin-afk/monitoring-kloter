@@ -1,5 +1,6 @@
 // Layar Kultum: materi malam ini (dipilih otomatis dari tanggal tiba dan gelombang), catatan penyampaian, dan daftar 41 malam.
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useMundur } from '../mundur.js';
 import { Coordinates, CalculationMethod, PrayerTimes } from 'adhan';
 import { MATERI, PER_ID, NAMA_KEL, jadwalKultum } from './kultum.js';
 import { catatanKultum, muatCatatanKultum, simpanCatatanKultum, kirimKultumTertunda, kultumMenunggu } from './data.js';
@@ -37,6 +38,9 @@ export default function LayarKultum({ k }) {
   const [catatan, setCatatan] = useState(() => catatanKultum());
   const [dipilih, setDipilih] = useState(null);
   const [ganti, setGanti] = useState(false), [pesan, setPesan] = useState('');
+  const jejak = useRef([]);
+  const pilih = t => { if (t === dipilih) return; jejak.current.push(dipilih); setDipilih(t); };
+  useMundur(() => { if (ganti) { setGanti(false); return true; } if (jejak.current.length) { setDipilih(jejak.current.pop()); return true; } return false; });
   const hariIni = hariIniSaudi();
 
   useEffect(() => { muatCatatanKultum().then(setCatatan); const on = () => kirimKultumTertunda().then(() => muatCatatanKultum().then(setCatatan)); window.addEventListener('online', on); return () => window.removeEventListener('online', on); }, []);
@@ -123,7 +127,7 @@ export default function LayarKultum({ k }) {
           const cc = catatan[x.tanggal] || {}, id = cc.materi_id || x.materi, mm = PER_ID[id], aktif = malam && malam.tanggal === x.tanggal;
           const st = cc.status === 'disampaikan' ? ['✓', 'var(--color-text)'] : cc.status === 'ditiadakan' ? ['—', 'var(--teks-3)'] : x.tanggal < hariIni && !x.libur ? ['!', 'var(--red-600)'] : ['', ''];
           return (
-            <button key={x.tanggal} type="button" onClick={() => { setDipilih(x.tanggal); const el = document.querySelector('main'); if (el) el.scrollTop = 0; }}
+            <button key={x.tanggal} type="button" onClick={() => { pilih(x.tanggal); const el = document.querySelector('main'); if (el) el.scrollTop = 0; }}
               style={{ display: 'grid', gridTemplateColumns: '44px minmax(0,1fr) 24px', alignItems: 'center', gap: 10, textAlign: 'left', border: 0, borderTop: i ? '1px solid var(--m-garis, var(--m-tepi))' : 0, padding: '10px 14px', minHeight: 52, cursor: 'pointer', background: aktif ? 'var(--m-lembut)' : 'transparent', color: 'var(--m-teks)', font: 'inherit' }}>
               <span style={{ fontSize: fs(12), fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--teks-3)' }}>H-{x.ke}</span>
               <span style={{ display: 'grid', minWidth: 0 }}>

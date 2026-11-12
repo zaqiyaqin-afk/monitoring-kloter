@@ -1,6 +1,7 @@
 // Kirim pesan ke grup WhatsApp dari lima templat. Isi templat bisa diubah seluruhnya; kata dalam kurung kurawal
 // diisi dari isian saat mengirim. Isian terakhir dan templat hasil ubahan disimpan di HP ini saja.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useMundur } from './mundur.js';
 import { createPortal } from 'react-dom';
 import { tataCaraUntuk } from './tataCara.js';
 
@@ -134,6 +135,7 @@ function Form({ jenis, d }) {
   const J = JENIS.find(x => x.k === jenis);
   const awal = useMemo(() => ({ tataCara: true, makan: 'Makan siang', petugas: {}, ...(bacaLokal(jenis) || {}) }), [jenis]);
   const [f, setF] = useState(awal), [teks, setTeks] = useState(''), [ubahManual, setUbahManual] = useState(false), [pesan, setPesan] = useState(''), [pilihR, setPilihR] = useState(null);
+  useMundur(() => { if (pilihR == null) return false; setPilihR(null); return true; });
   const set = (k, v) => { setF(x => { const y = { ...x, [k]: v }; simpanLokal(jenis, y); return y; }); setUbahManual(false); };
   const hasil = susun(bacaTemplat(jenis) || J.bawaan, nilai(jenis, f, d));
   useEffect(() => { if (!ubahManual) setTeks(hasil); }, [hasil, ubahManual]);
