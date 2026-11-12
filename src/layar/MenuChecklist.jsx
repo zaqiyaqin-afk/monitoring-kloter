@@ -71,7 +71,7 @@ export default function MenuChecklist({ v }) {
             {arr(v.mdJams).map((c, i) => { const a = c?.rw === '2.5px';
               return (
                 <button key={i} type="button" onClick={c?.on} aria-pressed={a} style={{ borderRadius: 16, minHeight: 56, padding: '6px 14px', textAlign: 'left', cursor: 'pointer', font: 'inherit', border: '1px solid ' + (a ? 'var(--color-accent)' : 'var(--m-tepi)'), background: a ? 'var(--color-accent)' : 'var(--color-surface)', color: a ? 'var(--on-accent)' : 'var(--color-text)' }}>
-                  <div style={{ fontWeight: 500, fontSize: fs(14) }}>{txt(c?.l)}</div>
+                  <div style={{ fontWeight: 500, fontSize: fs(14), display: 'flex', alignItems: 'center', gap: 6 }}>{c?.kunci ? <Ikon d={GEMBOK} s={15} /> : null}{txt(c?.l)}</div>
                   <div style={{ fontSize: fs(12.5) }}>{txt(c?.sub)} · {txt(c?.cnt)}</div>
                 </button>
               ); })}

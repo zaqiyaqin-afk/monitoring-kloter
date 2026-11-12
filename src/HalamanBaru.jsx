@@ -6,6 +6,7 @@ import { unduhExcel, bacaExcel } from './excel.js';
 import { imporJamaah } from './data/server.js';
 import Kirim from './Kirim.jsx';
 import Kejadian from './Kejadian.jsx';
+import Panduan from './Panduan.jsx';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 // Gaya desain Cyber-Mint (token --m-* di tema.css)
@@ -132,6 +133,7 @@ function Profil({ v }) {
         </div>
         <button style={tombol} onClick={id.ubah || v.openSetup}>Ubah identitas pengguna</button>
       </div>
+      <Panduan kartu={kartu} judul={judul} />
       <div style={kartu}>
         <div style={judul}>Tampilan</div>
         <div style={{ fontSize: fs(13.5), fontWeight: 500 }}>Ukuran huruf</div>

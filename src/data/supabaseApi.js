@@ -47,7 +47,7 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
     const [jm, pt, jr, ct, jd, ru, kj, fk] = await Promise.all([
       semua('jamaah', 'id, porsi, nama, rombongan, regu, jabatan, hp, resti, udzur, catatan, jk, lansia, kursi_roda, pendamping, perlu_badal, pelaksana_badal, miqat, tgl_lahir, hotel_makkah, lantai_makkah, kamar_makkah, tenda_arafah, tenda_mina, hotel_madinah, lantai_madinah, kamar_madinah', 'porsi', kl),
       semua('petugas', 'nama, jabatan, urutan', 'urutan', kl),
-      semua('jadwal_raudhoh', 'tanggal, jam, jk, rombongan, keterangan', 'tanggal', kl),
+      semua('jadwal_raudhoh', 'tanggal, jam, jk, rombongan, keterangan, porsi', 'tanggal', kl),
       semua('centang', 'jamaah_id, kegiatan, status, tanggal, jam, susulan, waktu, pelaksana_badal, keterangan, pendamping, pilihan, alasan, ulang_ke, status_ulang', 'waktu', kl),
       semua('jadwal', 'mode, kegiatan, hari, tempat, tanggal, jam', 'kegiatan', kl),
       semua('riwayat_udzur', 'jamaah_id, udzur, alasan, petugas, perangkat, waktu, id_kirim', 'waktu', kl),
@@ -73,7 +73,7 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
         'Pelaksana Badal': j.pelaksana_badal || '', 'Miqat': j.miqat || '', 'Tanggal Lahir': j.tgl_lahir || '',
         ...Object.fromEntries(AKOMODASI.map(([k, kol]) => [k, j[kol] || ''])) })),
       petugas: pt.map(x => ({ 'Nama': x.nama, 'Jabatan': x.jabatan })),
-      jadwal: jr.map(x => ({ 'Tanggal': tglId(x.tanggal), 'Jam': x.jam, 'Jenis Kelamin': x.jk, 'Rombongan': x.rombongan, 'Keterangan': x.keterangan })),
+      jadwal: jr.map(x => ({ 'Tanggal': tglId(x.tanggal), 'Jam': x.jam, 'Jenis Kelamin': x.jk, 'Rombongan': x.rombongan, 'Keterangan': x.keterangan, 'Porsi': x.porsi || '' })),
       status,
       jadwalKegiatan: jd.map(x => ({ 'Mode': x.mode, 'Kegiatan': x.kegiatan, 'Hari': x.hari || '', 'Tempat': x.tempat || '', 'Tanggal': x.tanggal || '', 'Jam': x.jam ? x.jam.slice(0, 5) : '' })),
       pengaturan: atur, otomatis: false,

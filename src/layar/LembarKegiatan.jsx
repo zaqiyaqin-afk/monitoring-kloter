@@ -36,8 +36,8 @@ export default function LembarKegiatan({ v }) {
                 </div>
                 {" "}
                 <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
-                  Jenis kelamin{" "}
-                  <div style={css("display:grid;grid-template-columns:1fr 1fr;background:var(--color-surface);border-radius:999px;overflow:hidden;padding:4px;gap:4px;box-shadow:inset 0 0 0 1px var(--m-tepi)")}>
+                  Jadwal untuk{" "}
+                  <div style={css("display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--color-surface);border-radius:999px;overflow:hidden;padding:4px;gap:4px;box-shadow:inset 0 0 0 1px var(--m-tepi)")}>
                     {arr(v.sd?.sexBtns).map((m, i0) => (<React.Fragment key={i0}>
                       <button onClick={m?.on} style={css(`border:0;border-radius:999px;min-height:44px;font:600 calc(14px*var(--fs,1)) var(--font-body);cursor:pointer;background:${m?.bg ?? ''};color:${m?.fg ?? ''}`)}>
                         {txt(m?.l)}
@@ -47,7 +47,19 @@ export default function LembarKegiatan({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
+                {v.sd?.pero ? (
+                <div style={css("display:grid;gap:8px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
+                  <span>Jamaah yang tertinggal · {txt(v.sd?.pN)}</span>
+                  <input className="input" value={v.sd?.q ?? ''} onChange={v.sdQ} placeholder="Cari nama atau nomor porsi" style={css("height:48px;font-size:calc(15px*var(--fs,1))")} />
+                  <div style={css("display:grid;gap:6px")}>
+                    {arr(v.sd?.jms).map((j, i0) => (
+                      <button key={i0} type="button" onClick={j?.on} aria-pressed={!!j?.a} style={css(`display:grid;text-align:left;gap:2px;min-height:48px;padding:8px 14px;border-radius:16px;cursor:pointer;font:inherit;border:1px solid ${j?.a ? 'var(--color-accent)' : 'var(--m-tepi)'};background:${j?.a ? 'var(--color-accent)' : 'var(--color-surface)'};color:${j?.a ? 'var(--on-accent)' : 'var(--color-text)'}`)}>
+                        <span style={css("font-weight:500;overflow-wrap:anywhere")}>{txt(j?.l)}</span>
+                        <span style={css("font-weight:400;font-size:calc(12.5px*var(--fs,1))")}>{txt(j?.sub)}</span>
+                      </button>))}
+                  </div>
+                </div>) : null}
+                {v.sd?.pero ? null : <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                   Rombongan (boleh pilih banyak){" "}
                   <div style={css("display:flex;flex-wrap:wrap;gap:8px")}>
                     {arr(v.sd?.rs).map((c, i0) => (<React.Fragment key={i0}>
@@ -57,7 +69,7 @@ export default function LembarKegiatan({ v }) {
                     </React.Fragment>))}
                   </div>
                   {" "}
-                </div>
+                </div>}
                 {" "}
                 <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                   Keterangan (opsional)
