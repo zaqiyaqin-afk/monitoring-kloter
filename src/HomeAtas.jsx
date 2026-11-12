@@ -17,8 +17,11 @@ const AWAN_TUNGGU = 'M7 18a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 10a4 4 0 0 1 0 8zM12 
 
 const jamWas = d => new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Riyadh', hour: '2-digit', minute: '2-digit', hour12: false }).format(d).replace(':', '.');
 const fmt = (o, d) => { try { return new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Riyadh', ...o }).format(d); } catch (e) { return ''; } };
+const BULAN_H = ['Muharram', 'Safar', 'Rabiulawal', 'Rabiulakhir', 'Jumadilawal', 'Jumadilakhir', 'Rajab', 'Syakban', 'Ramadan', 'Syawal', "Dzulqa'dah", 'Dzulhijjah'];
 function hijriah(d) {
-  try { return new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { timeZone: 'Asia/Riyadh', day: 'numeric', month: 'long', year: 'numeric' }).format(d).replace(/\s*(AH|H)$/, '') + ' H'; }
+  // Nama bulan ditulis sendiri: sebagian HP Android mengembalikan nama bulan Masehi ("Juni") dan akhiran "SM".
+  try { const p = Object.fromEntries(new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { timeZone: 'Asia/Riyadh', day: 'numeric', month: 'numeric', year: 'numeric' }).formatToParts(d).map(x => [x.type, x.value]));
+    return `${+p.day} ${BULAN_H[+p.month - 1]} ${parseInt(p.year, 10)} H`; }
   catch (e) { return ''; }
 }
 
@@ -115,8 +118,8 @@ export function HomeKepala({ h, v }) {
 
 function Mutiara() {
   return (
-    <div className="mk-gradasi mk-penuh" style={{ borderRadius: 20, padding: '10px 14px 18px', display: 'grid', gap: 2, textAlign: 'center' }}>
-      <p lang="ar" dir="rtl" style={{ margin: 0, fontFamily: 'var(--font-arab)', fontSize: fs(22), lineHeight: 2.4 }}>خِدْمَةُ الْحُجَّاجِ شَرَفٌ لَنَا</p>
+    <div className="mk-gradasi mk-penuh" style={{ borderRadius: 20, padding: '20px 14px 18px', display: 'grid', gap: 2, textAlign: 'center' }}>
+      <p lang="ar" dir="rtl" style={{ margin: 0, fontFamily: 'var(--font-arab)', fontSize: fs(22), lineHeight: 2.4, paddingTop: '0.35em' }}>خِدْمَةُ الْحُجَّاجِ شَرَفٌ لَنَا</p>
       <p style={{ margin: 0, fontSize: fs(13.5), lineHeight: 1.4 }}>Melayani jamaah haji adalah kehormatan bagi kami</p>
     </div>
   );
