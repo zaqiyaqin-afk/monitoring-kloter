@@ -61,10 +61,9 @@ export default function LayarKultum({ k }) {
 
   if (!jadwal.length) {
     return (
-      <div className="mk-kolom" style={{ padding: '14px 14px 24px', gap: 14 }}>
-        <div className="mk-penuh" style={{ display: 'grid', gap: 4, padding: '4px 4px 0' }}><span style={label}>KULTUM BA'DA MAGHRIB</span><h2 style={judulBesar}>Kultum</h2></div>
+      <div className="mk-kolom" style={{ padding: '12px 12px 24px', gap: 12 }}>
         <div className="mk-penuh" style={kartu}>
-          <b style={{ fontSize: fs(15) }}>Isi dulu tanggal tiba di Saudi</b>
+          <span style={{ fontSize: fs(22), fontWeight: 300 }}>Isi dulu tanggal tiba di Saudi</span>
           <p style={redup}>Materi tiap malam dipilih dari tanggal tiba dan gelombang kloter. Gelombang 1 di Madinah dulu, gelombang 2 di Makkah dulu.</p>
           <Pengaturan k={k} />
         </div>
@@ -73,23 +72,21 @@ export default function LayarKultum({ k }) {
   }
 
   return (
-    <div className="mk-kolom" style={{ padding: '14px 14px 24px', gap: 14 }}>
+    <div className="mk-kolom" style={{ padding: '12px 12px 24px', gap: 12 }}>
       <div className="mk-penuh" style={{ display: 'grid', gap: 4, padding: '4px 4px 0' }}>
-        <span style={label}>KULTUM BA'DA MAGHRIB · GELOMBANG {k.gelombang || '1'}</span>
-        <h2 style={judulBesar}>Kultum</h2>
-        <p style={redup}>{tersampaikan} dari {sudahLewat} malam sudah tersampaikan{kultumMenunggu() ? ' · ' + kultumMenunggu() + ' catatan menunggu internet' : ''}.</p>
+        <p style={redup}>Kultum ba'da Maghrib · Gelombang {k.gelombang || '1'} · {tersampaikan} dari {sudahLewat} malam sudah tersampaikan{kultumMenunggu() ? ' · ' + kultumMenunggu() + ' catatan menunggu internet' : ''}.</p>
       </div>
 
       {malam ? (
         <section style={{ ...kartu, border: '1.5px solid var(--m-tepi)' }} aria-label="Kultum malam ini">
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'baseline' }}>
             <b style={{ fontSize: fs(15) }}>{malam.tanggal === hariIni ? 'Malam ini · ' : ''}Hari ke-{malam.ke}</b>
-            <span style={{ fontSize: fs(12), color: 'var(--m-teks-2)' }}>{tglPanjang(malam.tanggal)}{malam.hijriah ? ' · ' + malam.hijriah.hari + ' ' + BULAN_H[malam.hijriah.bulan - 1] : ''}</span>
+            <span style={{ fontSize: fs(12), color: 'var(--teks-3)' }}>{tglPanjang(malam.tanggal)}{malam.hijriah ? ' · ' + malam.hijriah.hari + ' ' + BULAN_H[malam.hijriah.bulan - 1] : ''}</span>
           </div>
-          <span style={{ fontSize: fs(12.5), fontWeight: 700, color: 'var(--m-aksen-teks)' }}>{malam.lokasi} · Maghrib {maghrib(malam.tanggal, malam.lokasi)} WAS</span>
+          <span style={{ fontSize: fs(12.5), fontWeight: 500, color: 'var(--color-text)' }}>{malam.lokasi} · Maghrib {maghrib(malam.tanggal, malam.lokasi)} WAS</span>
           {malam.libur && !c.materi_id ? <p style={redup}>Tidak ada kultum malam ini karena jamaah sedang berpindah tempat (Armuzna).</p> : <Materi x={PER_ID[materiId]} />}
           {ganti ? (
-            <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 700, color: 'var(--m-teks-2)' }}>Pilih materi
+            <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 500, color: 'var(--teks-3)' }}>Pilih materi
               <select id="ganti-materi" value={materiId || ''} onChange={e => { simpan({ materi_id: e.target.value }); setGanti(false); }} style={masukan}>
                 <option value="">— pilih —</option>
                 {MATERI.map(x => <option key={x.id} value={x.id}>{x.id} · {x.judul}</option>)}
@@ -99,10 +96,10 @@ export default function LayarKultum({ k }) {
 
           <div style={{ display: 'grid', gap: 10, borderTop: '1px solid var(--m-garis, var(--m-tepi))', paddingTop: 12 }}>
             <b style={{ fontSize: fs(14) }}>Catatan penyampaian</b>
-            <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 700, color: 'var(--m-teks-2)' }}>Pengisi kultum
+            <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 500, color: 'var(--teks-3)' }}>Pengisi kultum
               <input id="kultum-pengisi" list="saran-pengisi" value={form.pengisi || ''} onChange={e => setForm({ ...form, pengisi: e.target.value })} placeholder="Nama pengisi" style={masukan} />
             </label>
-            <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 700, color: 'var(--m-teks-2)' }}>Tempat
+            <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 500, color: 'var(--teks-3)' }}>Tempat
               <input id="kultum-tempat" list="saran-tempat" value={form.tempat || ''} onChange={e => setForm({ ...form, tempat: e.target.value })} placeholder="Contoh: Mushola hotel lantai 3" style={masukan} />
             </label>
             <datalist id="saran-pengisi">{saran('pengisi').map(s => <option key={s} value={s} />)}</datalist>
@@ -110,11 +107,11 @@ export default function LayarKultum({ k }) {
             <div role="radiogroup" aria-label="Status" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 8 }}>
               {STATUS.map(([v, l]) => (
                 <button key={v} type="button" role="radio" aria-checked={form.status === v} onClick={() => setForm({ ...form, status: v })}
-                  style={{ ...tombol, padding: '0 6px', background: form.status === v ? 'var(--m-isi)' : 'var(--m-ubin)', color: form.status === v ? 'var(--m-on-isi)' : 'var(--m-teks)' }}>{l}</button>
+                  style={{ ...tombol, padding: '0 6px', background: form.status === v ? 'var(--color-accent)' : 'var(--color-surface)', color: form.status === v ? 'var(--on-accent)' : 'var(--m-teks)' }}>{l}</button>
               ))}
             </div>
             <button type="button" onClick={() => simpan()} style={tombolUtama}>Simpan catatan</button>
-            {c.diubah ? <span style={{ fontSize: fs(11.5), color: 'var(--m-teks-2)' }}>Terakhir dicatat {c.petugas ? 'oleh ' + c.petugas + ' · ' : ''}{new Date(c.diubah).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span> : null}
+            {c.diubah ? <span style={{ fontSize: fs(11.5), color: 'var(--teks-3)' }}>Terakhir dicatat {c.petugas ? 'oleh ' + c.petugas + ' · ' : ''}{new Date(c.diubah).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span> : null}
           </div>
         </section>
       ) : (
@@ -124,26 +121,26 @@ export default function LayarKultum({ k }) {
       <section className="mk-penuh" style={{ ...kartu, padding: 0, gap: 0, overflow: 'hidden' }} aria-label="Daftar malam kultum">
         {jadwal.map((x, i) => {
           const cc = catatan[x.tanggal] || {}, id = cc.materi_id || x.materi, mm = PER_ID[id], aktif = malam && malam.tanggal === x.tanggal;
-          const st = cc.status === 'disampaikan' ? ['✓', 'var(--m-aksen-teks)'] : cc.status === 'ditiadakan' ? ['—', 'var(--m-teks-2)'] : x.tanggal < hariIni && !x.libur ? ['!', 'var(--m-emas)'] : ['', ''];
+          const st = cc.status === 'disampaikan' ? ['✓', 'var(--color-text)'] : cc.status === 'ditiadakan' ? ['—', 'var(--teks-3)'] : x.tanggal < hariIni && !x.libur ? ['!', 'var(--red-600)'] : ['', ''];
           return (
             <button key={x.tanggal} type="button" onClick={() => { setDipilih(x.tanggal); const el = document.querySelector('main'); if (el) el.scrollTop = 0; }}
               style={{ display: 'grid', gridTemplateColumns: '44px minmax(0,1fr) 24px', alignItems: 'center', gap: 10, textAlign: 'left', border: 0, borderTop: i ? '1px solid var(--m-garis, var(--m-tepi))' : 0, padding: '10px 14px', minHeight: 52, cursor: 'pointer', background: aktif ? 'var(--m-lembut)' : 'transparent', color: 'var(--m-teks)', font: 'inherit' }}>
-              <span style={{ fontSize: fs(12), fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--m-teks-2)' }}>H-{x.ke}</span>
+              <span style={{ fontSize: fs(12), fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--teks-3)' }}>H-{x.ke}</span>
               <span style={{ display: 'grid', minWidth: 0 }}>
-                <span style={{ fontSize: fs(13.5), fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{x.libur && !cc.materi_id ? 'Tidak ada kultum' : mm ? mm.judul : 'Materi bebas'}</span>
-                <span style={{ fontSize: fs(11.5), color: 'var(--m-teks-2)' }}>{tglPanjang(x.tanggal)} · {x.lokasi}{cc.pengisi ? ' · ' + cc.pengisi : ''}</span>
+                <span style={{ fontSize: fs(13.5), fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{x.libur && !cc.materi_id ? 'Tidak ada kultum' : mm ? mm.judul : 'Materi bebas'}</span>
+                <span style={{ fontSize: fs(11.5), color: 'var(--teks-3)' }}>{tglPanjang(x.tanggal)} · {x.lokasi}{cc.pengisi ? ' · ' + cc.pengisi : ''}</span>
               </span>
-              <span aria-label={cc.status || ''} style={{ fontWeight: 800, color: st[1], textAlign: 'center' }}>{st[0]}</span>
+              <span aria-label={cc.status || ''} style={{ fontWeight: 600, color: st[1], textAlign: 'center' }}>{st[0]}</span>
             </button>
           );
         })}
       </section>
 
       <details className="mk-penuh" style={kartu}>
-        <summary style={{ cursor: 'pointer', fontWeight: 800, fontSize: fs(14) }}>Tanggal tiba dan gelombang</summary>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: fs(14) }}>Tanggal tiba dan gelombang</summary>
         <Pengaturan k={k} />
       </details>
-      {pesan ? <div role="status" style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(100px + env(safe-area-inset-bottom, 0px))', zIndex: 50, maxWidth: 520, margin: '0 auto', padding: '12px 16px', borderRadius: 14, background: 'var(--m-teks)', color: 'var(--color-bg)', font: `700 ${fs(13)} var(--font-body)`, textAlign: 'center' }}>{pesan}</div> : null}
+      {pesan ? <div role="status" style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(100px + env(safe-area-inset-bottom, 0px))', zIndex: 50, maxWidth: 520, margin: '0 auto', padding: '12px 16px', borderRadius: 14, background: 'var(--m-teks)', color: 'var(--color-bg)', font: `500 ${fs(13)} var(--font-body)`, textAlign: 'center' }}>{pesan}</div> : null}
     </div>
   );
 }
@@ -151,13 +148,13 @@ export default function LayarKultum({ k }) {
 function Pengaturan({ k }) {
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 700, color: 'var(--m-teks-2)' }}>Tanggal tiba di Saudi
+      <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 500, color: 'var(--teks-3)' }}>Tanggal tiba di Saudi
         <input type="date" id="kultum-tiba" defaultValue={k.tiba} key={k.tiba} onChange={e => k.setTiba(e.target.value)} style={masukan} />
       </label>
       <div role="radiogroup" aria-label="Gelombang" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {['1', '2'].map(g => (
           <button key={g} type="button" role="radio" aria-checked={String(k.gelombang) === g} onClick={() => k.setGelombang(g)}
-            style={{ ...tombol, background: String(k.gelombang) === g ? 'var(--m-isi)' : 'var(--m-ubin)', color: String(k.gelombang) === g ? 'var(--m-on-isi)' : 'var(--m-teks)' }}>Gelombang {g}</button>
+            style={{ ...tombol, background: String(k.gelombang) === g ? 'var(--color-accent)' : 'var(--color-surface)', color: String(k.gelombang) === g ? 'var(--on-accent)' : 'var(--m-teks)' }}>Gelombang {g}</button>
         ))}
       </div>
       <p style={{ ...redup, fontSize: fs(11.5) }}>Berlaku untuk satu kloter. Kosongkan tanggal tiba untuk memakai tanggal berangkat.</p>

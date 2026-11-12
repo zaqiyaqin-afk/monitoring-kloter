@@ -1,20 +1,21 @@
 import React from 'react';
 import { css, txt, arr } from '../dc/runtime.js';
-import HomeAtas from '../HomeAtas.jsx';
+import HomeAtas, { HomeKepala } from '../HomeAtas.jsx';
 
 export default function MenuBeranda({ v }) {
   return (<>
-              <div className="mk-kolom" style={css("padding:14px 14px 24px;grid-auto-rows:max-content;gap:14px")}>
+              <HomeKepala h={v.home} v={v} />
+              <div className="mk-kolom" style={css("padding:14px 12px 24px;grid-auto-rows:max-content;gap:14px")}>
                 {v.modeCoba ? (
-                  <div role="status" className="mk-penuh" style={css("border-radius:22px;padding:14px 16px;display:grid;gap:10px;background:var(--m-kartu);color:var(--m-teks);border:1.5px solid var(--m-emas-isi);box-shadow:var(--m-kartu-bayang)")}>
+                  <div role="status" className="mk-penuh" style={css("border-radius:20px;padding:16px;display:grid;gap:10px;background:var(--m-kartu);color:var(--m-teks);border:1px solid var(--m-tepi)")}>
                     <div style={css("font-size:calc(14px*var(--fs,1));line-height:1.45")}>
-                      <b style={css("color:var(--m-emas)")}>Mode coba · data contoh.</b> Silakan mencentang, mencatat, dan mencoba unggah Excel. Tidak ada yang dikirim ke server; data kloter asli tidak berubah.
+                      <b>Mode coba · data contoh.</b> Silakan mencentang, mencatat, dan mencoba unggah Excel. Tidak ada yang dikirim ke server; data kloter asli tidak berubah.
                     </div>
                     <button className="btn btn-primary" onClick={v.selesaiCoba} style={css("height:46px;font-size:calc(15px*var(--fs,1))")}>Selesai mencoba</button>
                   </div>
                 ) : null}
                 {v.kloterKosong ? (
-                  <div className="mk-penuh" style={css("border-radius:22px;padding:14px 16px;display:grid;gap:10px;background:var(--m-kartu);color:var(--m-teks);border:1.5px solid var(--m-tepi);box-shadow:var(--m-kartu-bayang)")}>
+                  <div className="mk-penuh" style={css("border-radius:20px;padding:16px;display:grid;gap:10px;background:var(--m-kartu);color:var(--m-teks);border:1px solid var(--m-tepi)")}>
                     <div style={css("font-size:calc(14px*var(--fs,1));line-height:1.45")}>
                       <b>Data jamaah {txt(v.kloterLabel)} belum ada.</b> Unggah file Excel daftar jamaah di Profil, bagian Excel data jamaah. Belum siap? Coba dulu aplikasinya dengan data contoh.
                     </div>

@@ -18,22 +18,22 @@ function TeksArab({ teks, px }) {
     if (!latin && akhir && !akhir.latin) akhir.isi += '\n' + b; else blok.push({ latin, isi: b });
   });
   return blok.map((b, i) => b.latin
-    ? <p key={i} style={{ margin: 0, fontSize: fs(13), fontWeight: 700, color: 'var(--m-teks-2)' }}>{b.isi}</p>
+    ? <p key={i} style={{ margin: 0, fontSize: fs(13), fontWeight: 500, color: 'var(--teks-3)' }}>{b.isi}</p>
     : <p key={i} lang="ar" dir="rtl" style={arab(px)}>{b.isi}</p>);
 }
 
 function KartuDoa({ d, ket, px, admin, onUbah, onLapor }) {
   return (
     <article style={{ ...kartu, gap: 14 }}>
-      {ket ? <span style={{ fontSize: fs(12), fontWeight: 800, color: 'var(--m-aksen-teks)' }}>{ket}</span> : null}
+      {ket ? <span style={{ fontSize: fs(12), fontWeight: 600, color: 'var(--color-text)' }}>{ket}</span> : null}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
         <h3 style={{ margin: 0, fontSize: fs(16), lineHeight: 1.3, flex: '1 1 200px', minWidth: 0 }}>{d.judul}</h3>
-        <span style={{ fontSize: fs(11.5), color: 'var(--m-teks-2)', whiteSpace: 'nowrap' }}>{(d.sumber ? 'Buku ' + d.sumber + ' ' : '') + 'hal. ' + d.hal}</span>
+        <span style={{ fontSize: fs(11.5), color: 'var(--teks-3)', whiteSpace: 'nowrap' }}>{(d.sumber ? 'Buku ' + d.sumber + ' ' : '') + 'hal. ' + d.hal}</span>
       </div>
       <TeksArab teks={d.arab} px={px} />
-      {d.latin ? <p style={{ margin: 0, fontStyle: 'italic', color: 'var(--m-teks-2)', whiteSpace: 'pre-line', fontSize: fs(14) }}>{d.latin}</p> : null}
-      {d.arti ? <p style={{ margin: 0, whiteSpace: 'pre-line', fontSize: fs(14.5), lineHeight: 1.6 }}><span style={{ display: 'block', ...label, color: 'var(--m-teks-2)', marginBottom: 2 }}>ARTI</span>{d.arti}</p> : null}
-      {admin && d.catatan ? <p style={{ margin: 0, borderRadius: 12, padding: '10px 12px', background: 'var(--m-emas-bg)', fontSize: fs(13) }}><b style={{ color: 'var(--m-emas)' }}>Catatan admin · </b>{d.catatan}</p> : null}
+      {d.latin ? <p style={{ margin: 0, fontStyle: 'italic', color: 'var(--teks-3)', whiteSpace: 'pre-line', fontSize: fs(14) }}>{d.latin}</p> : null}
+      {d.arti ? <p style={{ margin: 0, whiteSpace: 'pre-line', fontSize: fs(14.5), lineHeight: 1.6 }}><span style={{ display: 'block', ...label, color: 'var(--teks-3)', marginBottom: 2 }}>ARTI</span>{d.arti}</p> : null}
+      {admin && d.catatan ? <p style={{ margin: 0, borderRadius: 12, padding: '10px 12px', background: 'var(--color-bg)', fontSize: fs(13) }}><b>Catatan admin · </b>{d.catatan}</p> : null}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button type="button" onClick={() => onLapor(d)} style={{ ...tombolTipis, minHeight: 40, fontSize: fs(12.5) }}>Ada yang salah?</button>
         {admin ? <button type="button" onClick={() => onUbah(d)} style={{ ...tombol, minHeight: 40, fontSize: fs(12.5) }}>Ubah</button> : null}
@@ -79,7 +79,7 @@ function FormUbah({ d, tutup, kabar, setelahSimpan }) {
   const [riw, setRiw] = useState(null), [sibuk, setSibuk] = useState(false), [galat, setGalat] = useState('');
   useEffect(() => { riwayatDoa(d.id).then(setRiw).catch(() => setRiw([])); }, [d.id]);
   const isian = (k, l, baris, ar) => (
-    <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 700, color: 'var(--m-teks-2)' }}>{l}
+    <label style={{ display: 'grid', gap: 6, fontSize: fs(12), fontWeight: 500, color: 'var(--teks-3)' }}>{l}
       <textarea id={'ubah-' + k} rows={baris} dir={ar ? 'rtl' : undefined} value={f[k]} onChange={e => setF({ ...f, [k]: e.target.value })}
         style={{ ...masukan, resize: 'vertical', ...(ar ? { fontFamily: "'Amiri', serif", fontSize: 22, lineHeight: 1.9 } : {}) }} />
     </label>
@@ -101,14 +101,14 @@ function FormUbah({ d, tutup, kabar, setelahSimpan }) {
       {isian('latin', 'Latin', 3)}
       {isian('arti', 'Arti', 4)}
       {isian('catatan', 'Catatan admin (tidak tampil untuk petugas)', 2)}
-      {galat ? <p role="alert" style={{ ...redup, color: 'var(--m-koral)' }}>{galat}</p> : null}
+      {galat ? <p role="alert" style={{ ...redup, color: 'var(--red-700)' }}>{galat}</p> : null}
       <button type="button" disabled={sibuk} onClick={simpan} style={tombolUtama}>{sibuk ? 'Menyimpan…' : 'Simpan perbaikan'}</button>
       <div style={{ display: 'grid', gap: 8 }}>
         <b style={{ fontSize: fs(13.5) }}>Riwayat perubahan</b>
         {riw === null ? <p style={redup}>Memuat…</p> : !riw.length ? <p style={redup}>Belum ada perubahan sebelumnya. Versi saat ini: {d.versi || 1}.</p>
           : riw.map(r => (
             <div key={r.id} style={{ ...kartu, padding: 12, gap: 6 }}>
-              <span style={{ fontSize: fs(12.5), fontWeight: 700 }}>Versi {r.versi} · {new Date(r.diubah).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+              <span style={{ fontSize: fs(12.5), fontWeight: 500 }}>Versi {r.versi} · {new Date(r.diubah).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</span>
               <p dir="rtl" style={{ ...arab(18), lineHeight: 1.8, maxHeight: 80, overflow: 'hidden' }}>{(r.isi || {}).arab}</p>
               <button type="button" disabled={sibuk} onClick={() => kembalikan(r)} style={{ ...tombolTipis, minHeight: 40, justifySelf: 'start' }}>Kembalikan ke versi ini</button>
             </div>
@@ -142,13 +142,13 @@ function LaporanMasuk({ perId, buka, kabar }) {
   useEffect(() => { muat(); }, []);
   if (!daftar || !daftar.length) return null;
   return (
-    <section style={{ ...kartu, border: '1.5px solid var(--m-emas)' }} aria-label="Laporan kesalahan">
+    <section style={kartu} aria-label="Laporan kesalahan">
       <b style={{ fontSize: fs(14.5) }}>Laporan kesalahan · {daftar.length}</b>
       {daftar.map(l => (
         <div key={l.id} style={{ display: 'grid', gap: 6, borderTop: '1px solid var(--m-garis, var(--m-tepi))', paddingTop: 10 }}>
-          <span style={{ fontSize: fs(12.5), fontWeight: 700 }}>{(perId[l.doa_id] || {}).judul || l.doa_id}</span>
+          <span style={{ fontSize: fs(12.5), fontWeight: 500 }}>{(perId[l.doa_id] || {}).judul || l.doa_id}</span>
           <span style={{ fontSize: fs(13.5) }}>{l.pesan}</span>
-          <span style={{ fontSize: fs(11.5), color: 'var(--m-teks-2)' }}>{l.pelapor_nama || 'Petugas'} · {new Date(l.dibuat).toLocaleDateString('id-ID')}</span>
+          <span style={{ fontSize: fs(11.5), color: 'var(--teks-3)' }}>{l.pelapor_nama || 'Petugas'} · {new Date(l.dibuat).toLocaleDateString('id-ID')}</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {perId[l.doa_id] ? <button type="button" onClick={() => buka(l.doa_id)} style={{ ...tombol, minHeight: 40 }}>Buka doa</button> : null}
             <button type="button" onClick={() => tandaiLaporan(l.id).then(muat).catch(e => kabar(e.message))} style={{ ...tombolTipis, minHeight: 40 }}>Tandai selesai</button>
@@ -182,8 +182,8 @@ export default function LayarDoa() {
 
   const alat = (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-      {k || satu ? <button type="button" onClick={() => setLihat(satu && k ? { k: k.id, d: null } : { k: null, d: null })} style={{ ...tombol, borderRadius: 999 }}>← {satu && k ? k.nama : 'Semua kegiatan'}</button> : null}
-      <button type="button" onClick={() => { const n = (iUk + 1) % UKURAN.length; setIUk(n); tulis('mk.doa.huruf', n); }} style={{ ...tombolTipis, borderRadius: 999, minHeight: 40 }} aria-label="Ganti ukuran huruf Arab">Huruf Arab: {UKURAN[iUk][0]}</button>
+      {k || satu ? <button type="button" onClick={() => setLihat(satu && k ? { k: k.id, d: null } : { k: null, d: null })} style={tombol}>‹ {satu && k ? k.nama : 'Semua kegiatan'}</button> : null}
+      <button type="button" onClick={() => { const n = (iUk + 1) % UKURAN.length; setIUk(n); tulis('mk.doa.huruf', n); }} style={tombolTipis} aria-label="Ganti ukuran huruf Arab">Huruf Arab: {UKURAN[iUk][0]}</button>
     </div>
   );
 
@@ -209,7 +209,7 @@ export default function LayarDoa() {
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }} role="tablist" aria-label={'Langkah ' + k.nama}>
           {k.bagian.map((x, j) => (
             <button key={j} type="button" role="tab" aria-selected={j === i} title={x.judul} onClick={() => pergi(j)}
-              style={{ flex: 'none', minWidth: 42, minHeight: 42, borderRadius: 999, border: '1.5px solid var(--m-tepi)', cursor: 'pointer', font: `800 ${fs(13)} var(--font-body)`, fontVariantNumeric: 'tabular-nums', background: j === i ? 'var(--m-isi)' : 'var(--m-kartu)', color: j === i ? 'var(--m-on-isi)' : 'var(--m-teks)' }}>{j + 1}</button>
+              style={{ flex: 'none', minWidth: 44, minHeight: 44, borderRadius: 999, border: '1px solid var(--m-tepi)', cursor: 'pointer', font: `600 ${fs(13)} var(--font-body)`, fontVariantNumeric: 'tabular-nums', background: j === i ? 'var(--color-accent)' : 'var(--m-kartu)', color: j === i ? 'var(--on-accent)' : 'var(--m-teks)' }}>{j + 1}</button>
           ))}
         </div>
         <div style={{ display: 'grid', gap: 2 }}>
@@ -232,8 +232,8 @@ export default function LayarDoa() {
           <div style={{ ...kartu, padding: 0, gap: 0, overflow: 'hidden' }}>
             {b.doa.map((x, q) => { const d = perId[x.id]; if (!d) return null; return (
               <button key={x.id} type="button" onClick={() => setLihat({ k: k.id, d: x.id })}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', border: 0, borderTop: q ? '1px solid var(--m-garis, var(--m-tepi))' : 0, background: 'transparent', color: 'var(--m-teks)', padding: '14px 16px', minHeight: 52, font: `700 ${fs(14)} var(--font-body)`, cursor: 'pointer' }}>
-                <span style={{ flex: 1, minWidth: 0 }}>{d.judul}</span><span aria-hidden="true" style={{ color: 'var(--m-teks-2)', fontSize: 20 }}>›</span>
+                style={{ display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', border: 0, borderTop: q ? '1px solid var(--m-garis, var(--m-tepi))' : 0, background: 'transparent', color: 'var(--m-teks)', padding: '14px 16px', minHeight: 52, font: `500 ${fs(14)} var(--font-body)`, cursor: 'pointer' }}>
+                <span style={{ flex: 1, minWidth: 0 }}>{d.judul}</span><span aria-hidden="true" style={{ color: 'var(--teks-3)', fontSize: 20 }}>›</span>
               </button>); })}
           </div>
         ) : b.doa.map(x => kartuDoa(perId[x.id], x.ket))}
@@ -250,20 +250,22 @@ export default function LayarDoa() {
           <div style={{ ...kartu, padding: 0, gap: 0, overflow: 'hidden' }}>
             {hasil.length ? hasil.map((d, q2) => (
               <button key={d.id} type="button" onClick={() => setLihat({ k: kegiatanDari(d.id), d: d.id })}
-                style={{ textAlign: 'left', border: 0, borderTop: q2 ? '1px solid var(--m-garis, var(--m-tepi))' : 0, background: 'transparent', color: 'var(--m-teks)', padding: '13px 16px', minHeight: 48, font: `700 ${fs(14)} var(--font-body)`, cursor: 'pointer' }}>{d.judul}</button>
+                style={{ textAlign: 'left', border: 0, borderTop: q2 ? '1px solid var(--m-garis, var(--m-tepi))' : 0, background: 'transparent', color: 'var(--m-teks)', padding: '13px 16px', minHeight: 48, font: `500 ${fs(14)} var(--font-body)`, cursor: 'pointer' }}>{d.judul}</button>
             )) : <p style={{ ...redup, padding: 16 }}>Tidak ada doa yang cocok.</p>}
           </div>
         ) : (
           <>
             {admin && isi.dari !== 'uji' ? <LaporanMasuk perId={perId} buka={id => setLihat({ k: kegiatanDari(id), d: id })} kabar={setPesan} /> : null}
             {sayaAdmin() ? <Impor kabar={setPesan} setelah={muat} /> : null}
-            <div className="mk-menu">
-              {KEGIATAN.map(x => (
+            <div style={{ ...kartu, gap: 0, padding: '4px 16px' }}>
+              {KEGIATAN.map((x, i) => (
                 <button key={x.id} type="button" onClick={() => setLihat({ k: x.id, d: null })}
-                  style={{ ...kartu, gap: 6, padding: 14, textAlign: 'left', border: 0, cursor: 'pointer', alignContent: 'start', minHeight: 104, font: 'inherit' }}>
-                  <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: 12, display: 'grid', placeItems: 'center', background: 'var(--m-lembut)', color: 'var(--m-aksen-teks)' }}><Ikon d={x.ikon} /></span>
-                  <b style={{ fontSize: fs(14), lineHeight: 1.25 }}>{x.nama}</b>
-                  <span style={{ fontSize: fs(11.5), color: 'var(--m-teks-2)', lineHeight: 1.35 }}>{x.mode === 'langkah' ? x.bagian.length + ' langkah' : x.ket}</span>
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 58, padding: '8px 0', textAlign: 'left', border: 0, borderTop: i ? '1px solid var(--color-divider)' : 0, background: 'transparent', color: 'var(--m-teks)', cursor: 'pointer', font: 'inherit' }}>
+                  <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 2 }}>
+                    <span style={{ fontSize: fs(15), fontWeight: 500 }}>{x.nama}</span>
+                    <span style={{ fontSize: fs(12.5), color: 'var(--teks-3)', lineHeight: 1.35 }}>{x.mode === 'langkah' ? x.bagian.length + ' langkah' : x.ket}</span>
+                  </span>
+                  <Ikon d="M9 6l6 6-6 6" />
                 </button>
               ))}
             </div>
@@ -274,20 +276,18 @@ export default function LayarDoa() {
   }
 
   return (
-    <div className="mk-kolom" style={{ padding: '14px 14px 24px', gap: 14 }}>
-      <div className="mk-penuh" style={{ display: 'grid', gap: 4, padding: '4px 4px 0' }}>
-        <span style={label}>DOA MANASIK & WIRID</span>
-        <h2 style={judulBesar}>{satu ? satu.judul : k ? k.nama : 'Doa'}</h2>
-        {!k && !satu ? <p style={redup}>Pilih kegiatan. Thawaf dan sa'i dibuka langkah demi langkah, lengkap dengan hitungan putaran.</p> : null}
+    <div className="mk-kolom" style={{ padding: '12px 12px 24px', gap: 12 }}>
+      <div className="mk-penuh" style={{ display: 'grid', gap: 4, padding: '0 4px' }}>
+        {k || satu ? <h2 style={judulBesar}>{satu ? satu.judul : k.nama}</h2> : <p style={redup}>Pilih kegiatan. Thawaf dan sa'i dibuka langkah demi langkah, lengkap dengan hitungan putaran.</p>}
       </div>
-      <div className="mk-penuh" style={{ display: 'grid', gap: 14 }}>
+      <div className="mk-penuh" style={{ display: 'grid', gap: 12 }}>
         {isi.status === 'siap' ? alat : null}
         {isiLayar}
         {isi.dari === 'uji' ? <p style={{ ...redup, fontSize: fs(11.5) }}>Mode uji lokal · isi dari berkas doa-lokal.json, perubahan hanya tersimpan di browser ini.</p> : null}
       </div>
       {lapor ? <FormLapor d={lapor} tutup={() => setLapor(null)} kabar={setPesan} /> : null}
       {ubah ? <FormUbah d={ubah} tutup={() => setUbah(null)} kabar={setPesan} setelahSimpan={setelahSimpan} /> : null}
-      {pesan ? <div role="status" style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(100px + env(safe-area-inset-bottom, 0px))', zIndex: 50, maxWidth: 520, margin: '0 auto', padding: '12px 16px', borderRadius: 14, background: 'var(--m-teks)', color: 'var(--color-bg)', font: `700 ${fs(13)} var(--font-body)`, textAlign: 'center' }}>{pesan}</div> : null}
+      {pesan ? <div role="status" style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(100px + env(safe-area-inset-bottom, 0px))', zIndex: 50, maxWidth: 520, margin: '0 auto', padding: '12px 16px', borderRadius: 14, background: 'var(--m-teks)', color: 'var(--color-bg)', font: `500 ${fs(13)} var(--font-body)`, textAlign: 'center' }}>{pesan}</div> : null}
     </div>
   );
 }

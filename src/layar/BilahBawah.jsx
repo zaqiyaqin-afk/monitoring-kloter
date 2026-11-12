@@ -1,30 +1,45 @@
-// Bilah navigasi bawah melayang: kapsul 6 tombol + tombol tengah Massal yang menonjol tanpa tulisan.
-import React from 'react';
-import { css, txt, arr } from '../dc/runtime.js';
+// Bilah navigasi bawah: empat tab dan tombol Massal. Pil biru tua bergeser ke tab yang dibuka.
+import React, { useLayoutEffect, useRef } from 'react';
+import { txt, arr } from '../dc/runtime.js';
+
+const kurangiGerak = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export default function BilahBawah({ v }) {
+  const tabs = arr(v.tabs).filter(t => !t?.fab), massal = arr(v.tabs).find(t => t?.fab);
+  const aktif = tabs.findIndex(t => t?.aktif);
+  const nav = useRef(null), pil = useRef(null), ikon = useRef([]), xLama = useRef(null);
+
+  // Posisi diukur dari ikon tab, bukan dihitung, supaya tetap pas di lebar layar dan ukuran huruf apa pun.
+  useLayoutEffect(() => {
+    const p = pil.current, i = ikon.current[aktif], n = nav.current;
+    if (!p || !n) return;
+    if (!i) { p.style.opacity = '0'; xLama.current = null; return; }
+    const a = i.getBoundingClientRect(), b = n.getBoundingClientRect(), x = a.left - b.left, y = a.top - b.top, dari = xLama.current;
+    p.style.opacity = '1'; p.style.transform = `translate(${x}px, ${y}px)`;
+    if (dari != null && dari !== x && !kurangiGerak() && p.animate) {
+      p.animate([{ transform: `translate(${dari}px, ${y}px) scaleX(1)` }, { transform: `translate(${(dari + x) / 2}px, ${y}px) scaleX(1.3)`, offset: 0.5 }, { transform: `translate(${x}px, ${y}px) scaleX(1)` }],
+        { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    }
+    xLama.current = x;
+  });
+
   return (
-    <nav aria-label="Navigasi utama" style={css("position:absolute;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom, 0px));height:66px;max-width:560px;margin:0 auto;z-index:3;pointer-events:none")}>
-      <div className="kaca-blur" style={css("position:absolute;inset:0;border-radius:33px;background:var(--bb-isi);box-shadow:inset 0 0 0 1.5px var(--bb-tepi), var(--bb-bayang)")}></div>
-      <div style={css(`position:relative;height:100%;display:grid;grid-template-columns:repeat(${arr(v.tabs).length || 5},minmax(0,1fr));align-items:center;padding:0 4px;box-sizing:border-box;pointer-events:auto`)}>
-        {arr(v.tabs).map((t, i0) => (<React.Fragment key={i0}>
-          {t?.fab ? (
-            <div style={css("position:relative;height:100%;display:flex;justify-content:center")}>
-              <span aria-hidden="true" style={css("position:absolute;top:-34px;width:72px;height:72px;border-radius:50%;background:var(--bb-soket)")}></span>
-              <button className="mk-fab" onClick={t?.on} aria-label={t?.l} aria-current={t?.aktif ? 'page' : undefined} style={css("position:absolute;top:-30px;width:64px;height:64px;border:0;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer")}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d={t?.d} /></svg>
-              </button>
-            </div>
-          ) : (
-            <button onClick={t?.on} aria-current={t?.aktif ? 'page' : undefined} style={css(`border:0;background:transparent;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;cursor:pointer;color:${t?.aktif ? 'var(--bb-aktif)' : 'var(--bb-fg)'};min-width:0;white-space:nowrap;font:${t?.aktif ? 700 : 500} calc(10.5px*min(var(--fs,1),1.1)) var(--font-body)`)}>
-              <span style={css(`width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:${t?.aktif ? 'var(--bb-sinar)' : 'transparent'};box-shadow:${t?.aktif ? '0 4px 18px var(--bb-sinar)' : 'none'}`)}>
-                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={t?.aktif ? 2.4 : 2} strokeLinecap="round" strokeLinejoin="round"><path d={t?.d} /></svg>
-              </span>
-              {txt(t?.l)}
-            </button>
-          )}
-        </React.Fragment>))}
-      </div>
+    <nav ref={nav} className="bb" aria-label="Navigasi utama">
+      <span ref={pil} className="bb-pil" aria-hidden="true" style={{ opacity: 0 }}></span>
+      {tabs.map((t, i) => (
+        <button key={t.l} type="button" className="bb-tab" onClick={t.on} aria-current={t.aktif ? 'page' : undefined}>
+          <span className="bb-ikon" ref={el => { ikon.current[i] = el; }}>
+            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={t.aktif ? 1.9 : 1.6} strokeLinecap="round" strokeLinejoin="round"><path d={t.d} /></svg>
+          </span>
+          {txt(t.l)}
+        </button>
+      ))}
+      {massal ? (
+        <button type="button" className="bb-massal" onClick={massal.on} aria-current={massal.aktif ? 'page' : undefined}>
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d={massal.d} /></svg>
+          {txt(massal.l)}
+        </button>
+      ) : null}
     </nav>
   );
 }

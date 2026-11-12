@@ -1,492 +1,220 @@
-// Menu Checklist (Massal): pilih ibadah, lalu centang per rombongan/regu/jamaah.
-import React from 'react';
-import { css, txt, arr } from '../dc/runtime.js';
+// Menu Massal: pilih ibadah, lalu centang per kloter/rombongan/regu/jamaah, dan daftar kegiatan per hari.
+import React, { useState } from 'react';
+import { txt, arr } from '../dc/runtime.js';
 import PilihIbadah from '../PilihIbadah.jsx';
+import { Ikon, Avatar, SEGITIGA } from './MenuJamaah.jsx';
+
+const fs = n => `calc(${n}px*var(--fs,1))`;
+const kartu = { background: 'var(--color-surface)', borderRadius: 20, padding: 16, display: 'grid', gap: 12, minWidth: 0 };
+const label = { fontSize: fs(13.5), fontWeight: 500 };
+const kecil = { fontSize: fs(12.5), color: 'var(--teks-3)', lineHeight: 1.45 };
+const geser = { display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px', padding: '0 16px', scrollbarWidth: 'none' };
+const pil = (a, lain) => ({ flex: 'none', minHeight: 44, padding: '0 14px', borderRadius: 22, border: '1px solid ' + (a ? 'var(--color-accent)' : 'var(--m-tepi)'), background: a ? 'var(--color-accent)' : 'var(--color-surface)',
+  color: a ? 'var(--on-accent)' : 'var(--color-text)', font: `${a ? 600 : 400} ${fs(13)} var(--font-body)`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', ...lain });
+const wadah = n => ({ display: 'grid', gridTemplateColumns: `repeat(${n}, minmax(0,1fr))`, gap: 4, padding: 4, borderRadius: 26, border: '1px solid var(--m-tepi)' });
+const CENTANG = 'M5 12.5l4.5 4.5L19 7.5', GEMBOK = 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3', TURUN = 'M6 9l6 6 6-6';
+
+const Segmen = ({ list }) => (
+  <div style={wadah(arr(list).length)}>
+    {arr(list).map((m, i) => <button key={i} type="button" onClick={m?.on} aria-pressed={!!m?.a} style={pil(m?.a, { border: 0, padding: 0, minWidth: 0 })}>{txt(m?.l)}</button>)}
+  </div>
+);
+// Kotak centang bulat: biru tua bila selesai, bertepi bila belum, huruf B untuk badal.
+const Centang = ({ c, onClick, nama }) => (
+  <button type="button" onClick={onClick} aria-label={nama}
+    style={{ width: 44, height: 44, flex: 'none', borderRadius: 22, padding: 0, cursor: 'pointer', display: 'grid', placeItems: 'center', border: '1.5px solid ' + c.ring, background: c.bg, color: c.fg, font: `600 ${fs(14)} var(--font-body)` }}>
+    {c.mark === '✓' ? <Ikon d={CENTANG} s={22} w={2.2} /> : c.mark === '–' ? <Ikon d="M7 12h10" s={20} /> : txt(c.mark)}
+  </button>
+);
+const merah = t => /red/.test(String(t?.bg || ''));
 
 export default function MenuChecklist({ v }) {
-  return (<>
-              {v.ckPilih ? <PilihIbadah v={v} /> : (<>
-              {" "}
-              <div style={css("padding:8px 20px 24px;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;gap:16px")}>
-                {" "}
-                <div>
-                  {" "}
-                  <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(22px*var(--fs,1));line-height:1.08")}>
-                    Checklist {txt(v.labelIbadah)}
-                  </div>
-                  <button onClick={v.kePilihIbadah} style={css("margin-top:6px;border:1px solid var(--color-divider);background:var(--color-surface);color:var(--color-accent-700);border-radius:999px;min-height:44px;padding:0 14px;font:700 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer")}>‹ Ganti ibadah</button>
-                  {" "}
-                  <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);margin-top:4px")}>
-                    {txt(v.kloterLabel)}{" "}·{" "}{txt(v.d?.day)}
-                  </div>
-                  {" "}
-                </div>
-                {" "}
-                <div style={css("display:grid;gap:8px")}>
-                  {" "}
-                  <div style={css("font-size:calc(13px*var(--fs,1));font-weight:600;color:var(--color-neutral-800)")}>
-                    Kegiatan
-                  </div>
-                  {" "}
-                  <div ref={v.daysRef} style={css("position:relative;display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;margin:0 -20px;padding:2px 20px;scrollbar-width:none")}>
-                    {arr(v.ckDays).map((c, i0) => (<React.Fragment key={i0}>
-                      <button data-today={c?.today} onClick={c?.on} style={css(`flex:none;scroll-snap-align:center;border:0;border-radius:999px;min-height:44px;padding:0 16px;font:700 calc(14px*var(--fs,1)) var(--font-body);cursor:pointer;display:flex;align-items:center;gap:8px;background:${c?.bg ?? ''};color:${c?.fg ?? ''};box-shadow:inset 0 0 0 ${c?.rw ?? ''} ${c?.ring ?? ''}`)}>
-                        <span style={css(`width:8px;height:8px;border-radius:50%;background:${c?.dotBg ?? ''};display:${c?.dot ?? ''}`)}></span>
-                        {txt(c?.l)}
-                      </button>
-                    </React.Fragment>))}
-                    {" "}
-                  </div>
-                  {" "}
-                  <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>
-                    {" "}
-                    {arr(v.ckPills).map((p, i0) => (<React.Fragment key={i0}>
-                      <button onClick={p?.on} style={css(`flex:none;border:0;border-radius:999px;min-height:44px;padding:0 14px;font:600 calc(14px*var(--fs,1)) var(--font-body);cursor:pointer;white-space:nowrap;line-height:1.2;display:flex;align-items:center;gap:6px;background:${p?.bg ?? ''};color:${p?.fg ?? ''};box-shadow:inset 0 0 0 1.5px ${p?.ring ?? ''}`)}>
-                        {p?.locked ? (<>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="4" y="11" width="16" height="10" rx="3" />
-                            <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                          </svg>
-                        </>) : null}
-                        {p?.now ? (<>
-                          <span style={css("width:9px;height:9px;border-radius:50%;background:var(--color-accent-500);box-shadow:0 0 0 2px var(--color-accent-100)")}></span>
-                        </>) : null}
-                        {p?.done ? (<>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-2-700)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12.5l4.5 4.5L19 7.5" />
-                          </svg>
-                        </>) : null}
-                        {txt(p?.l)}
-                      </button>
-                    </React.Fragment>))}
-                    {" "}
-                  </div>
-                  {" "}
-                  {v.ckTarw ? (<>
-                    <div style={css("display:grid;gap:6px")}>
-                      <div style={css("font-size:calc(13px*var(--fs,1));font-weight:600;color:var(--color-neutral-800)")}>
-                        Tarwiyah · berangkat ke Mina tanggal
-                      </div>
-                      <div style={css("display:grid;grid-template-columns:1fr 1fr;background:var(--color-surface);border-radius:999px;overflow:hidden;padding:4px;gap:4px;box-shadow:inset 0 0 0 1px var(--color-divider)")}>
-                        {arr(v.tarwBtns).map((m, i0) => (<React.Fragment key={i0}>
-                          <button onClick={m?.on} style={css(`border:0;border-radius:999px;min-height:44px;font:600 calc(14px*var(--fs,1)) var(--font-body);cursor:pointer;background:${m?.bg ?? ''};color:${m?.fg ?? ''}`)}>
-                            {txt(m?.l)}
-                          </button>
-                        </React.Fragment>))}
-                      </div>
-                    </div>
-                  </>) : null}
-                  {" "}
-                  {v.isMad ? (<>
-                    {" "}
-                    <div style={css("display:grid;gap:10px;margin-top:4px")}>
-                      {" "}
-                      <div style={css("display:flex;justify-content:space-between;align-items:baseline;gap:8px")}>
-                        <span style={css("font-size:calc(13px*var(--fs,1));font-weight:600;color:var(--color-neutral-800)")}>
-                          Jadwal Raudhoh
-                        </span>
-                        <span style={css("font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-700)")}>
-                          {txt(v.sexSplit)}
-                        </span>
-                      </div>
-                      {" "}
-                      {v.noSlots ? (<>
-                        <div style={css("font-size:calc(13px*var(--fs,1));line-height:1.45;color:var(--color-neutral-700);background:var(--color-surface);border-radius:20px;padding:12px 14px")}>
-                          Belum ada jadwal. Ketuk “+ Tambah jadwal”.
-                        </div>
-                      </>) : null}
-                      {" "}
-                      <div style={css("display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:2px 20px;scrollbar-width:none")}>
-                        {arr(v.mdDays).map((c, i0) => (<React.Fragment key={i0}>
-                          <button onClick={c?.on} style={css(`flex:none;border:0;border-radius:999px;min-height:44px;padding:0 16px;font:700 calc(14px*var(--fs,1)) var(--font-body);cursor:pointer;background:${c?.bg ?? ''};color:${c?.fg ?? ''};box-shadow:inset 0 0 0 1.5px ${c?.ring ?? ''}`)}>
-                            {txt(c?.l)}
-                          </button>
-                        </React.Fragment>))}
-                      </div>
-                      {" "}
-                      <div style={css("display:grid;grid-template-columns:1fr 1fr;background:var(--color-surface);border-radius:999px;overflow:hidden;padding:4px;gap:4px;box-shadow:inset 0 0 0 1px var(--color-divider)")}>
-                        {arr(v.mdSexBtns).map((m, i0) => (<React.Fragment key={i0}>
-                          <button onClick={m?.on} style={css(`border:0;border-radius:999px;min-height:44px;font:600 calc(14px*var(--fs,1)) var(--font-body);cursor:pointer;background:${m?.bg ?? ''};color:${m?.fg ?? ''}`)}>
-                            {txt(m?.l)}
-                          </button>
-                        </React.Fragment>))}
-                      </div>
-                      {" "}
-                      <div style={css("display:flex;flex-wrap:wrap;gap:8px")}>
-                        {arr(v.mdJams).map((c, i0) => (<React.Fragment key={i0}>
-                          <button onClick={c?.on} style={css(`border:0;border-radius:18px;min-height:56px;padding:6px 14px;text-align:left;cursor:pointer;background:${c?.bg ?? ''};color:${c?.fg ?? ''};box-shadow:inset 0 0 0 ${c?.rw ?? ''} ${c?.ring ?? ''}`)}>
-                            <div style={css("font-weight:700;font-size:calc(14px*var(--fs,1))")}>
-                              {txt(c?.l)}
-                            </div>
-                            <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700)")}>
-                              {txt(c?.sub)}{" "}·{" "}{txt(c?.cnt)}
-                            </div>
-                          </button>
-                        </React.Fragment>))}
-                      </div>
-                      {" "}
-                      {v.mdNone ? (<>
-                        <div style={css("font-size:calc(13px*var(--fs,1));line-height:1.45;color:var(--color-neutral-700)")}>
-                          Belum ada jadwal{" "}{txt(v.mdSexName)}{" "}pada hari ini.
-                        </div>
-                      </>) : null}
-                      {" "}
-                      <div style={css("display:flex;gap:12px;align-items:center;flex-wrap:wrap")}>
-                        <button className="btn btn-secondary" onClick={v.openAddSlot} style={css("height:44px;padding:0 18px;font-size:calc(14px*var(--fs,1))")}>
-                          + Tambah jadwal
-                        </button>
-                        {v.slotActive ? (<>
-                          <button className="btn btn-ghost" onClick={v.clearSlot} style={css("font-size:calc(13px*var(--fs,1));min-height:44px")}>
-                            Tampilkan semua jamaah
-                          </button>
-                        </>) : null}
-                      </div>
-                      {" "}
-                    </div>
-                    {" "}
-                  </>) : null}
-                  {" "}
-                  {v.ckNotCur ? (<>
-                    <button className="btn btn-ghost" onClick={v.ckSetCur} style={css("justify-self:start;font-size:calc(13px*var(--fs,1));min-height:44px;padding:0")}>
-                      Jadikan kegiatan yang sedang berlangsung
-                    </button>
-                  </>) : null}
-                  {" "}
-                </div>
-                {" "}
-                <div style={css("display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--color-surface);border-radius:999px;overflow:hidden;padding:4px;gap:4px;box-shadow:inset 0 0 0 1px var(--color-divider)")}>
-                  {" "}
-                  {arr(v.ckScopes).map((m, i0) => (<React.Fragment key={i0}>
-                    <button onClick={m?.on} style={css(`border:0;border-radius:999px;min-height:44px;padding:0;font:600 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer;background:${m?.bg ?? ''};color:${m?.fg ?? ''}`)}>
-                      {txt(m?.l)}
-                    </button>
-                  </React.Fragment>))}
-                  {" "}
-                </div>
-                {" "}
-                {v.ckShowR ? (<>
-                  {" "}
-                  <div style={css("display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:2px 20px;scrollbar-width:none")}>
-                    {arr(v.ckRs).map((c, i0) => (<React.Fragment key={i0}>
-                      <button onClick={c?.on} style={css(`flex:none;min-width:76px;min-height:44px;border:0;border-radius:16px;padding:6px 10px;display:grid;gap:5px;cursor:pointer;background:${c?.bg ?? ''};box-shadow:inset 0 0 0 1.5px ${c?.ring ?? ''}`)}>
-                        <div style={css(`display:flex;justify-content:space-between;gap:10px;font:700 calc(13px*var(--fs,1)) var(--font-body);color:${c?.fg ?? ''}`)}>
-                          <span>
-                            {txt(c?.l)}
-                          </span>
-                          <span>
-                            {txt(c?.pct)}
-                          </span>
-                        </div>
-                        <div style={css("height:4px;border-radius:9px;background:var(--color-neutral-200);overflow:hidden")}>
-                          <div style={css(`width:${c?.pct ?? ''};height:100%;background:${c?.col ?? ''}`)}></div>
-                        </div>
-                      </button>
-                    </React.Fragment>))}
-                  </div>
-                  {" "}
-                </>) : null}
-                {" "}
-                {v.ckShowG ? (<>
-                  {" "}
-                  <div style={css("display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px")}>
-                    {" "}
-                    {arr(v.ckGs).map((c, i0) => (<React.Fragment key={i0}>
-                      <button onClick={c?.on} style={css(`border:0;border-radius:999px;min-height:44px;padding:0;font:600 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer;background:${c?.bg ?? ''};color:${c?.fg ?? ''}`)}>
-                        {txt(c?.l)}
-                      </button>
-                    </React.Fragment>))}
-                    {" "}
-                  </div>
-                  {" "}
-                </>) : null}
-                {" "}
-                <input className="input" type="search" aria-label="Cari jamaah" value={v.ckQ ?? ''} onChange={v.onCkQ} placeholder="Cari jamaah · nama atau nomor porsi" style={css("height:46px;font-size:calc(15px*var(--fs,1));border-radius:999px")} />
-                {" "}
-                <div className="mk-gelap" style={css("background:var(--hero);border:1px solid var(--kaca-garis);border-radius:24px;padding:18px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--kartu-bayang);display:grid;gap:12px")}>
-                  {" "}
-                  <div style={css("display:flex;justify-content:space-between;align-items:flex-end;gap:10px")}>
-                    {" "}
-                    <div>
-                      {" "}
-                      <div style={css("font-size:calc(13px*var(--fs,1));font-weight:600;color:rgba(255,255,255,.88)")}>
-                        {txt(v.ckSum?.label)}
-                      </div>
-                      {" "}
-                      <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(24px*var(--fs,1));line-height:1;margin-top:6px;color:#fff")}>
-                        {txt(v.ckSum?.done)}
-                        <span style={css("font-size:calc(18px*var(--fs,1));color:rgba(255,255,255,.8)")}>
-                          {" "}/{" "}{txt(v.ckSum?.total)}
-                        </span>
-                      </div>
-                      {" "}
-                    </div>
-                    {" "}
-                    <div style={css("font-size:calc(13px*var(--fs,1));color:rgba(255,255,255,.88);text-align:right;max-width:140px")}>
-                      selesai{" "}{txt(v.ckSum?.rite)}
-                    </div>
-                    {" "}
-                  </div>
-                  {" "}
-                  <div style={css("height:8px;border-radius:99px;background:rgba(0,0,0,.38);overflow:hidden")}>
-                    <div style={css(`height:100%;width:${v.ckSum?.pct ?? ''};background:linear-gradient(90deg,#1fcfa0,#5ff5ce);border-radius:99px;transition:width .4s`)}></div>
-                  </div>
-                  {" "}
-                  {v.ckSum?.hasNote ? (<>
-                    <div style={css("font-size:calc(13px*var(--fs,1));color:rgba(255,255,255,.88);line-height:1.4")}>
-                      {txt(v.ckSum?.note)}
-                    </div>
-                  </>) : null}
-                  {" "}
-                </div>
-                {" "}
-                {v.hasPel ? (<>
-                  {" "}
-                  <div style={css("display:grid;gap:8px")}>
-                    {" "}
-                    <div style={css("font-size:calc(13px*var(--fs,1));font-weight:600;color:var(--color-neutral-800)")}>
-                      Pelaksana badal
-                    </div>
-                    {" "}
-                    <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:2px 16px")}>
-                      {" "}
-                      {arr(v.pelGroups).map((p, i0) => (<React.Fragment key={i0}>
-                        {" "}
-                        <div style={css("display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--color-divider)")}>
-                          {" "}
-                          <div style={css("width:36px;height:36px;border-radius:50%;background:var(--color-accent-200);color:var(--color-accent-800);display:grid;place-items:center;font-weight:800;font-size:calc(14px*var(--fs,1));flex:none")}>
-                            {txt(p?.count)}
-                          </div>
-                          {" "}
-                          <div style={css("min-width:0;flex:1")}>
-                            <div style={css("font-weight:600;font-size:calc(14px*var(--fs,1))")}>
-                              {txt(p?.name)}
-                            </div>
-                            <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700)")}>
-                              {txt(p?.role)}{" "}·{" "}{txt(p?.names)}
-                            </div>
-                          </div>
-                          {" "}
-                        </div>
-                        {" "}
-                      </React.Fragment>))}
-                      {" "}
-                    </div>
-                    {" "}
-                  </div>
-                  {" "}
-                </>) : null}
-                {" "}
-                {v.ckEmpty ? (<>
-                  <div style={css("background:var(--color-surface);border-radius:22px;box-shadow:inset 0 0 0 1px var(--color-divider);padding:24px 16px;text-align:center;font-size:calc(14px*var(--fs,1));color:var(--color-neutral-700)")}>
-                    Tidak ada jamaah untuk kegiatan ini di cakupan ini.
-                  </div>
-                </>) : null}
-                {" "}
-                {v.ckHasRows ? (<>
-                  {" "}
-                  <div style={css("display:grid;gap:10px")}>
-                    {" "}
-                    {arr(v.ckRows).map((r, i0) => (<React.Fragment key={i0}>
-                      {" "}
-                      <div className={r?.mark === '✓' ? 'kartu-zamrud' : 'kartu-safir'} style={css("border-radius:20px;padding:14px 14px 14px 16px;display:grid;gap:12px")}>
-                        {" "}
-                        <div style={css("display:flex;align-items:center;gap:12px")}>
-                          {" "}
-                          <button type="button" className="ketuk" onClick={r?.onOpen} style={css("flex:1;min-width:0;min-height:44px;display:flex;align-items:center;gap:12px")}>
-                            <div style={css("flex:1;min-width:0")}>
-                              <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(18px*var(--fs,1));line-height:1.15")}>
-                                {txt(r?.title)}
-                              </div>
-                              <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);margin-top:2px")}>
-                                {txt(r?.sub)}
-                              </div>
-                            </div>
-                            <span style={css(`font-size:calc(15px*var(--fs,1));font-weight:800;color:${r?.cntFg ?? ''};flex:none`)}>
-                              {txt(r?.cnt)}
-                            </span>
-                          </button>
-                          <button type="button" onClick={r?.onCheck} aria-label={'Centang semua ' + (r?.title ?? '')} style={css(`width:44px;height:44px;flex:none;border-radius:14px;border:0;font:800 calc(20px*var(--fs,1)) var(--font-body);background:${r?.bg ?? ''};color:${r?.fg ?? ''};box-shadow:inset 0 0 0 2px ${r?.ring ?? ''}`)}>
-                            {txt(r?.mark)}
-                          </button>
-                          {" "}
-                        </div>
-                        {" "}
-                        {r?.hasDots ? (<>
-                          <div style={css("display:flex;flex-wrap:wrap;gap:3px")}>
-                            {arr(r?.dots).map((o, i1) => (<React.Fragment key={i1}>
-                              <div style={css(`width:28px;height:28px;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;font:700 13px var(--font-body);border:${o?.bd ?? ''};background:${o?.bg ?? ''};color:${o?.fg ?? ''}`)}>
-                                {txt(o?.ini)}
-                              </div>
-                            </React.Fragment>))}
-                          </div>
-                        </>) : null}
-                        {" "}
-                        {r?.noDots ? (<>
-                          <div style={css("height:8px;border-radius:99px;background:var(--color-neutral-200);overflow:hidden")}>
-                            <div style={css(`width:${r?.pct ?? ''};height:100%;border-radius:99px;background:${r?.col ?? ''}`)}></div>
-                          </div>
-                        </>) : null}
-                        {" "}
-                      </div>
-                      {" "}
-                    </React.Fragment>))}
-                    {" "}
-                  </div>
-                  {" "}
-                </>) : null}
-                {" "}
-                {v.ckHasPeople ? (<>
-                  {" "}
-                  <div className="kaca" style={css("border-radius:22px;padding:2px 14px")}>
-                    {" "}
-                    {arr(v.ckPeople).map((p, i0) => (<React.Fragment key={i0}>
-                      {" "}
-                      <div style={css("display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 0;border-bottom:1px solid var(--color-divider)")}>
-                        {" "}
-                        <button type="button" tabIndex={-1} aria-hidden="true" onClick={p?.onOpen} style={css(`width:44px;height:44px;border:0;padding:0;border-radius:50%;flex:none;display:grid;place-items:center;font:700 calc(13px*var(--fs,1)) var(--font-body);background:${p?.avBg ?? ''};color:${p?.avFg ?? ''}`)}>
-                          {txt(p?.ini)}
-                        </button>
-                        <button type="button" className="ketuk" onClick={p?.onOpen} style={css("flex:1;min-width:0;min-height:44px")}>
-                          {" "}
-                          <div style={css("font-weight:600;font-size:calc(14.5px*var(--fs,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>
-                            {txt(p?.name)}
-                          </div>
-                          {" "}
-                          <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>
-                            {txt(p?.sub)}
-                          </div>
-                          {" "}
-                          {p?.hasTags ? (<>
-                            <div style={css("display:flex;flex-wrap:wrap;gap:4px;margin-top:4px")}>
-                              {arr(p?.tags).map((t, i1) => (<React.Fragment key={i1}>
-                                <span style={css(`font-size:calc(13px*var(--fs,1));font-weight:700;line-height:1.3;padding:1px 9px;border-radius:999px;background:${t?.bg ?? ''};color:${t?.fg ?? ''}`)}>
-                                  {txt(t?.t)}
-                                </span>
-                              </React.Fragment>))}
-                            </div>
-                          </>) : null}
-                        </button>
-                        {p?.canUl ? (<>
-                          <button type="button" onClick={p?.onMore} aria-label={'Tandai perlu ulang: ' + (p?.name ?? '')} style={css("width:44px;height:44px;flex:none;border:0;border-radius:14px;background:transparent;font:800 calc(20px*var(--fs,1)) var(--font-body);color:var(--color-neutral-800)")}>
-                            ⋯
-                          </button>
-                        </>) : null}
-                        {" "}
-                        <button type="button" onClick={p?.onCheck} aria-label={'Centang ' + (p?.name ?? '')} style={css(`width:44px;height:44px;flex:none;border-radius:14px;border:0;font:800 ${p?.mfs ?? ''} var(--font-body);background:${p?.cb ?? ''};color:${p?.cf ?? ''};box-shadow:inset 0 0 0 2px ${p?.cr ?? ''}`)}>
-                          {txt(p?.mark)}
-                        </button>
-                        {" "}
-                      </div>
-                      {" "}
-                    </React.Fragment>))}
-                    {" "}
-                  </div>
-                  {" "}
-                </>) : null}
-                {" "}
-                <div style={css("position:sticky;bottom:10px;z-index:2")}>
-                  <button onClick={v.ckSum?.onAll} style={css("width:100%;height:52px;border:0;border-radius:999px;background:var(--emas-isi);color:var(--on-emas);font:800 calc(15px*var(--fs,1)) var(--font-body);box-shadow:0 12px 26px -10px rgba(0,0,0,.55);cursor:pointer")}>
-                    {txt(v.ckSum?.action)}
-                  </button>
-                </div>
-                {" "}
+  const [buka, setBuka] = useState({});
+  if (v.ckPilih) return <PilihIbadah v={v} />;
+  const s = v.ckSum || {};
+  return (
+    <div style={{ padding: '12px 12px 24px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gridAutoRows: 'max-content', gap: 12 }}>
+      <div style={kartu}>
+        <div style={kecil}>{txt(v.kloterLabel)} · {txt(v.d?.day)}</div>
+        <div style={label}>Hari</div>
+        <div ref={v.daysRef} style={{ ...geser, scrollSnapType: 'x proximity' }}>
+          {arr(v.ckDays).map((c, i) => (
+            <button key={i} type="button" data-today={c?.today} onClick={c?.on} aria-pressed={!!c?.sel} style={pil(c?.sel, { scrollSnapAlign: 'center' })}>
+              {txt(c?.l)}{c?.td ? <span style={{ fontWeight: 400 }}>· hari ini</span> : null}
+            </button>
+          ))}
+        </div>
+        <div style={label}>Kegiatan</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {arr(v.ckPills).map((p, i) => (
+            <button key={i} type="button" onClick={p?.on} aria-pressed={!!p?.a} style={pil(p?.a, { whiteSpace: 'normal', textAlign: 'left', padding: '6px 14px' })}>
+              {p?.locked ? <Ikon d={GEMBOK} s={16} /> : p?.done ? <Ikon d={CENTANG} s={16} w={2.2} /> : null}
+              {txt(p?.l)}{p?.now ? <span style={{ fontWeight: 400 }}>· berjalan</span> : null}
+            </button>
+          ))}
+        </div>
+        {v.ckNotCur ? <button type="button" onClick={v.ckSetCur} style={pil(false, { justifySelf: 'start' })}>Jadikan kegiatan yang sedang berlangsung</button> : null}
+        {v.ckTarw ? (<>
+          <div style={label}>Tarwiyah · berangkat ke Mina tanggal</div>
+          <Segmen list={v.tarwBtns} />
+        </>) : null}
+        {v.isMad ? (<>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+            <span style={label}>Jadwal Raudhoh</span><span style={kecil}>{txt(v.sexSplit)}</span>
+          </div>
+          {v.noSlots ? <div style={kecil}>Belum ada jadwal. Ketuk Tambah jadwal.</div> : null}
+          <div style={geser}>
+            {arr(v.mdDays).map((c, i) => { const a = c?.bg === 'var(--color-accent)'; return <button key={i} type="button" onClick={c?.on} aria-pressed={a} style={pil(a)}>{txt(c?.l)}</button>; })}
+          </div>
+          <Segmen list={v.mdSexBtns} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {arr(v.mdJams).map((c, i) => { const a = c?.rw === '2.5px';
+              return (
+                <button key={i} type="button" onClick={c?.on} aria-pressed={a} style={{ borderRadius: 16, minHeight: 56, padding: '6px 14px', textAlign: 'left', cursor: 'pointer', font: 'inherit', border: '1px solid ' + (a ? 'var(--color-accent)' : 'var(--m-tepi)'), background: a ? 'var(--color-accent)' : 'var(--color-surface)', color: a ? 'var(--on-accent)' : 'var(--color-text)' }}>
+                  <div style={{ fontWeight: 500, fontSize: fs(14) }}>{txt(c?.l)}</div>
+                  <div style={{ fontSize: fs(12.5) }}>{txt(c?.sub)} · {txt(c?.cnt)}</div>
+                </button>
+              ); })}
+          </div>
+          {v.mdNone ? <div style={kecil}>Belum ada jadwal {txt(v.mdSexName)} pada hari ini.</div> : null}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" onClick={v.openAddSlot} style={pil(false)}><Ikon d="M12 5v14M5 12h14" s={18} />Tambah jadwal</button>
+            {v.slotActive ? <button type="button" onClick={v.clearSlot} style={pil(false)}>Tampilkan semua jamaah</button> : null}
+          </div>
+        </>) : null}
+        <div style={label}>Cakupan</div>
+        <Segmen list={v.ckScopes} />
+        {v.ckShowR ? (
+          <div style={geser}>
+            {arr(v.ckRs).map((c, i) => (
+              <button key={i} type="button" onClick={c?.on} aria-pressed={!!c?.a} aria-label={'Rombongan ' + c?.r + ', ' + c?.pct} style={pil(c?.a, { gap: 8 })}>
+                {c?.low && !c?.a ? <span style={{ color: 'var(--red-600)', display: 'grid' }}><Ikon d={SEGITIGA} s={16} /></span> : null}
+                <span>{txt(c?.l)}</span><span style={{ fontWeight: 500, color: c?.low && !c?.a ? 'var(--red-700)' : 'inherit' }}>{txt(c?.pct)}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {v.ckShowG ? <Segmen list={v.ckGs} /> : null}
+        <div style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: 14, top: 0, bottom: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none' }}><Ikon d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4" s={20} /></span>
+          <input className="input" type="search" aria-label="Cari jamaah" value={v.ckQ ?? ''} onChange={v.onCkQ} placeholder="Cari nama atau nomor porsi" style={{ height: 48, width: '100%', boxSizing: 'border-box', paddingLeft: 44, fontSize: fs(15), borderRadius: 12 }} />
+        </div>
+      </div>
+
+      <div style={{ ...kartu, gap: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
+          <span style={{ fontSize: fs(22), fontWeight: 300, lineHeight: 1.2 }}>{txt(s.label)}</span>
+          <span style={{ flex: 'none', fontSize: fs(14), fontWeight: 500 }}>{txt(s.done)} / {txt(s.total)}</span>
+        </div>
+        <div style={{ ...kecil, marginBottom: 10 }}>selesai {txt(s.rite)}</div>
+        <div role="progressbar" aria-valuenow={parseInt(s.pct, 10) || 0} aria-valuemin={0} aria-valuemax={100} aria-label="Progres cakupan" style={{ height: 5, borderRadius: 3, background: 'var(--m-trek)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: s.pct, background: 'var(--color-accent)', borderRadius: 3 }} />
+        </div>
+        {s.hasNote ? <div style={{ ...kecil, marginTop: 10 }}>{txt(s.note)}</div> : null}
+
+        {v.hasPel ? (<>
+          <div style={{ ...label, marginTop: 14 }}>Pelaksana badal</div>
+          {arr(v.pelGroups).map((p, i) => (
+            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--color-divider)' }}>
+              <Avatar ini={p?.count} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontWeight: 500, fontSize: fs(14) }}>{txt(p?.name)}</div>
+                <div style={kecil}>{txt(p?.role)} · {txt(p?.names)}</div>
               </div>
-              {" "}
-              <div style={css("padding:0 20px 24px")}>
-                <div>
-                  {" "}
-                  <div style={css("display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px")}>
-                    <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(20px*var(--fs,1))")}>
-                      {txt(v.judulKegiatan)}
-                    </div>
-                    <div style={css("display:flex;gap:6px;flex:none")}>
-                      {v.isUmrah ? (
-                        <button type="button" onClick={v.openMiqat} style={css("border:0;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-800);font:700 calc(13px*var(--fs,1)) var(--font-body);min-height:44px;padding:0 14px")}>
-                          Atur miqat
-                        </button>
-                      ) : null}
-                      <button type="button" onClick={v.openTgl} style={css("border:0;border-radius:999px;background:var(--color-accent-100);color:var(--color-accent-800);font:700 calc(13px*var(--fs,1)) var(--font-body);min-height:44px;padding:0 14px")}>
-                        Atur tanggal
-                      </button>
-                    </div>
-                  </div>
-                  {" "}
-                  <div style={css("display:grid;gap:14px")}>
-                    {" "}
-                    {arr(v.riteGroups).map((gp, i0) => (<React.Fragment key={i0}>
-                      {" "}
-                      <div style={css("display:grid;gap:6px")}>
-                        {" "}
-                        <div style={css(`display:flex;justify-content:space-between;font-size:calc(13px*var(--fs,1));font-weight:700;color:${gp?.fg ?? ''};padding:0 6px`)}>
-                          <span>
-                            {txt(gp?.day)}
-                          </span>
-                          <span>
-                            {txt(gp?.note)}
-                          </span>
-                        </div>
-                        {" "}
-                        <div style={css("background:var(--kartu-bg);border:1px solid var(--kartu-garis);border-radius:22px;box-shadow:var(--kartu-bayang);padding:2px 18px")}>
-                          {" "}
-                          {arr(gp?.items).map((r, i1) => (<React.Fragment key={i1}>
-                            {" "}
-                            <button type="button" className="ketuk" onClick={r?.on} style={css("display:flex;align-items:center;gap:12px;padding:12px 0;min-height:48px;border-bottom:1px solid var(--color-divider)")}>
-                              <div aria-hidden="true" style={css(`width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:calc(13px*var(--fs,1));font-weight:700;background:${r?.dotBg ?? ''};color:var(--color-bg);box-shadow:inset 0 0 0 2px ${r?.ring ?? ''}`)}>
-                                {r?.locked ? (<>
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-700)" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect x="4" y="11" width="16" height="10" rx="3" />
-                                    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                                  </svg>
-                                </>) : null}
-                                {txt(r?.mark)}
-                              </div>
-                              {" "}
-                              <div style={css("flex:1;min-width:0")}>
-                                {" "}
-                                <div style={css(`font-weight:600;font-size:calc(14.5px*var(--fs,1));color:${r?.nameFg ?? ''}`)}>
-                                  {txt(r?.n)}
-                                </div>
-                                {" "}
-                                <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);display:flex;gap:8px;align-items:center;flex-wrap:wrap")}>
-                                  <span>
-                                    {txt(r?.place)}
-                                  </span>
-                                  {r?.isNow ? (<>
-                                    <span style={css("font-weight:800;color:var(--color-accent-700);display:flex;align-items:center;gap:4px")}>
-                                      <span style={css("width:8px;height:8px;border-radius:50%;background:var(--color-accent-500)")}></span>
-                                      Berjalan
-                                    </span>
-                                  </>) : null}
-                                </div>
-                                {" "}
-                              </div>
-                              {" "}
-                              <span style={css(`font-size:calc(13px*var(--fs,1));padding:3px 10px;border-radius:999px;background:${r?.tagBg ?? ''};color:${r?.tagFg ?? ''}`)}>
-                                {txt(r?.k)}
-                              </span>
-                              {" "}
-                              <span style={css(`font-size:calc(13px*var(--fs,1));font-weight:700;min-width:56px;text-align:right;color:${r?.cntFg ?? ''}`)}>
-                                {txt(r?.cnt)}
-                                {r?.hasSus ? (<>
-                                  <span style={css("display:block;color:var(--emas-teks)")}>
-                                    {txt(r?.sus)}
-                                  </span>
-                                </>) : null}
-                              </span>
-                            </button>
-                            {" "}
-                          </React.Fragment>))}
-                          {" "}
-                        </div>
-                        {" "}
-                      </div>
-                      {" "}
-                    </React.Fragment>))}
-                    {" "}
-                  </div>
-                  {" "}
-                </div>
+            </div>
+          ))}
+        </>) : null}
+
+        {v.ckEmpty ? <div style={{ ...kecil, textAlign: 'center', padding: '24px 0 8px' }}>Tidak ada jamaah untuk kegiatan ini di cakupan ini.</div> : null}
+
+        {v.ckHasRows ? arr(v.ckRows).map((r, i) => (
+          <div key={i} style={{ display: 'grid', gap: 10, padding: '10px 0', borderTop: '1px solid var(--color-divider)', marginTop: i ? 0 : 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button type="button" className="ketuk" onClick={r?.onOpen} style={{ flex: 1, minWidth: 0, minHeight: 44, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ flex: 1, minWidth: 0, display: 'grid' }}>
+                  <span style={{ fontWeight: 500, fontSize: fs(15) }}>{txt(r?.title)}</span>
+                  <span style={kecil}>{txt(r?.sub)}</span>
+                </span>
+                <span style={{ flex: 'none', fontSize: fs(14), fontWeight: 500 }}>{txt(r?.cnt)}</span>
+              </button>
+              <Centang c={r} onClick={r?.onCheck} nama={'Centang semua ' + (r?.title ?? '')} />
+            </div>
+            {r?.hasDots ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {arr(r?.dots).map((o, k) => <span key={k} aria-hidden="true" style={{ width: 36, height: 36, boxSizing: 'border-box', borderRadius: 18, display: 'grid', placeItems: 'center', font: `500 12px var(--font-body)`, border: o?.bd, background: o?.bg, color: o?.fg }}>{txt(o?.ini)}</span>)}
               </div>
-              </>)}
-  </>);
+            ) : null}
+            {r?.noDots ? (
+              <div aria-hidden="true" style={{ height: 5, borderRadius: 3, background: 'var(--m-trek)', overflow: 'hidden' }}>
+                <div style={{ width: r?.pct, height: '100%', borderRadius: 3, background: r?.col }} />
+              </div>
+            ) : null}
+          </div>
+        )) : null}
+
+        {v.ckHasPeople ? arr(v.ckPeople).map((p, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 60, padding: '8px 0', borderTop: '1px solid var(--color-divider)', marginTop: i ? 0 : 12 }}>
+            <button type="button" className="ketuk" onClick={p?.onOpen} style={{ flex: 1, minWidth: 0, minHeight: 44, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Avatar ini={p?.ini} />
+              <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 2 }}>
+                <span style={{ fontWeight: 500, fontSize: fs(14.5), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{txt(p?.name)}</span>
+                <span style={{ ...kecil, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{txt(p?.sub)}</span>
+                {p?.hasTags ? (
+                  <span style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 2 }}>
+                    {arr(p?.tags).map((t, k) => merah(t)
+                      ? <span key={k} className="mk-lencana mk-lencana-merah" style={{ whiteSpace: 'normal', minHeight: 24 }}><Ikon d={SEGITIGA} s={16} />{txt(String(t?.t).replace('↺ ', ''))}</span>
+                      : <span key={k} className="mk-lencana" style={{ whiteSpace: 'normal', minHeight: 24 }}>{txt(String(t?.t).replace('↺ ', ''))}</span>)}
+                  </span>
+                ) : null}
+              </span>
+            </button>
+            {p?.canUl ? <button type="button" onClick={p?.onMore} aria-label={'Tandai perlu ulang: ' + (p?.name ?? '')} style={{ width: 44, height: 44, flex: 'none', border: 0, borderRadius: 22, background: 'transparent', color: 'var(--color-text)', display: 'grid', placeItems: 'center', cursor: 'pointer', padding: 0 }}><Ikon d="M5 12h.01M12 12h.01M19 12h.01" s={22} w={2.6} /></button> : null}
+            <Centang c={{ bg: p?.cb, fg: p?.cf, ring: p?.cr, mark: p?.mark }} onClick={p?.onCheck} nama={'Centang ' + (p?.name ?? '')} />
+          </div>
+        )) : null}
+
+        <div style={{ position: 'sticky', bottom: 8, zIndex: 2, marginTop: 14 }}>
+          <button type="button" className="btn btn-primary" onClick={s.onAll} style={{ width: '100%', minHeight: 48, fontSize: fs(14), boxShadow: '0 0 0 4px var(--color-surface)' }}>{txt(s.action)}</button>
+        </div>
+      </div>
+
+      <div style={{ ...kartu, gap: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+          <span style={{ fontSize: fs(16), fontWeight: 500 }}>{txt(v.judulKegiatan)}</span>
+          <span style={{ display: 'flex', gap: 6 }}>
+            {v.isUmrah ? <button type="button" onClick={v.openMiqat} style={pil(false)}>Atur miqat</button> : null}
+            <button type="button" onClick={v.openTgl} style={pil(false)}>Atur tanggal</button>
+          </span>
+        </div>
+        {arr(v.riteGroups).map((gp, i) => {
+          const items = arr(gp?.items), kini = gp?.note === 'Hari ini' || items.some(r => r?.isNow), terbuka = buka[i] ?? kini, beres = items.length > 0 && items.every(r => r?.st === 'done');
+          return (
+            <div key={i} style={{ borderTop: '1px solid var(--color-divider)' }}>
+              <button type="button" className="ketuk" onClick={() => setBuka({ ...buka, [i]: !terbuka })} aria-expanded={terbuka} style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 48 }}>
+                {beres ? <span style={{ color: 'var(--color-accent)', display: 'grid' }}><Ikon d={CENTANG} s={18} w={2.2} /></span> : null}
+                <span style={{ flex: 1, minWidth: 0, fontSize: fs(14), fontWeight: kini ? 500 : 400 }}>{txt(gp?.day)}</span>
+                {kini ? <span className="mk-lencana" style={{ flex: 'none' }}>Hari ini</span> : <span style={{ ...kecil, flex: 'none' }}>{items.length} kegiatan{beres ? ' · selesai' : gp?.note ? ' · ' + gp.note : ''}</span>}
+                <span style={{ flex: 'none', display: 'grid', transform: terbuka ? 'rotate(180deg)' : 'none' }}><Ikon d={TURUN} /></span>
+              </button>
+              {terbuka ? items.map((r, k) => (
+                <button key={k} type="button" className="ketuk" onClick={r?.on} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 10px 12px', minHeight: 48 }}>
+                  <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 2 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 500, fontSize: fs(14) }}>{txt(r?.n)}</span>
+                      {r?.isNow ? <span className="mk-lencana">Berjalan</span> : null}
+                    </span>
+                    <span style={kecil}>{[r?.place, r?.k].filter(Boolean).join(' · ')}</span>
+                  </span>
+                  <span style={{ flex: 'none', textAlign: 'right', fontSize: fs(13), fontWeight: 500 }}>
+                    {r?.cnt === '-' ? '' : txt(r?.cnt)}
+                    {r?.hasSus ? <span style={{ display: 'block', fontWeight: 400, color: 'var(--teks-3)' }}>{txt(r?.sus)}</span> : null}
+                  </span>
+                </button>
+              )) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

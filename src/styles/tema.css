@@ -3,102 +3,102 @@
    Ukuran huruf: --fs pada <html> (0.9 – 1.3), dipakai semua font-size di View. */
 :root {
   --fs: 1;
-  --font-heading: Figtree, system-ui, sans-serif;
-  --font-body: Figtree, system-ui, sans-serif;
+  --font-heading: "IBM Plex Sans", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
   /* Nastaliq butuh tinggi baris sekitar 2× agar harakat tidak terpotong */
   --font-arab: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Traditional Arabic", serif;
-  --font-arti: Fraunces, Georgia, serif;
-  --font-serif: Fraunces, Georgia, serif;
+  --font-arti: "IBM Plex Sans", system-ui, sans-serif;
+  --font-serif: "IBM Plex Sans", system-ui, sans-serif;
 }
 
 /* ---------- Mode Terang: Modern Segar Berwarna (Utama / Bawaan) ---------- */
 :root {
-  --mk-outer: #dbe4ee;
-  --color-bg: #f1f5f9;
-  --latar-layar: radial-gradient(120% 28% at 50% 0%, #d1fae5 0%, #e0f2fe 52%, transparent 100%), linear-gradient(180deg, #f0f9ff 0%, #f1f5f9 300px, #f8fafc 100%);
+  --mk-outer: #e4e4e4;
+  --color-bg: #f6f6f6;
+  --latar-layar: none;
   --color-surface: #ffffff;
-  --color-surface-2: #f8fafc;
-  --color-text: #0f172a;
-  --teks-2: #334155;
-  --teks-3: #475569;
-  --color-divider: #e2e8f0;
+  --color-surface-2: #f6f6f6;
+  --color-text: #1f1f1f;
+  --teks-2: #3a3a3a;
+  --teks-3: #5c5c5c;
+  --color-divider: #e2e2e2;
   --on-accent: #ffffff;
   --on-red: #ffffff;
-  --on-emas: #1c1202;
+  --on-emas: #1f1f1f;
   --on-isi: #ffffff;
 
   /* Inti 1: Zamrud Nabawi */
-  --color-accent: #059669;
-  --color-accent-100: #ecfdf5;
-  --color-accent-200: #d1fae5;
-  --color-accent-300: #6ee7b7;
-  --color-accent-400: #34d399;
-  --color-accent-500: #10b981;
-  --color-accent-600: #059669;
-  --color-accent-700: #047857;
-  --color-accent-800: #065f46;
-  --color-accent-900: #064e3b;
+  --color-accent: #27326e;
+  --color-accent-100: #eef0f8;
+  --color-accent-200: #e6e8f4;
+  --color-accent-300: #b9c0e0;
+  --color-accent-400: #7c87c4;
+  --color-accent-500: #4a57a6;
+  --color-accent-600: #27326e;
+  --color-accent-700: #27326e;
+  --color-accent-800: #1d2656;
+  --color-accent-900: #141b3f;
 
   /* Aksen: Emas Haramain (Amber) */
-  --color-accent-2: #d97706;
-  --color-accent-2-100: #fffbeb;
-  --color-accent-2-200: #fef3c7;
-  --color-accent-2-300: #fde68a;
-  --color-accent-2-400: #fbbf24;
-  --color-accent-2-500: #f59e0b;
-  --color-accent-2-600: #d97706;
-  --color-accent-2-700: #b45309;
-  --color-accent-2-800: #92400e;
-  --color-accent-2-900: #78350f;
-  --emas-teks: #92400e;
-  --emas-muda: #fef3c7;
-  --emas-tua: #d97706;
-  --emas-isi: linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #d97706 100%);
+  --color-accent-2: #d48a1c;
+  --color-accent-2-100: #fef6e7;
+  --color-accent-2-200: #fcefd6;
+  --color-accent-2-300: #f8d58f;
+  --color-accent-2-400: #f2a93b;
+  --color-accent-2-500: #f2a93b;
+  --color-accent-2-600: #d48a1c;
+  --color-accent-2-700: #8f5a08;
+  --color-accent-2-800: #7a4a00;
+  --color-accent-2-900: #5a3600;
+  --emas-teks: #7a4a00;
+  --emas-muda: #fcefd6;
+  --emas-tua: #d48a1c;
+  --emas-isi: #f2a93b;
 
   /* 4 Keluarga Warna Fitur (Zamrud, Safir, Emas, Koral) */
-  --zamrud-bg: linear-gradient(155deg, #ecfdf5 0%, #ffffff 72%);
-  --zamrud-tepi: rgba(16, 185, 129, .24);
-  --zamrud-ikon: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --zamrud-teks: #065f46;
-  --zamrud-lembut: rgba(16, 185, 129, .13);
+  --zamrud-bg: #ffffff;
+  --zamrud-tepi: #e2e2e2;
+  --zamrud-ikon: #27326e;
+  --zamrud-teks: #27326e;
+  --zamrud-lembut: #e6e8f4;
 
-  --safir-bg: linear-gradient(155deg, #eff6ff 0%, #ffffff 72%);
-  --safir-tepi: rgba(59, 130, 246, .22);
-  --safir-ikon: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  --safir-teks: #1e40af;
-  --safir-lembut: rgba(59, 130, 246, .12);
+  --safir-bg: #ffffff;
+  --safir-tepi: #e2e2e2;
+  --safir-ikon: #27326e;
+  --safir-teks: #27326e;
+  --safir-lembut: #e6e8f4;
 
-  --emas-bg: linear-gradient(155deg, #fffbeb 0%, #ffffff 72%);
-  --emas-tepi: rgba(245, 158, 11, .26);
-  --emas-ikon: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  --emas-lembut: rgba(245, 158, 11, .15);
+  --emas-bg: #ffffff;
+  --emas-tepi: #e2e2e2;
+  --emas-ikon: #f2a93b;
+  --emas-lembut: #fcefd6;
 
-  --koral-bg: linear-gradient(155deg, #fff1f2 0%, #ffffff 72%);
-  --koral-tepi: rgba(244, 63, 94, .24);
-  --koral-ikon: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-  --koral-teks: #9f1239;
-  --koral-lembut: rgba(244, 63, 94, .13);
+  --koral-bg: #ffffff;
+  --koral-tepi: #e2e2e2;
+  --koral-ikon: #d92d20;
+  --koral-teks: #b42318;
+  --koral-lembut: #fdecea;
 
-  --color-neutral-100: #f8fafc;
-  --color-neutral-200: #f1f5f9;
-  --color-neutral-300: #cbd5e1;
-  --color-neutral-400: #94a3b8;
-  --color-neutral-500: #64748b;
-  --color-neutral-600: #475569;
-  --color-neutral-700: #334155;
-  --color-neutral-800: #1e293b;
-  --color-neutral-900: #0f172a;
+  --color-neutral-100: #f6f6f6;
+  --color-neutral-200: #ededed;
+  --color-neutral-300: #c8c8c8;
+  --color-neutral-400: #8c8c8c;
+  --color-neutral-500: #6b6b6b;
+  --color-neutral-600: #5c5c5c;
+  --color-neutral-700: #3a3a3a;
+  --color-neutral-800: #2a2a2a;
+  --color-neutral-900: #1f1f1f;
 
   /* Inti 3: Koral Perhatian */
-  --red-100: #fff1f2;
-  --red-200: #ffe4e6;
-  --red-500: #f43f5e;
-  --red-600: #e11d48;
-  --red-700: #be123c;
-  --red-800: #9f1239;
+  --red-100: #fdecea;
+  --red-200: #fad4cf;
+  --red-500: #d92d20;
+  --red-600: #d92d20;
+  --red-700: #b42318;
+  --red-800: #912018;
 
-  --nav-bg: rgba(255, 255, 255, .92);
-  --nav-fg: #475569;
+  --nav-bg: #ffffff;
+  --nav-fg: #1f1f1f;
   /* Bilah bawah melayang (desain Cyber-Mint) */
   --bb-tepi: #b4ddd0;
   --bb-isi: #ffffff;
@@ -108,14 +108,14 @@
   --bb-sinar: rgba(22, 242, 152, .25);
   --bb-bayang: 0 10px 24px rgba(9, 30, 25, .13), 0 8px 24px rgba(16, 232, 142, .18);
   --bb-fab-bayang: 0 8px 24px rgba(16, 232, 142, .50);
-  --hero: linear-gradient(135deg, #047857 0%, #0f766e 52%, #1e40af 100%);
-  --scrim: rgba(15, 23, 42, .48);
+  --hero: linear-gradient(180deg, #1b2a6b 0%, #2b3f92 100%);
+  --scrim: rgba(31, 31, 31, .55);
   --lembar-bg: #ffffff;
   --kaca: #ffffff;
-  --kaca-garis: rgba(148, 163, 184, .22);
-  --kaca-sorot: 0 12px 28px -10px rgba(15, 23, 42, .09), 0 2px 6px rgba(15, 23, 42, .04);
-  --kaca-aktif: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%);
-  --trek: #e2e8f0;
+  --kaca-garis: #e2e2e2;
+  --kaca-sorot: none;
+  --kaca-aktif: #e6e8f4;
+  --trek: #dadada;
   --shadow-lg: 0 14px 34px rgba(15, 23, 42, .14);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, .09);
   color-scheme: light;
@@ -123,7 +123,7 @@
 
 /* ---------- Mode Gelap: Malam Safir Berwarna ----------
    .mk-gelap dipakai pada spanduk/kartu bergambar yang selalu berlatar gelap pekat. */
-:root[data-tema="gelap"], .mk-gelap {
+.mk-gelap {
   --mk-outer: #060b16;
   --color-bg: #0b1324;
   --latar-layar: radial-gradient(110% 30% at 50% 0%, rgba(16, 185, 129, .20) 0%, rgba(37, 99, 235, .18) 52%, transparent 100%), linear-gradient(180deg, #0f1b33 0%, #0b1324 60%, #0d172a 100%);
@@ -249,23 +249,24 @@ input::placeholder, textarea::placeholder { color: var(--color-neutral-600); }
 .mk-layar { background: var(--latar-layar), var(--color-bg); }
 
 /* Kartu dasar & varian kartu berwarna */
-.kaca { background: var(--kaca); border: 1px solid var(--kaca-garis); box-shadow: var(--kaca-sorot); }
-.kartu-zamrud { background: var(--zamrud-bg); border: 1px solid var(--zamrud-tepi); box-shadow: var(--kaca-sorot); }
-.kartu-safir { background: var(--safir-bg); border: 1px solid var(--safir-tepi); box-shadow: var(--kaca-sorot); }
-.kartu-emas { background: var(--emas-bg); border: 1px solid var(--emas-tepi); box-shadow: var(--kaca-sorot); }
-.kartu-koral { background: var(--koral-bg); border: 1px solid var(--koral-tepi); box-shadow: var(--kaca-sorot); }
+.kaca { background: var(--kaca); border: 0; }
+.kartu-zamrud { background: var(--color-surface); border: 0; }
+.kartu-safir { background: var(--color-surface); border: 0; }
+.kartu-emas { background: var(--color-surface); border: 0; }
+.kartu-koral { background: var(--color-surface); border: 0; }
 
 /* Blur asli hanya di bilah bawah dan lembar/dialog (R-10) */
 .kaca-blur { -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }
 [role="dialog"][aria-modal="true"] { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 
 /* Penyesuaian komponen dasar */
-.btn { font-family: var(--font-body); font-weight: 700; }
-.btn-primary { background: var(--zamrud-ikon); color: #ffffff; border-color: transparent; font-weight: 800; }
-.btn-primary:hover, .btn-primary:active { background: var(--zamrud-ikon); filter: brightness(1.04); }
-.btn-secondary { background: var(--kaca); border-color: var(--kaca-garis); color: var(--color-text); }
+.btn { font-family: var(--font-body); font-weight: 500; }
+.btn-primary { background: var(--m-isi); color: var(--m-on-isi); border-color: transparent; font-weight: 600; border-radius: 999px; }
+.btn-primary:hover { background: var(--m-isi); }
+.btn-primary:active { background: var(--color-accent-2-600); }
+.btn-secondary { background: #ffffff; border-color: var(--m-tepi); color: var(--color-text); border-radius: 999px; font-weight: 400; }
 .btn-secondary:hover, .btn-secondary:active { background: var(--color-surface-2); }
-.input { background: var(--color-surface); border-color: var(--kaca-garis); color: var(--color-text); }
+.input { background: var(--color-surface); border-color: var(--m-tepi); color: var(--color-text); }
 .dialog { background: var(--lembar-bg); border: 1px solid var(--kaca-garis); }
 
 /* Semua kontrol menunjukkan bisa diketuk; yang nonaktif tidak */
@@ -281,7 +282,7 @@ button:not(:disabled):active { opacity: .82; }
 .mk-fab { background: linear-gradient(135deg, #26ffae 0%, #14f096 55%, #09c878 100%); color: #05120e; box-shadow: var(--bb-fab-bayang); transition: transform .12s; }
 .mk-fab:active { transform: scale(.95); }
 /* Pilihan yang sedang aktif */
-.mk-aktif { box-shadow: 0 0 0 2px var(--color-accent), 0 4px 12px -2px rgba(5, 150, 105, .25); }
+.mk-aktif { box-shadow: 0 0 0 2px var(--color-accent); }
 
 /* Ubin ikon: bawaan zamrud, plus varian warna per fitur */
 .ubin { display: grid; place-items: center; flex: none; border-radius: 14px; background: var(--zamrud-ikon); color: #ffffff; box-shadow: 0 4px 10px -2px rgba(5, 150, 105, .28); }
@@ -300,76 +301,40 @@ button:not(:disabled):active { opacity: .82; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
-/* Desain Cyber-Mint (file Monitoring-Kloter-EcoFin.figcraft).
-   Token --m-* dipakai layar yang sudah dipindah ke desain baru (bilah bawah, kepala halaman, Home).
-   Latar layar ikut desain baru di kedua mode. */
+/* Token --m-* dipakai bilah bawah, kepala halaman, dan Home. */
 :root {
-  --mk-outer: #dcebe6;
-  --color-bg: #edf7f4;
-  --latar-layar: linear-gradient(#edf7f4, #edf7f4);
-  --m-isi: linear-gradient(135deg, #26ffae 0%, #14f096 55%, #09c878 100%);
-  --m-on-isi: #05120e;
-  --m-on-isi-2: #083624;
-  --m-isi-bayang: 0 6px 18px -4px rgba(16, 232, 142, .45);
+  --m-isi: #f2a93b;
+  --m-on-isi: #1f1f1f;
+  --m-on-isi-2: #1f1f1f;
+  --m-isi-bayang: none;
   --m-kartu: #ffffff;
-  --m-kartu-bayang: 0 10px 26px -12px rgba(9, 30, 25, .14), 0 1px 3px rgba(9, 30, 25, .05);
-  --m-kartu-2: #f2fbf8;
-  --m-ubin: #e7f6f0;
-  --m-jamaah: linear-gradient(160deg, #ddfdf0 0%, #f0fdf8 50%, #ffffff 100%);
-  --m-teks: #091e19;
-  --m-teks-2: #45635c;
-  --m-aksen: #059669;
-  --m-aksen-teks: #047857;
-  --m-tepi: #0fd884;
-  --m-lembut: #ccfbf1;
-  --m-lembut-teks: #065f46;
-  --m-emas: #b45309;
-  --m-emas-isi: #fbbf24;
-  --m-safir: #0369a1;
-  --m-safir-isi: #38bdf8;
-  --m-koral-bg: #ffe4e6;
-  --m-koral: #be123c;
-  --m-trek: #d5ede4;
-  --m-garis: #b8dcd2;
+  --m-kartu-bayang: none;
+  --m-kartu-2: #f6f6f6;
+  --m-ubin: #f6f6f6;
+  --m-jamaah: #ffffff;
+  --m-teks: #1f1f1f;
+  --m-teks-2: #5c5c5c;
+  --m-aksen: #27326e;
+  --m-aksen-teks: #27326e;
+  --m-tepi: #8c8c8c;
+  --m-lembut: #e6e8f4;
+  --m-lembut-teks: #27326e;
+  --m-emas: #7a4a00;
+  --m-emas-isi: #f2a93b;
+  --m-safir: #27326e;
+  --m-safir-isi: #4a57a6;
+  --m-koral-bg: #fdecea;
+  --m-koral: #b42318;
+  --m-trek: #dadada;
+  --m-garis: #e2e2e2;
   --m-hd: #ffffff;
-  --m-hd-tepi: #d3ebe3;
-  --m-logo: #e6fcf5;
-  --m-jam: #f2fbf8;
-  --m-jam-wib: #b45309;
+  --m-hd-tepi: #e2e2e2;
+  --m-logo: #e9e9e9;
+  --m-jam: #f6f6f6;
+  --m-jam-wib: #7a4a00;
 }
-:root[data-tema="gelap"] {
-  --mk-outer: #050a0b;
-  --color-bg: #090f10;
-  --latar-layar: linear-gradient(#090f10, #090f10);
-  --m-isi-bayang: 0 6px 18px -4px rgba(24, 245, 154, .40);
-  --m-kartu: #111c1e;
-  --m-kartu-bayang: 0 10px 26px -12px rgba(0, 0, 0, .6);
-  --m-kartu-2: #152526;
-  --m-ubin: #0b1314;
-  --m-jamaah: linear-gradient(160deg, #13332c 0%, #102221 50%, #0d1718 100%);
-  --m-teks: #f2faf8;
-  --m-teks-2: #8ca6a1;
-  --m-aksen: #18f59a;
-  --m-aksen-teks: #18f59a;
-  --m-tepi: #18f59a;
-  --m-lembut: #102e28;
-  --m-lembut-teks: #ccfbf1;
-  --m-emas: #fbbf24;
-  --m-safir: #38bdf8;
-  --m-koral-bg: #2b1219;
-  --m-koral: #fb7185;
-  --m-trek: #081011;
-  --m-garis: #233d3a;
-  --m-hd: #0c1516;
-  --m-hd-tepi: #17292a;
-  --m-logo: #0e2924;
-  --m-jam: #0d1f1d;
-  --m-jam-wib: #fbbf24;
-}
-:root { --m-emas-bg: #fef3c7; --m-safir-bg: #e0f2fe; --m-batang: #7cd9b8; }
-:root[data-tema="gelap"] { --m-emas-bg: #29200b; --m-safir-bg: #0e2433; --m-batang: #1e463f; }
-:root { --m-garis-kartu: #c6e7dd; }
-:root[data-tema="gelap"] { --m-garis-kartu: #1f3735; }
+:root { --m-emas-bg: #fcefd6; --m-safir-bg: #e6e8f4; --m-batang: #27326e; }
+:root { --m-garis-kartu: #e2e2e2; }
 
 /* Tata letak isi halaman: satu kolom di HP, dua kolom bila layar (tablet) cukup lebar */
 .mk-kolom { display: grid; grid-template-columns: minmax(0, 1fr); }
@@ -381,3 +346,53 @@ button:not(:disabled):active { opacity: .82; }
   .mk-tiga { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .mk-menu { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* ---------- Tema Nusuk ----------
+   Gradasi kepala dan kartu mutiara berganti mengikuti waktu sholat (data-waktu pada .mk-layar, diisi View.jsx).
+   Warna didaftarkan lewat @property supaya pergantiannya melebur, bukan melompat. */
+@property --g-a { syntax: '<color>'; inherits: true; initial-value: #1b2a6b; }
+@property --g-b { syntax: '<color>'; inherits: true; initial-value: #2b3f92; }
+@property --g-c1 { syntax: '<color>'; inherits: true; initial-value: rgba(63, 102, 208, .75); }
+@property --g-c2 { syntax: '<color>'; inherits: true; initial-value: rgba(138, 74, 156, .6); }
+.mk-layar { --g-a: #1b2a6b; --g-b: #2b3f92; --g-c1: rgba(63, 102, 208, .75); --g-c2: rgba(138, 74, 156, .6); transition: --g-a 1.5s ease, --g-b 1.5s ease, --g-c1 1.5s ease, --g-c2 1.5s ease; }
+.mk-layar[data-waktu="subuh"] { --g-a: #16225c; --g-b: #24409a; --g-c1: rgba(63, 102, 208, .75); --g-c2: rgba(122, 91, 184, .6); }
+.mk-layar[data-waktu="dzuhur"] { --g-a: #143566; --g-b: #1f56a0; --g-c1: rgba(47, 116, 192, .75); --g-c2: rgba(63, 102, 208, .6); }
+.mk-layar[data-waktu="ashar"] { --g-a: #1b2a6b; --g-b: #2b3f92; --g-c1: rgba(63, 102, 208, .75); --g-c2: rgba(138, 74, 156, .6); }
+.mk-layar[data-waktu="magrib"] { --g-a: #24184f; --g-b: #4a2c78; --g-c1: rgba(138, 74, 156, .75); --g-c2: rgba(176, 80, 122, .6); }
+.mk-layar[data-waktu="isya"] { --g-a: #0e1433; --g-b: #1b2350; --g-c1: rgba(63, 102, 208, .75); --g-c2: rgba(138, 74, 156, .6); }
+
+/* Butiran ada di ::before (di bawah isi), jadi teks di atas gradasi tetap bersih. */
+.mk-gradasi { position: relative; isolation: isolate; color: #ffffff;
+  background: radial-gradient(70% 90% at 50% 78%, var(--g-c1), transparent 72%), radial-gradient(55% 75% at 90% 108%, var(--g-c2), transparent 72%), linear-gradient(180deg, var(--g-a), var(--g-b)); }
+.mk-gradasi::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: .28; mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.mk-gradasi :focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
+.mk-kaca-putih { background: rgba(255, 255, 255, .18); color: #ffffff; border: 0; }
+
+/* Bilah bawah: empat tab + tombol Massal. Pil biru tua bergeser ke tab yang dibuka (satu-satunya gerak di aplikasi). */
+.bb { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; background: #ffffff; border-radius: 24px 24px 0 0; box-shadow: 0 -1px 0 var(--color-divider);
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)) 6px; display: flex; align-items: center; gap: 2px; box-sizing: border-box; }
+.bb-tab { position: relative; z-index: 1; flex: 1 1 0; min-width: 0; min-height: 64px; border: 0; background: transparent; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: var(--color-text); font: 400 calc(12px*min(var(--fs,1),1.15)) var(--font-body); white-space: nowrap; }
+.bb-tab[aria-current="page"] { font-weight: 600; }
+.bb-ikon { width: 48px; height: 30px; display: grid; place-items: center; border-radius: 15px; transition: color .12s ease .1s; }
+.bb-tab[aria-current="page"] .bb-ikon { color: #ffffff; }
+.bb-pil { position: absolute; z-index: 0; left: 0; top: 0; width: 48px; height: 30px; border-radius: 15px; background: var(--color-accent); pointer-events: none; transition: opacity .12s ease; }
+.bb-massal { position: relative; z-index: 1; flex: none; min-width: 104px; min-height: 48px; padding: 0 14px; border: 0; border-radius: 24px; background: var(--m-isi); color: var(--m-on-isi);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: 500 calc(13.5px*min(var(--fs,1),1.15)) var(--font-body); }
+.bb-massal:active, .bb-massal[aria-current="page"] { background: var(--color-accent-2-600); font-weight: 600; }
+.bb :focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+/* Ubin menu Home dan kontrol bertepi */
+.mk-ubin-menu { border: 0; background: transparent; padding: 0; display: grid; justify-items: center; gap: 6px; min-width: 0; color: var(--color-text); font: 400 calc(12.5px*var(--fs,1)) var(--font-body); }
+.mk-ubin-menu > span:first-child { width: 56px; height: 56px; border-radius: 18px; background: #ffffff; border: 1px solid var(--m-tepi); display: grid; place-items: center; }
+.mk-ubin-menu:active > span:first-child { background: var(--color-accent); border-color: var(--color-accent); color: #ffffff; }
+.mk-lencana { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--m-tepi); background: #ffffff; color: var(--color-text); font: 500 calc(12px*var(--fs,1)) var(--font-body); white-space: nowrap; }
+.mk-lencana-merah { border-color: transparent; background: var(--red-100); color: var(--red-700); padding-left: 4px; }
+:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-layar, .bb-pil, .bb-ikon { transition: none; }
+}
+
+button, input, select, textarea { font-family: inherit; }

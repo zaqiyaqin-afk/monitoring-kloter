@@ -12,46 +12,46 @@ export default function Pengaturan({ v }) {
                 {" "}
                 <div>
                   {" "}
-                  <div style={css("font-size:calc(14px*var(--fs,1));font-weight:700;color:var(--color-accent-700)")}>
+                  <div style={css("font-size:calc(14px*var(--fs,1));font-weight:500;color:var(--color-accent-700)")}>
                     Monitoring Ibadah Kloter
                   </div>
                   {" "}
-                  <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(22px*var(--fs,1));line-height:1.1;margin-top:4px")}>
+                  <div style={css("font-weight:300;font-size:calc(22px*var(--fs,1));line-height:1.1;margin-top:4px")}>
                     Pengaturan
                   </div>
                   {" "}
-                  <div style={css("font-size:calc(13.5px*var(--fs,1));line-height:1.5;color:var(--color-neutral-700);margin-top:6px")}>
+                  <div style={css("font-size:calc(13.5px*var(--fs,1));line-height:1.5;color:var(--teks-3);margin-top:6px")}>
                     Lengkapi identitas petugas dan buat PIN untuk HP ini.
                   </div>
                   {" "}
                 </div>
-                <div className="kaca" style={css("border-radius:22px;padding:14px 16px;display:grid;gap:12px")}>
+                <div className="kaca" style={css("border-radius:20px;padding:14px 16px;display:grid;gap:12px")}>
                   <div style={css("display:flex;align-items:center;justify-content:space-between;gap:8px")}>
                     <b style={css("font-size:calc(15px*var(--fs,1))")}>Identitas petugas</b>
-                    <span style={css("font-size:calc(12px*var(--fs,1));font-weight:700;color:var(--red-600)")}>wajib diisi</span>
+                    <span style={css("font-size:calc(12px*var(--fs,1));font-weight:500;color:var(--red-600)")}>wajib diisi</span>
                   </div>
-                  <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
+                  <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                     Nama
                     <input className="input" value={v.su?.ppih ?? ''} onChange={v.suPpih} placeholder="Nama lengkap petugas" autoComplete="name" style={css("height:46px;font-size:calc(14px*var(--fs,1))")} />
                   </label>
-                  <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
+                  <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                     Tusi
-                    <div style={css("height:46px;border-radius:14px;background:var(--color-accent-100);color:var(--color-accent-800);display:flex;align-items:center;padding:0 14px;font-size:calc(14px*var(--fs,1));font-weight:700")}>
+                    <div style={css("height:46px;border-radius:14px;background:var(--color-accent-100);color:var(--color-accent-800);display:flex;align-items:center;padding:0 14px;font-size:calc(14px*var(--fs,1));font-weight:500")}>
                       PPIH Bimbingan Ibadah Kloter
                     </div>
                   </div>
-                  <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
+                  <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                     Kloter
                     <input className="input" value={v.su?.kloter ?? ''} onChange={v.suKloter} placeholder="mis. SOC-27" style={css("height:46px;font-size:calc(14px*var(--fs,1))")} />
                   </label>
-                  <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
+                  <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                     Embarkasi
                     <input className="input" list="daftar-embarkasi" value={v.su?.embarkasi ?? ''} onChange={v.suEmbarkasi} placeholder="Pilih dari daftar atau ketik sendiri" style={css("height:46px;font-size:calc(14px*var(--fs,1))")} />
                     <datalist id="daftar-embarkasi">
                       {arr(v.embarkasiList).map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
                     </datalist>
                   </label>
-                  <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
+                  <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                     Gelombang
                     <div style={css("display:grid;grid-template-columns:1fr 1fr;background:var(--color-bg);border-radius:999px;overflow:hidden;padding:4px;gap:4px")}>
                       {arr(v.suGelombang).map((m, i0) => (
@@ -60,7 +60,7 @@ export default function Pengaturan({ v }) {
                         </button>
                       ))}
                     </div>
-                    <span style={css("font-size:calc(12px*var(--fs,1));font-weight:500;color:var(--color-neutral-700)")}>{txt(v.suGelombangNote)}</span>
+                    <span style={css("font-size:calc(12px*var(--fs,1));font-weight:500;color:var(--teks-3)")}>{txt(v.suGelombangNote)}</span>
                   </div>
                 </div>
                 {v.suAkun ? (
@@ -69,9 +69,9 @@ export default function Pengaturan({ v }) {
                   </div>
                 ) : null}
                 {" "}
-                <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
+                <div style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                   Perangkat ini{" "}
-                  <div style={css("display:grid;grid-template-columns:1fr 1fr;background:var(--color-surface);border-radius:999px;overflow:hidden;padding:4px;gap:4px;box-shadow:inset 0 0 0 1px var(--color-divider)")}>
+                  <div style={css("display:grid;grid-template-columns:1fr 1fr;background:var(--color-surface);border-radius:999px;overflow:hidden;padding:4px;gap:4px;box-shadow:inset 0 0 0 1px var(--m-tepi)")}>
                     {" "}
                     {arr(v.suDevices).map((m, i0) => (<React.Fragment key={i0}>
                       <button onClick={m?.on} style={css(`border:0;border-radius:999px;min-height:44px;padding:0;font:600 calc(13.5px*var(--fs,1)) var(--font-body);cursor:pointer;background:${m?.bg ?? ''};color:${m?.fg ?? ''}`)}>
@@ -83,7 +83,7 @@ export default function Pengaturan({ v }) {
                   {" "}
                 </div>
                 {" "}
-                <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:700;color:var(--color-neutral-800)")}>
+                <label style={css("display:grid;gap:6px;font-size:calc(13px*var(--fs,1));font-weight:500;color:var(--color-text)")}>
                   PIN aplikasi (4 angka · terkunci 5 menit setelah 5 kali salah)
                   <input className="input" value={v.su?.pin ?? ''} onChange={v.suPin} inputMode="numeric" maxLength="4" placeholder="••••" style={css("height:46px;font-size:calc(18px*var(--fs,1));letter-spacing:.3em")} />
                 </label>
@@ -94,12 +94,12 @@ export default function Pengaturan({ v }) {
                 </>) : null}
                 {" "}
                 {v.suHasOk ? (<>
-                  <div style={css("background:var(--color-accent-100);color:var(--color-accent-800);border-radius:16px;padding:10px 14px;font-size:calc(13px*var(--fs,1));font-weight:700;line-height:1.4")}>
+                  <div style={css("background:var(--color-accent-100);color:var(--color-accent-800);border-radius:16px;padding:10px 14px;font-size:calc(13px*var(--fs,1));font-weight:500;line-height:1.4")}>
                     {txt(v.su?.okMsg)}
                   </div>
                 </>) : null}
                 {" "}
-                <div style={css("background:var(--color-accent-2-100);color:var(--color-accent-2-800);border-radius:16px;padding:10px 14px;font-size:calc(13px*var(--fs,1));line-height:1.45")}>
+                <div style={css("background:var(--color-bg);color:var(--color-text);border-radius:16px;padding:10px 14px;font-size:calc(13px*var(--fs,1));line-height:1.45")}>
                   <b>Butuh internet sekali saja.</b> Saat menekan “Mulai”, data jamaah diunduh ke HP ini. Setelah itu aplikasi bisa dipakai tanpa sinyal; semua centang tersimpan di HP dan terkirim otomatis begitu ada internet.
                 </div>
                 {" "}
@@ -124,11 +124,11 @@ export default function Pengaturan({ v }) {
           </>) : null}
           {v.locked ? (<>
             {" "}
-            <div role="dialog" aria-modal="true" aria-label="Masukkan PIN" style={css("position:absolute;inset:0;background:var(--hero);color:#fff;z-index:20;display:flex;flex-direction:column;align-items:center;padding:110px 32px 40px;box-sizing:border-box;gap:18px")}>
-              <div style={css("font-size:calc(13px*var(--fs,1));font-weight:700;color:#fff")}>
+            <div role="dialog" aria-modal="true" aria-label="Masukkan PIN" className="mk-gradasi" style={css("position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;padding:110px 32px 40px;box-sizing:border-box;gap:18px")}>
+              <div style={css("font-size:calc(13px*var(--fs,1));font-weight:500;color:#fff")}>
                 {txt(v.kloterLabel)}
               </div>
-              <h1 style={css("margin:0;font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(22px*var(--fs,1));line-height:1.1;text-align:center")}>
+              <h1 style={css("margin:0;font-weight:300;font-size:calc(22px*var(--fs,1));line-height:1.1;text-align:center")}>
                 Masukkan PIN
               </h1>
               <div aria-hidden="true" style={css("display:flex;gap:16px;margin:6px 0")}>

@@ -1,214 +1,120 @@
 // Menu Jamaah: daftar semua jamaah dan jamaah khusus.
 import React from 'react';
-import { css, txt, arr } from '../dc/runtime.js';
+import { txt, arr } from '../dc/runtime.js';
+
+const fs = n => `calc(${n}px*var(--fs,1))`;
+export const SEGITIGA = 'M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z';
+export const Ikon = ({ d, s = 18, w = 1.8 }) => (
+  <svg aria-hidden="true" width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" style={{ flex: 'none' }}><path d={d} /></svg>
+);
+export const Avatar = ({ ini, s = 40 }) => (
+  <span aria-hidden="true" style={{ width: s, height: s, borderRadius: '50%', flex: 'none', display: 'grid', placeItems: 'center', background: 'var(--color-neutral-200)', color: 'var(--color-text)', fontWeight: 500, fontSize: s > 44 ? 16 : 13 }}>{txt(ini)}</span>
+);
+// Status di ujung baris: selesai = centang biru tua, masalah = lencana merah berikon, lainnya lencana bertepi.
+export function Status({ k, l }) {
+  if (k === 'ok') return <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--color-accent)', fontWeight: 500, fontSize: fs(12.5) }}><Ikon d="M5 12.5l4.5 4.5L19 7.5" s={16} w={2.2} />{txt(l)}</span>;
+  if (k === 'merah') return <span className="mk-lencana mk-lencana-merah" style={{ flex: 'none' }}><Ikon d={SEGITIGA} s={16} />{txt(l)}</span>;
+  return <span className="mk-lencana" style={{ flex: 'none' }}>{txt(l)}</span>;
+}
+
+const kartu = { background: 'var(--color-surface)', borderRadius: 20, padding: 16, display: 'grid', gap: 12, minWidth: 0 };
+const pil = c => ({ flex: 'none', minHeight: 44, padding: '0 14px', borderRadius: 22, border: '1px solid ' + (c?.a ? 'var(--color-accent)' : 'var(--m-tepi)'), background: c?.a ? 'var(--color-accent)' : 'var(--color-surface)',
+  color: c?.a ? 'var(--on-accent)' : 'var(--color-text)', font: `${c?.a ? 600 : 400} ${fs(13)} var(--font-body)`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' });
+const geser = { display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px', padding: '0 16px', scrollbarWidth: 'none' };
+const baris = { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', minHeight: 56, borderBottom: '1px solid var(--color-divider)' };
 
 export default function MenuJamaah({ v }) {
-  return (<>
-              <div style={css("padding:8px 20px 24px;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;gap:14px")}>
-                {" "}
-                <div>
-                  {" "}
-                  <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(22px*var(--fs,1));line-height:1.08")}>
-                    Jamaah
-                  </div>
-                  {" "}
-                  <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);margin-top:4px")}>
-                    {txt(v.jl?.count)}{" "}jamaah ·{" "}{txt(v.jl?.scope)}
-                  </div>
-                  {" "}
-                </div>
-                {" "}
-                <div style={css("display:flex;gap:6px;background:var(--color-surface);border-radius:999px;padding:4px;box-shadow:inset 0 0 0 1px var(--color-divider)")}>
-                  {arr(v.jk?.segs).map((m, i0) => (<React.Fragment key={i0}>
-                    <button onClick={m?.on} style={css(`flex:1;border:0;border-radius:999px;min-height:44px;font:700 calc(13.5px*var(--fs,1)) var(--font-body);cursor:pointer;background:${m?.bg ?? ''};color:${m?.fg ?? ''}`)}>
-                      {txt(m?.l)}
-                    </button>
-                  </React.Fragment>))}
-                </div>
-                {" "}
-                <input className="input" type="search" aria-label="Cari jamaah" value={v.jl?.q ?? ''} onChange={v.onQuery} placeholder="Cari nama, nomor porsi, atau pendamping" style={css("height:46px;font-size:calc(15px*var(--fs,1));border-radius:999px")} />
-                {" "}
-                {v.jk?.isAll ? (<>
-                  {" "}
-                  <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>
-                    {" "}
-                    {arr(v.jl?.filters).map((c, i0) => (<React.Fragment key={i0}>
-                      <button onClick={c?.on} style={css(`flex:none;border:0;border-radius:999px;min-height:44px;padding:0 14px;box-shadow:inset 0 0 0 1px var(--color-divider);font:600 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer;background:${c?.bg ?? ''};color:${c?.fg ?? ''};display:flex;gap:6px;align-items:center`)}>
-                        {txt(c?.l)}
-                        <span style={css("font-weight:800;opacity:.8")}>
-                          {txt(c?.n)}
-                        </span>
-                      </button>
-                    </React.Fragment>))}
-                    {" "}
-                  </div>
-                  {" "}
-                  <div style={css("display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px")}>
-                    {" "}
-                    {arr(v.jl?.rs).map((c, i0) => (<React.Fragment key={i0}>
-                      <button onClick={c?.on} style={css(`width:100%;aspect-ratio:1;min-height:44px;max-width:48px;justify-self:center;padding:0;border-radius:50%;border:0;font:700 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer;background:${c?.bg ?? ''};color:${c?.fg ?? ''};box-shadow:inset 0 0 0 1.5px ${c?.ring ?? ''}`)}>
-                        {txt(c?.l)}
-                      </button>
-                    </React.Fragment>))}
-                    {" "}
-                  </div>
-                  {" "}
-                  {v.jl?.showG ? (<>
-                    {" "}
-                    <div style={css("display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px")}>
-                      {" "}
-                      {arr(v.jl?.gs).map((c, i0) => (<React.Fragment key={i0}>
-                        <button onClick={c?.on} style={css(`border:0;border-radius:999px;min-height:44px;padding:0;font:600 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer;background:${c?.bg ?? ''};color:${c?.fg ?? ''}`)}>
-                          {txt(c?.l)}
-                        </button>
-                      </React.Fragment>))}
-                      {" "}
-                    </div>
-                    {" "}
-                  </>) : null}
-                  {" "}
-                  <div className="kaca" style={css("border-radius:22px;padding:2px 16px")}>
-                    {" "}
-                    {arr(v.jl?.rows).map((j, i0) => (<React.Fragment key={i0}>
-                      {" "}
-                      <button type="button" className="ketuk" onClick={j?.on} style={css("display:flex;align-items:center;gap:12px;padding:11px 0;min-height:48px;border-bottom:1px solid var(--color-divider)")}>
-                        <div aria-hidden="true" style={css(`width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:13px;background:${j?.avBg ?? ''};color:${j?.avFg ?? ''}`)}>
-                          {txt(j?.ini)}
-                        </div>
-                        {" "}
-                        <div style={css("flex:1;min-width:0")}>
-                          {" "}
-                          <div style={css("display:flex;gap:6px;align-items:center;min-width:0")}>
-                            <span style={css("font-weight:600;font-size:calc(14.5px*var(--fs,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>
-                              {txt(j?.name)}
-                            </span>
-                            {j?.risti ? (<>
-                              <span style={css("flex:none;font-size:calc(13px*var(--fs,1));font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:999px;background:var(--red-600);color:var(--on-red)")}>
-                                RISTI
-                              </span>
-                            </>) : null}
-                          </div>
-                          {" "}
-                          <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700)")}>
-                            {txt(j?.sub)}
-                          </div>
-                          {" "}
-                          {j?.hasNote ? (<>
-                            <div style={css("font-size:calc(13px*var(--fs,1));color:var(--red-700);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>
-                              {txt(j?.note)}
-                            </div>
-                          </>) : null}
-                          {" "}
-                        </div>
-                        {" "}
-                        <span style={css(`flex:none;font-size:calc(13px*var(--fs,1));padding:3px 10px;border-radius:999px;background:${j?.tagBg ?? ''};color:${j?.tagFg ?? ''}`)}>
-                          {txt(j?.tag)}
-                        </span>
-                      </button>
-                      {" "}
-                    </React.Fragment>))}
-                    {" "}
-                    {v.jl?.empty ? (<>
-                      <div style={css("padding:28px 0;text-align:center;font-size:calc(14px*var(--fs,1));color:var(--color-neutral-700)")}>
-                        Tidak ada jamaah yang cocok.
-                      </div>
-                    </>) : null}
-                    {" "}
-                  </div>
-                  {" "}
-                  {v.jl?.trunc ? (<>
-                    <div style={css("text-align:center;font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700)")}>
-                      Menampilkan 40 dari{" "}{txt(v.jl?.count)}{" "}· pilih rombongan untuk mempersempit
-                    </div>
-                  </>) : null}
-                  {" "}
-                </>) : null}
-                {" "}
-                {v.jk?.isKh ? (<>
-                  {" "}
-                  <div style={css("display:flex;flex-wrap:wrap;gap:6px")}>
-                    {arr(v.jk?.chips).map((c, i0) => (<React.Fragment key={i0}>
-                      <button onClick={c?.on} style={css(`flex:none;border:0;border-radius:999px;min-height:44px;padding:0 12px;font:700 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer;background:${c?.bg ?? ''};color:${c?.fg ?? ''};box-shadow:inset 0 0 0 1.5px ${c?.ring ?? ''};display:flex;gap:6px;align-items:center`)}>
-                        {txt(c?.l)}
-                        <span style={css("opacity:.75")}>
-                          {txt(c?.n)}
-                        </span>
-                      </button>
-                    </React.Fragment>))}
-                  </div>
-                  {" "}
-                  {v.jk?.empty ? (<>
-                    <div style={css("background:var(--color-surface);border-radius:22px;padding:24px 16px;text-align:center;font-size:calc(14px*var(--fs,1));color:var(--color-neutral-700)")}>
-                      Tidak ada jamaah yang cocok. Tandai lansia atau kursi roda dari detail jamaah.
-                    </div>
-                  </>) : null}
-                  {" "}
-                  {arr(v.jk?.groups).map((g, i0) => (<React.Fragment key={i0}>
-                    {" "}
-                    <div style={css("display:grid;gap:6px")}>
-                      {" "}
-                      <div style={css("display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:0 4px")}>
-                        <div>
-                          <div style={css("font-weight:800;font-size:calc(15.5px*var(--fs,1))")}>
-                            {txt(g?.title)}
-                          </div>
-                          <div style={css("font-size:calc(12.5px*var(--fs,1));color:var(--color-neutral-700)")}>
-                            {txt(g?.sub)}
-                          </div>
-                        </div>
-                        <span style={css("font-size:calc(12.5px*var(--fs,1));font-weight:700;color:var(--color-accent)")}>
-                          {txt(g?.n)}
-                        </span>
-                      </div>
-                      {" "}
-                      <div className="kaca" style={css("border-radius:22px;padding:2px 14px")}>
-                        {" "}
-                        {arr(g?.rows).map((r, i1) => (<React.Fragment key={i1}>
-                          {" "}
-                          <button onClick={r?.on} style={css("width:100%;border:0;background:transparent;text-align:left;cursor:pointer;font:inherit;color:inherit;display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--color-divider)")}>
-                            {" "}
-                            <span style={css(`width:40px;height:40px;border-radius:13px;flex:none;display:grid;place-items:center;font-weight:800;font-size:13px;background:${r?.avBg ?? ''};color:${r?.avFg ?? ''}`)}>
-                              {txt(r?.ini)}
-                            </span>
-                            {" "}
-                            <span style={css("flex:1;min-width:0;display:block")}>
-                              <span style={css("display:block;font-weight:700;font-size:calc(14.5px*var(--fs,1))")}>
-                                {txt(r?.name)}
-                              </span>
-                              {" "}
-                              <span style={css("display:flex;flex-wrap:wrap;gap:4px;margin-top:4px")}>
-                                {arr(r?.tags).map((x, i2) => (<React.Fragment key={i2}>
-                                  <span style={css(`font-size:calc(11.5px*var(--fs,1));font-weight:700;padding:1px 8px;border-radius:999px;background:${x?.bg ?? ''};color:${x?.fg ?? ''}`)}>
-                                    {txt(x?.t)}
-                                  </span>
-                                </React.Fragment>))}
-                              </span>
-                              {" "}
-                              <span style={css(`display:flex;align-items:center;gap:6px;margin-top:6px;font-size:calc(12.5px*var(--fs,1));font-weight:600;color:${r?.pendFg ?? ''}`)}>
-                                <span style={css(`width:20px;height:20px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:calc(9.5px*var(--fs,1));font-weight:800;background:${r?.pendBg ?? ''};color:${r?.pendIc ?? ''}`)}>
-                                  {txt(r?.pendIni)}
-                                </span>
-                                {txt(r?.pend)}
-                              </span>
-                            </span>
-                            {" "}
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={css("flex:none;margin-top:10px")}>
-                              <path d="M9 6l6 6-6 6" />
-                            </svg>
-                            {" "}
-                          </button>
-                          {" "}
-                        </React.Fragment>))}
-                        {" "}
-                      </div>
-                      {" "}
-                    </div>
-                    {" "}
-                  </React.Fragment>))}
-                  {" "}
-                </>) : null}
-                {" "}
+  const jl = v.jl || {}, jk = v.jk || {};
+  return (
+    <div style={{ padding: '12px 12px 24px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gridAutoRows: 'max-content', gap: 12 }}>
+      <div style={kartu}>
+        <div style={{ fontSize: fs(12.5), color: 'var(--teks-3)' }}>{txt(jl.count)} jamaah · {txt(jl.scope)}</div>
+        <div style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: 14, top: 0, bottom: 0, display: 'grid', placeItems: 'center', color: 'var(--color-text)', pointerEvents: 'none' }}><Ikon d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4" s={20} /></span>
+          <input className="input" type="search" aria-label="Cari jamaah" value={jl.q ?? ''} onChange={v.onQuery} autoFocus={!!v.fokusCari} placeholder="Cari nama atau nomor porsi"
+            style={{ height: 48, width: '100%', boxSizing: 'border-box', paddingLeft: 44, fontSize: fs(15), borderRadius: 12 }} />
+        </div>
+        <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 26, border: '1px solid var(--m-tepi)' }}>
+          {arr(jk.segs).map((m, i) => (
+            <button key={i} type="button" onClick={m?.on} aria-pressed={!!m?.a}
+              style={{ flex: 1, minWidth: 0, minHeight: 44, border: 0, borderRadius: 22, cursor: 'pointer', background: m?.a ? 'var(--color-accent)' : 'transparent', color: m?.a ? 'var(--on-accent)' : 'var(--color-text)', font: `${m?.a ? 600 : 400} ${fs(13)} var(--font-body)` }}>{txt(m?.l)}</button>
+          ))}
+        </div>
+        {jk.isAll ? (<>
+          <div style={geser}>
+            {arr(jl.filters).map((c, i) => (
+              <button key={i} type="button" onClick={c?.on} aria-pressed={!!c?.a} style={pil(c)}>{txt(c?.l)}<span style={{ fontWeight: 600 }}>{txt(c?.n)}</span></button>
+            ))}
+          </div>
+          <div style={geser}>
+            {arr(jl.rs).map((c, i) => (
+              <button key={i} type="button" onClick={c?.on} aria-pressed={!!c?.a} aria-label={'Rombongan ' + String(c?.l).slice(1)} style={{ ...pil(c), width: 44, padding: 0, justifyContent: 'center' }}>{txt(c?.l)}</button>
+            ))}
+          </div>
+          {jl.showG ? (
+            <div style={geser}>
+              {arr(jl.gs).map((c, i) => <button key={i} type="button" onClick={c?.on} aria-pressed={!!c?.a} style={pil(c)}>{txt(c?.l)}</button>)}
+            </div>
+          ) : null}
+        </>) : (
+          <div style={geser}>
+            {arr(jk.chips).map((c, i) => (
+              <button key={i} type="button" onClick={c?.on} aria-pressed={!!c?.a} style={pil(c)}>{txt(c?.l)}<span style={{ fontWeight: 600 }}>{txt(c?.n)}</span></button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {jk.isAll ? (<>
+        <div style={{ ...kartu, padding: '4px 16px', gap: 0 }}>
+          {arr(jl.rows).map((j, i) => (
+            <button key={i} type="button" className="ketuk" onClick={j?.on} style={baris}>
+              <Avatar ini={j?.ini} />
+              <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 2 }}>
+                <span style={{ display: 'flex', gap: '2px 8px', alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
+                  <span style={{ fontWeight: 500, fontSize: fs(14.5), overflowWrap: 'anywhere' }}>{txt(j?.name)}</span>
+                  {j?.risti ? <span className="mk-lencana" style={{ flex: 'none' }}>Risti</span> : null}
+                </span>
+                <span style={{ fontSize: fs(12.5), color: 'var(--teks-3)' }}>{txt(j?.sub)}</span>
+                {j?.hasNote ? <span style={{ fontSize: fs(12.5), color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Catatan: {txt(j?.note)}</span> : null}
+              </span>
+              <Status k={j?.tagK} l={j?.tag} />
+            </button>
+          ))}
+          {jl.empty ? <div style={{ padding: '28px 0', textAlign: 'center', fontSize: fs(14), color: 'var(--teks-3)' }}>Tidak ada jamaah yang cocok.</div> : null}
+        </div>
+        {jl.trunc ? <div style={{ fontSize: fs(12.5), color: 'var(--teks-3)', padding: '0 4px' }}>Menampilkan 40 dari {txt(jl.count)} · pilih rombongan untuk mempersempit</div> : null}
+      </>) : null}
+
+      {jk.isKh ? (<>
+        {jk.empty ? <div style={{ ...kartu, textAlign: 'center', fontSize: fs(14), color: 'var(--teks-3)' }}>Tidak ada jamaah yang cocok. Tandai lansia atau kursi roda dari detail jamaah.</div> : null}
+        {arr(jk.groups).map((g, i) => (
+          <div key={i} style={{ ...kartu, gap: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 500, fontSize: fs(16) }}>{txt(g?.title)}</div>
+                <div style={{ fontSize: fs(12.5), color: 'var(--teks-3)' }}>{txt(g?.sub)}</div>
               </div>
-              {" "}
-  </>);
+              <span style={{ flex: 'none', fontSize: fs(12.5), fontWeight: 500 }}>{txt(g?.n)}</span>
+            </div>
+            {arr(g?.rows).map((r, k) => (
+              <button key={k} type="button" className="ketuk" onClick={r?.on} style={{ ...baris, alignItems: 'flex-start' }}>
+                <Avatar ini={r?.ini} />
+                <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 6 }}>
+                  <span style={{ fontWeight: 500, fontSize: fs(14.5) }}>{txt(r?.name)}</span>
+                  <span style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {arr(r?.tags).map((x, n) => <span key={n} className="mk-lencana">{txt(x?.t)}</span>)}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: fs(12.5), color: r?.adaPend ? 'var(--color-text)' : 'var(--red-700)', fontWeight: r?.adaPend ? 400 : 500 }}>
+                    {r?.adaPend ? null : <Ikon d={SEGITIGA} s={16} />}{txt(r?.pend)}
+                  </span>
+                </span>
+                <span style={{ flex: 'none', marginTop: 10, color: 'var(--color-text)' }}><Ikon d="M9 6l6 6-6 6" /></span>
+              </button>
+            ))}
+          </div>
+        ))}
+      </>) : null}
+    </div>
+  );
 }

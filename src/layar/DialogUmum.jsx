@@ -6,15 +6,15 @@ export default function DialogUmum({ v }) {
   return (<>
           {v.hasToast ? (<>
             {" "}
-            <div className="kaca-blur" style={css(`position:absolute;left:16px;right:16px;bottom:${v.toastBottom ?? ''};background:var(--lembar-bg);color:var(--color-text);border:1px solid var(--color-accent);box-shadow:0 12px 28px -10px rgba(0,0,0,.55);border-radius:20px;padding:8px 10px 8px 12px;min-height:48px;box-sizing:border-box;font-size:calc(13.5px*var(--fs,1));font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:7`)}>
+            <div className="kaca-blur" style={css(`position:absolute;left:16px;right:16px;bottom:${v.toastBottom ?? ''};background:var(--lembar-bg);color:var(--color-text);border:1px solid var(--m-tepi);border-radius:20px;padding:8px 10px 8px 12px;min-height:48px;box-sizing:border-box;font-size:calc(13.5px*var(--fs,1));font-weight:500;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:7`)}>
               {" "}
               <span style={css("display:flex;align-items:center;gap:10px;min-width:0")}>
-                <span aria-hidden="true" style={css("width:28px;height:28px;border-radius:50%;background:var(--color-accent);color:var(--on-accent);display:grid;place-items:center;flex:none;font-weight:800;font-size:14px")}>✓</span>
+                <span aria-hidden="true" style={css("width:28px;height:28px;border-radius:50%;background:var(--color-accent);color:var(--on-accent);display:grid;place-items:center;flex:none;font-weight:600;font-size:14px")}>✓</span>
                 <span style={css("min-width:0")}>{txt(v.toastMsg)}</span>
               </span>
               {" "}
               {v.hasUndo ? (<>
-                <button onClick={v.doUndo} style={css("flex:none;border:0;border-radius:999px;height:44px;padding:0 14px;background:var(--emas-isi);color:var(--on-emas);font:800 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer")}>
+                <button onClick={v.doUndo} style={css("flex:none;border:0;border-radius:999px;height:44px;padding:0 14px;background:var(--emas-isi);color:var(--on-emas);font:600 calc(13px*var(--fs,1)) var(--font-body);cursor:pointer")}>
                   Batalkan
                 </button>
               </>) : null}
@@ -27,20 +27,20 @@ export default function DialogUmum({ v }) {
             {" "}
             <div onClick={v.closeWa} style={css("position:absolute;inset:0;background:var(--scrim);display:flex;align-items:flex-end;z-index:9")}>
               {" "}
-              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:90%;background:var(--lembar-bg);border-top:1px solid var(--kaca-garis);border-radius:36px 36px 0 0;padding:12px 20px 24px;box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:12px;box-shadow:var(--shadow-lg)")}>
+              <div role="dialog" aria-modal="true" onClick={v.stop} style={css("width:100%;max-height:90%;background:var(--lembar-bg);border-radius:28px 28px 0 0;padding:12px 16px 24px;box-sizing:border-box;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:12px")}>
                 {" "}
                 <div style={css("width:44px;height:5px;border-radius:9px;background:var(--color-neutral-300);justify-self:center")}></div>
                 {" "}
                 <div>
-                  <div style={css("font-family:var(--font-heading);font-weight:800;letter-spacing:-.01em;font-size:calc(22px*var(--fs,1));line-height:1.15")}>
+                  <div style={css("font-weight:300;font-size:calc(22px*var(--fs,1));line-height:1.2")}>
                     Rekap untuk WhatsApp
                   </div>
-                  <div style={css("font-size:calc(13px*var(--fs,1));color:var(--color-neutral-700);margin-top:2px")}>
+                  <div style={css("font-size:calc(13px*var(--fs,1));color:var(--teks-3);margin-top:2px")}>
                     Periksa dulu, lalu salin atau kirim langsung
                   </div>
                 </div>
                 {" "}
-                <pre style={css("margin:0;overflow:auto;background:var(--color-accent-100);border-radius:18px;padding:14px;font:500 calc(13px*var(--fs,1))/1.5 var(--font-body);white-space:pre-wrap;word-break:break-word;color:var(--color-text)")}>
+                <pre style={css("margin:0;overflow:auto;background:var(--color-bg);border-radius:16px;padding:14px;font:400 calc(13px*var(--fs,1))/1.5 var(--font-body);white-space:pre-wrap;word-break:break-word;color:var(--color-text)")}>
                   {txt(v.waText)}
                 </pre>
                 {" "}
@@ -50,7 +50,7 @@ export default function DialogUmum({ v }) {
                     {txt(v.copyLabel)}
                   </button>
                   {" "}
-                  <a href={v.waLink} target="_blank" rel="noopener" onClick={v.markRekap} style={css("height:48px;border-radius:999px;background:var(--color-accent-600);color:var(--on-accent);font:700 calc(15px*var(--fs,1)) var(--font-body);display:flex;align-items:center;justify-content:center;text-decoration:none")}>
+                  <a href={v.waLink} target="_blank" rel="noopener" onClick={v.markRekap} style={css("height:48px;border-radius:999px;background:var(--m-isi);color:var(--m-on-isi);font:600 calc(15px*var(--fs,1)) var(--font-body);display:flex;align-items:center;justify-content:center;text-decoration:none")}>
                     Kirim ke WhatsApp
                   </a>
                   {" "}

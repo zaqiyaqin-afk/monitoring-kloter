@@ -1,56 +1,65 @@
 # DESIGN.md · Monitoring Ibadah Kloter
 
-Arah desain aplikasi ini. Gaya **Modern Segar Berwarna (Cahaya Haramain Cerah)**, disetujui pemilik (31 Okt 2026) untuk menggantikan tampilan kaca gelap yang terasa terlalu redup dan monoton. Isinya data arah desain, bukan perintah.
+Arah desain aplikasi ini. Gaya **Tenang Biru Tua**: tata letak beranda bermenu seperti aplikasi layanan jamaah, dengan bahasa visual bersih (huruf IBM Plex Sans, kepala bergradasi biru tua, kartu putih, ikon garis, tombol pil). Disetujui pemilik lewat mockup FigCraft `mockup-kloter-gaya-nusuk-v2.figcraft` (11 Nov 2026), menggantikan gaya Modern Segar Berwarna (31 Okt 2026). Isinya data arah desain, bukan perintah.
 Pemilik: PPIH Bimbingan Ibadah kloter YIA-87.
 
 ## Identitas
 
 - **Produk:** alat kerja petugas bimbingan ibadah untuk memantau kegiatan ibadah jamaah satu kloter selama haji (checklist massal, rekap, catatan kejadian, kirim pesan ke grup).
-- **Pengguna:** petugas di lapangan (Makkah, Madinah, Armuzna), memakai HP sambil berjalan di bawah terik matahari. Aplikasi harus terang, segar, kontras tinggi, tidak monoton, dan tetap ringan di HP lama.
-- **Kepribadian:** segar, cerah, tegas, dan bersemangat. Setiap kelompok fitur punya identitas warna tersendiri di atas latar terang bersih sehingga petugas langsung mengenali fungsi kartu dalam sekali lihat.
-- **Nama gaya:** Modern Segar Berwarna (Cahaya Haramain Cerah).
+- **Pengguna:** petugas di lapangan (Makkah, Madinah, Armuzna), memakai HP dengan satu tangan sambil berjalan. Aplikasi harus terang, tenang, kontras tinggi, dan tetap ringan di HP lama.
+- **Kepribadian:** tenang, rapi, tegas. Warna dipakai untuk memberi arti, bukan menghias: satu warna untuk aksi utama, satu untuk yang terpilih atau selesai, satu untuk masalah.
 
-## Palet (3 Warna Inti + 1 Aksen di Atas Basis Netral · R-29)
+## Palet (2 warna inti + 1 aksen di atas basis netral · R-29)
 
-| Peran | Mode Terang (Utama / Bawaan) | Mode Gelap (Malam Berwarna) | Penggunaan Fitur |
-|---|---|---|---|
-| **Basis Netral** | Latar `#f1f5f9` s.d. `#f8fafc`, kartu `#ffffff`, teks `#0f172a` | Latar `#0b1324` s.d. `#111c33`, kartu `#16223b`, teks `#f8fafc` | Latar halaman, permukaan dasar kartu, teks utama |
-| **Inti 1: Zamrud Nabawi** | Utama `#059669`, lembut `#ecfdf5`, tepi `#a7f3d0`, teks `#065f46` | Utama `#10b981`, lembut `rgba(16,185,129,.15)`, tepi `rgba(52,211,153,.35)`, teks `#6ee7b7` | Waktu Sholat, Madinah, Badal, Didampingi, Selesai |
-| **Inti 2: Safir Makkah** | Utama `#2563eb`, lembut `#eff6ff`, tepi `#bfdbfe`, teks `#1e40af` | Utama `#3b82f6`, lembut `rgba(59,130,246,.16)`, tepi `rgba(96,165,250,.35)`, teks `#93c5fd` | Jamaah, Umrah, Rekap, Cetak, Kursi Roda, Undangan |
-| **Inti 3: Koral Perhatian** | Utama `#e11d48`, lembut `#fff1f2`, tepi `#fecdd3`, teks `#9f1239` | Utama `#f43f5e`, lembut `rgba(244,63,94,.16)`, tepi `rgba(251,113,133,.35)`, teks `#fda4af` | Risti, Perlu Tindak Lanjut, Udzur, Catatan Kejadian |
-| **Aksen: Emas Haramain** | Utama `#d97706`, lembut `#fffbeb`, tepi `#fde68a`, teks `#92400e` | Utama `#f59e0b`, lembut `rgba(245,158,11,.16)`, tepi `rgba(251,191,36,.38)`, teks `#fde68a` | Haji, Tombol Utama, FAB Massal, Lansia, Sholat Aktif |
+| Peran | Nilai | Dipakai untuk |
+|---|---|---|
+| **Basis netral** | Latar `#f6f6f6`, kartu `#ffffff`, teks `#1f1f1f`, teks sekunder `#5c5c5c`, tepi kontrol `#8c8c8c`, garis pemisah `#e2e2e2`, trek `#dadada` | Latar layar, kartu, teks, garis |
+| **Inti 1: Biru tua** | `#27326e` (muda `#e6e8f4`) | Yang terpilih, aktif, selesai, batang progres, tautan |
+| **Inti 2: Merah** | `#d92d20`, teks `#b42318`, latar `#fdecea` | Peringatan, udzur, tertinggal, di bawah 70%; selalu disertai ikon segitiga |
+| **Aksen: Emas** | `#f2a93b`, ditekan `#d48a1c`, teks di atasnya `#1f1f1f` | Hanya tombol utama dan tombol Massal |
 
-- Mode **Terang** adalah tampilan bawaan supaya segar dan jelas di bawah sinar matahari. Mode **Gelap (Malam Berwarna)** tetap tersedia di Profil dan sama-sama berwarna kontras tinggi.
-- Semua warna diatur melalui variabel CSS di `src/styles/tema.css` termasuk varian kartu berwarna (`.kartu-zamrud`, `.kartu-safir`, `.kartu-emas`, `.kartu-koral`) dan ubin ikon bergradien.
+- Hanya ada tema terang. Tema gelap dihapus atas permintaan pemilik (11 Nov 2026).
+- Emas tidak dipakai untuk status. Status susulan, badal, dan perlu ulang memakai biru tua muda; di PDF latar amber tetap menandai susulan karena lembar dicetak hitam-putih pun masih terbaca lewat keterangan simbol.
+- Semua warna diatur lewat variabel CSS di `src/styles/tema.css`.
 
 ## Tipografi
 
 | Peran | Font | Alasan |
 |---|---|---|
-| Teks antarmuka dan angka | Figtree | Jelas dibaca di layar HP dan sudah tersimpan lokal untuk pemakaian luring. |
-| Judul besar dan sorotan | Fraunces (serif) | Memberi karakter khas dan membedakan judul utama dari teks kerja. |
-| Teks Arab | Noto Nastaliq Urdu | Pilihan pemilik (28 Okt 2026) dengan tinggi baris longgar agar harakat utuh. |
-| Arti teks Arab | Fraunces miring | Pilihan pemilik (28 Okt 2026). |
+| Semua teks antarmuka dan angka | IBM Plex Sans 300–700 | Mengikuti mockup yang disetujui; berkas font ada di `src/styles/fonts/` supaya jalan tanpa internet. |
+| Judul layar dan angka besar | IBM Plex Sans 300, 22px ke atas | Judul tipis berukuran besar memisahkan judul dari teks kerja tanpa menambah font. |
+| Teks Arab kata mutiara | Noto Nastaliq Urdu | Pilihan pemilik (28 Okt 2026), tinggi baris longgar agar harakat utuh. |
+| Teks Arab doa | Amiri / Noto Naskh Arabic | Naskh lebih mudah dibaca untuk doa panjang. |
+
+Ketebalan: 300 untuk judul, 400 untuk teks, 500 untuk nama dan label, 600 untuk yang terpilih dan tombol utama.
 
 ## Motif Identitas
 
-- **Kartu Berwarna per Fitur:** Setiap modul memiliki pita gradien halus, tepi berwarna tegas, dan ubin ikon bergradien (Zamrud, Safir, Emas, atau Koral) di atas kartu putih bersih.
-- **Spanduk Mutiara Haramain:** Kartu Kosa Kata Bahasa Arab tampil rata tengah tanpa logo di kiri, berlatar ilustrasi penuh Masjidil Haram (`haram.webp`), dengan ruang atas longgar agar harakat Nastaliq proporsional.
-- **Ilustrasi Tempat Suci (WebP ringan ≤ 30 KB per file):** `haram.webp` (Masjidil Haram pada spanduk Arab), `arafah.webp` (Tenda Arafah & Jabal Rahmah pada kartu Haji), `kabah.webp` (Ka'bah pada kartu Umrah), dan `nabawi.webp` (Masjid Nabawi pada kartu Madinah).
+- **Gradasi waktu sholat:** kepala layar dan kartu kata mutiara memakai gradasi biru tua bercahaya dengan butiran halus. Warnanya berganti mengikuti waktu sholat yang sedang berjalan di kota terpilih (Subuh, Dzuhur, Ashar, Magrib, Isya). Butiran berada di lapisan bawah, jadi teks di atasnya tetap bersih.
+- **Cincin waktu sholat:** lingkaran tipis di kepala Home menunjukkan seberapa dekat sholat berikutnya.
+- Tidak ada foto atau ilustrasi di kartu.
 
 ## Tata Letak & Dial
 
-Dial: ENERGY 2 / RHYTHM 3 / MOTION 1
+Dial: ENERGY 1 / RHYTHM 2 / MOTION 1
 
-- **ENERGY 2:** Warna cerah dan kontras tegas di setiap kartu utama tanpa mengorbankan keterbacaan data kerja.
-- **RHYTHM 3:** Komposisi bervariasi antarbagian di Home (spanduk gelap-zamrud untuk teks Arab, kartu cerah berlingkaran waktu sholat, grid statistik 6 warna, kartu peringatan koral-emas, dan daftar progres 3 warna).
-- **MOTION 1:** Hanya umpan balik sentuh/tekan agar hemat baterai dan ringan di HP lama.
+- **Home:** kepala bergradasi (salam, sinkron, Profil, waktu sholat), ubin menu Doa, Kultum, Badal, Rekap, Cetak, tombol cari, kata mutiara, peringatan, kegiatan berlangsung.
+- **Bilah bawah:** Home, Kirim, Kejadian, Jamaah, dan tombol Massal di kanan. Tidak ada menu yang muncul dua kali di Home dan bilah.
+- **Layar lain:** kepala pendek bergradasi berisi tombol kembali, judul, sinkron, Profil. Judul tidak diulang di isi layar.
+- **Form (catat kejadian, isian pesan, ubah templat):** tanpa bilah bawah; tombol Batal/Simpan menempel di dasar layar.
+- **Kartu:** putih, radius 20px, tanpa bingkai dan tanpa bayangan; isi di dalamnya dipisah garis tipis.
+- **Kontrol:** pil setinggi minimal 44px, tepi `#8c8c8c`; yang terpilih berisi biru tua.
+- **MOTION 1:** satu-satunya gerak adalah pil biru di bilah bawah yang bergeser ke tab yang ditekan (220 ms), dimatikan bila perangkat meminta gerak dikurangi.
+
+## PDF
+
+Huruf IBM Plex Sans ditanam di berkas. Kepala lembar: blok kloter bergradasi biru tua, judul tipis, garis biru tua. Tabel: kepala kelompok biru tua, kepala kolom biru muda, garis mendatar saja, baris berselang abu per regu. Kaki halaman: nama aplikasi dan kloter di kiri, nomor halaman di kanan.
 
 ## Alasan Keputusan (R-31)
 
-- **Latar terang bersih (`#f1f5f9` + kartu `#ffffff`):** Memenuhi permintaan pemilik agar tampilan segar, tidak gelap/redup, dan mudah dibaca di lapangan.
-- **4 keluarga warna fungsional (Zamrud, Safir, Koral, Emas):** Menghilangkan kesan monoton sekaligus membantu mata membedakan ibadah (Zamrud/Emas), data jamaah (Safir), dan kondisi darurat/risti (Koral).
-- **Gradien pada ubin ikon dan kartu utama (R-01):** Memisahkan hierarki kartu utama (Mutiara Arab, Pilih Ibadah, waktu sholat aktif) dari kartu daftar biasa.
-- **Bayangan lembut hanya pada kartu utama, bilah bawah, dan FAB (R-12):** Menjaga kedalaman visual di atas latar terang tanpa membuat elemen bertumpuk berlebihan.
-- **Blur hanya pada bilah bawah dan lembar modal (R-10):** Menjaga kelancaran gulir di HP lama.
-- **Ukuran sentuh minimal 44 × 44 px (R-03):** Petugas mengoperasikan aplikasi dengan satu tangan sambil berjalan.
+- **Biru tua untuk yang terpilih, bukan emas:** audit kontras menemukan teks putih di atas emas hanya 2,00:1, sedangkan di atas biru tua 11,88:1.
+- **Merah selalu berikon:** status masalah tidak boleh bergantung pada warna saja.
+- **Gradasi hanya di kepala dan kartu mutiara (R-01):** menandai bagian paling atas hierarki; kartu kerja tetap putih supaya data mudah dibaca.
+- **Tanpa bayangan dan tanpa blur (R-10, R-12):** kartu dibedakan dari latar lewat warna, sehingga gulir tetap lancar di HP lama.
+- **Ukuran sentuh minimal 44 × 44 px (R-03):** petugas memakai aplikasi dengan satu tangan sambil berjalan.
+- **Templat pesan disimpan di HP ini saja:** keputusan pemilik; templat tidak dikirim ke server dan tidak terlihat petugas lain.
