@@ -22,8 +22,9 @@ const S = {
 function Kepala({ judul, sub }) {
   return (
     <div className="mk-layar mk-gradasi" data-waktu={periode(kotaTersimpan())} style={S.hero}>
-      <img src="emblem-256.png" alt="" width="96" height="96" style={{ display: 'block', margin: '0 auto 10px' }} />
-      <div lang="ar" style={{ fontFamily: 'var(--font-arab)', fontSize: fs(22), lineHeight: 2.2, color: '#ffffff', direction: 'rtl' }}>خِدْمَةُ الْحُجَّاجِ شَرَفٌ لَنَا</div>
+      <img src="emblem-256.png" alt="" width="96" height="96" style={{ display: 'block', margin: '0 auto 22px' }} />
+      {/* Nastaliq menjulang di atas kotak barisnya: beri ruang atas supaya tidak menabrak ikon. */}
+      <div lang="ar" style={{ fontFamily: 'var(--font-arab)', fontSize: fs(22), lineHeight: 2.4, paddingTop: '0.5em', color: '#ffffff', direction: 'rtl' }}>خِدْمَةُ الْحُجَّاجِ شَرَفٌ لَنَا</div>
       <div style={{ fontSize: fs(22), fontWeight: 300, marginTop: 8 }}>{judul}</div>
       <div style={{ fontSize: fs(13.5), marginTop: 4 }}>{sub}</div>
     </div>
