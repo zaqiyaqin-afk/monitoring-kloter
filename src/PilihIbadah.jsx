@@ -1,5 +1,6 @@
 // Layar awal Massal: satu kartu per ibadah (Haji, Umrah, Madinah) berisi progres dan tombol buka, lalu kartu Foto kegiatan.
 import React from 'react';
+import { IKON_IBADAH } from './kegiatan.js';
 
 const fs = n => `calc(${n}px*var(--fs,1))`;
 const kartu = { background: 'var(--color-surface)', borderRadius: 20, padding: 16, display: 'grid', gap: 8, minWidth: 0 };
@@ -11,8 +12,11 @@ function KartuIbadah({ x }) {
   const status = x.pct >= 100 ? 'selesai' : x.pct > 0 ? 'berjalan' : 'belum dimulai';
   return (
     <div style={kartu}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-        <span style={{ fontSize: fs(22), fontWeight: 300, lineHeight: 1.2 }}>{NAMA[x.m] || x.judul}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {IKON_IBADAH[x.m] ? <span aria-hidden="true" style={{ width: 52, height: 52, flex: 'none', borderRadius: 26, display: 'grid', placeItems: 'center', background: 'var(--color-bg)', color: 'var(--color-accent)' }}>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={IKON_IBADAH[x.m]} /></svg>
+        </span> : null}
+        <span style={{ flex: 1, minWidth: 0, fontSize: fs(22), fontWeight: 300, lineHeight: 1.2 }}>{NAMA[x.m] || x.judul}</span>
         <span style={{ flex: 'none', fontSize: fs(13), fontWeight: 500 }}>{x.pct}% {status}</span>
       </div>
       <div style={kecil}>{[x.badge, NAMA[x.m] ? x.judul : ''].filter(Boolean).join(' · ')}</div>

@@ -20,6 +20,8 @@ const I = {
   centang: 'M5 12.5l4.5 4.5L19 7.5'
 };
 
+export const IKON_IBADAH = { haji: I.bukit, umrah: I.kabah, madinah: I.kubah };
+
 export function ikonKegiatan(r) {
   const n = String((r && r.n) || '');
   if (/^Niat/.test(n)) return I.niat;

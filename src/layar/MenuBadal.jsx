@@ -60,7 +60,7 @@ export default function MenuBadal({ v }) {
                       </span>
                       <span style={{ display: 'block', marginTop: 2, fontSize: fs(12.5), lineHeight: 1.4, color: tanpa ? 'var(--red-700)' : 'var(--teks-3)', fontWeight: tanpa ? 500 : 400 }}>{txt(r?.sub)}</span>
                     </button>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                    <div data-sorot="tidak" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
                       {arr(r?.days).map((d, k) => { const l = String(d?.l || ''), selesai = l.includes('✓'), na = l.includes('NA'), kini = l.includes('•'), hari = l.replace(/ (✓|•|NA)$/, '');
                         return (
                           <button key={k} type="button" onClick={d?.on} aria-pressed={selesai} aria-label={hari + ' Dzulhijjah' + (selesai ? ', sudah dibadalkan' : na ? ', tidak wajib' : ', belum')}

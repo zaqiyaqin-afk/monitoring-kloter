@@ -32,7 +32,7 @@ export default function MenuChecklist({ v }) {
   const [buka, setBuka] = useState({});
   const tempatRef = useRef(null), tempatAktif = arr(v.ckTempat).findIndex(t => t?.a);
   // Ubin tempat yang dipilih digeser ke tengah supaya tidak tersembunyi di tepi layar
-  useEffect(() => { const c = tempatRef.current, el = c && c.children[tempatAktif]; if (el) c.scrollLeft = el.offsetLeft - (c.clientWidth - el.offsetWidth) / 2; }, [tempatAktif]);
+  useEffect(() => { const c = tempatRef.current, el = c && c.querySelector(':scope > [aria-pressed="true"]'); if (el) c.scrollLeft = el.offsetLeft - (c.clientWidth - el.offsetWidth) / 2; }, [tempatAktif]);
   if (v.ckPilih) return <PilihIbadah v={v} />;
   const s = v.ckSum || {};
   return (

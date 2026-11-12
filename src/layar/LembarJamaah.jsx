@@ -108,7 +108,7 @@ export default function LembarJamaah({ v }) {
           ) : null}
           <div style={{ ...garis, display: 'grid', gap: 8 }}>
             <div style={kecil}>Kebutuhan khusus</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <div data-sorot="tidak" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {arr(sk.chips).map((c, i) => (
                 <button key={i} type="button" onClick={c?.on} aria-pressed={!!c?.a} style={pil(c?.a)}>{c?.a ? <Ikon d="M5 12.5l4.5 4.5L19 7.5" s={16} w={2.2} /> : null}{txt(c?.l)}</button>
               ))}

@@ -396,3 +396,9 @@ button:not(:disabled):active { opacity: .82; }
 }
 
 button, input, select, textarea { font-family: inherit; }
+
+/* Sorotan pilihan yang bergeser (sorot.js): pil di belakang tombol terpilih, tombol sendiri transparan. */
+[data-sorot]:not([data-sorot="tidak"]) { position: relative; isolation: isolate; }
+.mk-sorot-pil { position: absolute; left: 0; top: 0; z-index: -1; pointer-events: none; }
+[data-sorot]:not([data-sorot="tidak"]) > button[aria-pressed] { background: transparent !important; transition: color .12s ease .1s; }
+[data-sorot]:not([data-sorot="tidak"]) > button[aria-pressed="true"] { border-color: transparent !important; }

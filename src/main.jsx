@@ -11,12 +11,14 @@ import { createHost } from './dc/runtime.js';
 import { terapkan } from './tampilan.js';
 import { mulai as mulaiAkun } from './data/akun.js';
 import { registerSW } from 'virtual:pwa-register';
+import { mulaiSorot } from './sorot.js';
 
 async function mulai() {
   terapkan();
   mulaiAkun();
   const App = createHost(AppLogic, View);
   createRoot(document.getElementById('root')).render(<Gerbang><App /></Gerbang>);
+  mulaiSorot();
 }
 
 mulai();
