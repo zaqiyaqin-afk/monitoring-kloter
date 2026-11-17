@@ -3,7 +3,7 @@ import React from 'react';
 import { jalankanMundur } from './mundur.js';
 import { ikonKegiatan, TEMPAT_HAJI, tempatHaji, TEMPAT, tempatDari, kunciHari } from './kegiatan.js';
 import { DCLogic } from './dc/runtime.js';
-import { ambilSemua, kirimPerubahan, unggahFoto, tautanFoto, SB_URL } from './data/server.js';
+import { ambilSemua, kirimPerubahan, unggahFoto, tautanFoto, SB_URL, ambilCentangBaru, dengarCentang } from './data/server.js';
 import { keadaan as akunKeadaan, dengar as dengarAkun } from './data/akun.js';
 import { kompres, keBase64, simpanFoto, hapusFoto, semuaFoto } from './data/fotoStore.js';
 import { JENIS_KEJADIAN, labelKejadian, dariKejadian, uuid } from './kejadian.js';
@@ -170,7 +170,7 @@ export default class AppLogic extends DCLogic {
     this._onResize = () => this.forceUpdate(); window.addEventListener('resize', this._onResize);
     this._onOnline = () => this.syncNow(true); window.addEventListener('online', this._onOnline); window.addEventListener('offline', this._onResize);
     this._lk = setInterval(() => { const lu = (this.cfg && this.cfg.lockUntil) || 0; if (this.state.locked && lu && Date.now() < lu + 1500) this.forceUpdate(); }, 1000);
-    this._iv = setInterval(() => { if (this.live() && !document.hidden && (this.queue.length || Date.now() - (this._lp || 0) > 120000)) this.syncNow(true); }, 60000); this._clk = setInterval(() => { this.checkReminder(); const mn = new Date().getMinutes(); if (!document.hidden && mn !== this._lm) { this._lm = mn; this.forceUpdate(); } }, 5000); setTimeout(() => this.checkReminder(), 3000);
+    this._iv = setInterval(() => { if (this.live() && !document.hidden && (this.queue.length || Date.now() - Math.max(this._lp || 0, this._lc || 0) > 60000)) this.syncNow(true); }, 60000); this._clk = setInterval(() => { this.checkReminder(); const mn = new Date().getMinutes(); if (!document.hidden && mn !== this._lm) { this._lm = mn; this.forceUpdate(); } }, 5000); setTimeout(() => this.checkReminder(), 3000);
     Object.keys(this.data).forEach(m => { this.data[m].cur = this.curOf(m); });
     // Saat pindah ke akun, antrean ditahan dulu supaya terkirim ke akun, bukan ke Sheet lama
     if (this.live()) { const snap = this.readSnap(); if (snap) this.build(snap); if (!this.perluPindahAkun()) this.syncNow(true); }
@@ -185,7 +185,7 @@ export default class AppLogic extends DCLogic {
     this._onInstall = e => { e.preventDefault(); this._installEvt = e; this.forceUpdate(); }; window.addEventListener('beforeinstallprompt', this._onInstall);
     this._onVis = () => { if (!document.hidden && this.live() && (this.queue.length || Date.now() - (this._lp || 0) > 60000)) this.syncNow(true); }; document.addEventListener('visibilitychange', this._onVis);
   }
-  componentWillUnmount() { if (this._lepasAkun) this._lepasAkun(); window.removeEventListener('popstate', this._onPop); window.removeEventListener('beforeinstallprompt', this._onInstall); window.removeEventListener('resize', this._onResize); window.removeEventListener('online', this._onOnline); document.removeEventListener('visibilitychange', this._onVis); window.removeEventListener('offline', this._onResize); clearInterval(this._iv); clearInterval(this._clk); clearInterval(this._lk); }
+  componentWillUnmount() { if (this._dengar) this._dengar(); clearTimeout(this._bt); if (this._lepasAkun) this._lepasAkun(); window.removeEventListener('popstate', this._onPop); window.removeEventListener('beforeinstallprompt', this._onInstall); window.removeEventListener('resize', this._onResize); window.removeEventListener('online', this._onOnline); document.removeEventListener('visibilitychange', this._onVis); window.removeEventListener('offline', this._onResize); clearInterval(this._iv); clearInterval(this._clk); clearInterval(this._lk); }
   build(snap) {
     const ord = { 'Ketua Rombongan': 0, 'Ketua Regu': 1 };
     this._berangkat = String(((snap.pengaturan || {})['Tanggal Berangkat']) || '');
@@ -523,6 +523,15 @@ export default class AppLogic extends DCLogic {
       this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length } }));
     }
   }
+  mulaiDengar() { if (!this._dengar) this._dengar = dengarCentang((baris, sampai) => this.terimaCentang(baris, sampai)); }
+  // Centang dari server (HP lain): yang lebih baru menimpa catatan di HP; antrean sendiri tetap menang di build().
+  terimaCentang(baris, sampai) {
+    if (sampai && sampai > (this._cs || '')) this._cs = sampai;
+    const snap = this.readSnap(); if (!baris.length || !snap) return;
+    snap.status = snap.status || {};
+    baris.forEach(([k, v]) => { const l = snap.status[k]; if (!l || !l.waktu || Date.parse(v.waktu) >= Date.parse(l.waktu)) snap.status[k] = v; });
+    simpanSnap(snap); clearTimeout(this._bt); this._bt = setTimeout(() => { const s2 = this.readSnap(); if (s2) this.build(s2); }, 300);
+  }
   async syncNow(quiet) {
     if (!this.live()) { if (!quiet) this.flash('Mode contoh · belum masuk akun kloter'); this.setState(s => ({ sync: { ...s.sync, pending: 0, last: this.hhmm(new Date()) } })); return; }
     // HP yang masih tercatat memakai Sheet menahan antreannya sampai pindah ke akun
@@ -532,10 +541,15 @@ export default class AppLogic extends DCLogic {
     const { url, key } = this.cfg;
     try {
       await this.flushQueue(url, key);
-      // Centang sendiri sudah tercatat di HP; data lengkap diunduh saat diminta, ada yang ditolak server, atau tiap 2 menit.
-      if (!quiet || this._abaikan || Date.now() - (this._lp || 0) > 120000) {
+      // Data lengkap diunduh saat diminta, ada kiriman yang ditolak server, atau tiap 10 menit.
+      // Di antaranya cukup centang yang berubah sejak sinkron terakhir; HP lain juga mengirim lewat Realtime.
+      if (!quiet || this._abaikan || !this._cs || Date.now() - (this._lp || 0) > 600000) {
         const data = await this.fetchAll(url, key);
-        simpanSnap(data); this.build(data); this._lp = Date.now(); this._abaikan = false;
+        simpanSnap(data); this.build(data); this._lp = this._lc = Date.now(); this._abaikan = false;
+        this._cs = data.centangSampai || '1970-01-01T00:00:00Z'; this.mulaiDengar();
+      } else if (Date.now() - (this._lc || 0) > 60000) {
+        const r = await ambilCentangBaru(this._cs); this._lc = Date.now();
+        if (r) this.terimaCentang(r.baris, r.sampai);
       }
       this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, last: this.hhmm(new Date()), err: '', busy: false } }));
       if (!quiet) this.flash('Tersinkron dengan ' + this.namaServer());

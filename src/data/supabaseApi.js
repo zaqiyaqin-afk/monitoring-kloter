@@ -40,6 +40,15 @@ async function semua(tabel, kolom, urut, saring) {
 const tglId = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; };
 const hariRiyadh = w => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(w));
 
+const KOLOM_CENTANG = 'jamaah_id, kegiatan, status, tanggal, jam, susulan, waktu, pelaksana_badal, keterangan, pendamping, pilihan, alasan, ulang_ke, status_ulang, diterima';
+// Diisi saat unduhan lengkap; dipakai untuk mengubah baris centang baru menjadi status per porsi.
+let petaJamaah = {}, kloterAktif = null;
+const keStatus = c => ({ waktu: c.waktu, kegiatan: c.kegiatan, status: c.status, pelaksana: c.pelaksana_badal,
+  tanggal: c.tanggal || (c.waktu ? hariRiyadh(c.waktu) : ''), jam: c.jam ? c.jam.slice(0, 5) : '', susulan: !!c.susulan,
+  pendamping: c.pendamping || '', pilihan: c.pilihan || '', alasan: c.alasan || '', ulangKe: c.ulang_ke || 0, statusUlang: c.status_ulang || '' });
+const keBaris = list => list.map(c => { const j = petaJamaah[c.jamaah_id]; return j ? [j.porsi + '|' + c.kegiatan, keStatus(c)] : null; }).filter(Boolean);
+const terakhir = (list, awal) => list.reduce((m, c) => (c.diterima && c.diterima > m ? c.diterima : m), awal || '');
+
 // Bentuk data memakai nama kolom tab Sheet lama, jadi logika aplikasi tidak berubah
 export async function ambilSemua(_url, _key, { ping = false } = {}) {
   if (!navigator.onLine) throw new Error('Tidak ada sinyal. Sambungkan internet lalu coba lagi.');
@@ -56,25 +65,22 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
       semua('jamaah', 'id, porsi, nama, rombongan, regu, jabatan, hp, resti, udzur, catatan, jk, lansia, kursi_roda, pendamping, perlu_badal, pelaksana_badal, miqat, tgl_lahir, hotel_makkah, lantai_makkah, kamar_makkah, tenda_arafah, tenda_mina, hotel_madinah, lantai_madinah, kamar_madinah', 'porsi', kl),
       semua('petugas', 'nama, jabatan, urutan', 'urutan', kl),
       semua('jadwal_raudhoh', 'tanggal, jam, jk, rombongan, keterangan, porsi', 'tanggal', kl),
-      semua('centang', 'jamaah_id, kegiatan, status, tanggal, jam, susulan, waktu, pelaksana_badal, keterangan, pendamping, pilihan, alasan, ulang_ke, status_ulang', 'waktu', kl),
+      semua('centang', KOLOM_CENTANG, 'waktu', kl),
       semua('jadwal', 'mode, kegiatan, hari, tempat, tanggal, jam', 'kegiatan', kl),
       semua('riwayat_udzur', 'jamaah_id, udzur, alasan, petugas, perangkat, waktu, id_kirim', 'waktu', kl),
       semua('kejadian', 'id, jenis, waktu, lokasi, kronologi, tindak_lanjut, status, jamaah_ids, petugas, diubah', 'waktu', kl),
       semua('foto', 'kejadian_id, path, id_kirim', 'dibuat', q => kl(q).not('kejadian_id', 'is', null))
     ]);
     const porsiDari = {}; jm.forEach(j => { porsiDari[j.id] = j; });
-    const status = {};
-    ct.forEach(c => { const j = porsiDari[c.jamaah_id]; if (!j) return;
-      status[j.porsi + '|' + c.kegiatan] = { waktu: c.waktu, kegiatan: c.kegiatan, status: c.status, pelaksana: c.pelaksana_badal,
-        tanggal: c.tanggal || (c.waktu ? hariRiyadh(c.waktu) : ''), jam: c.jam ? c.jam.slice(0, 5) : '', susulan: !!c.susulan,
-        pendamping: c.pendamping || '', pilihan: c.pilihan || '', alasan: c.alasan || '', ulangKe: c.ulang_ke || 0, statusUlang: c.status_ulang || '' }; });
+    petaJamaah = porsiDari; kloterAktif = k.id;
+    const status = Object.fromEntries(keBaris(ct));
     const atur = { ...(k.pengaturan || {}) };
     if (!atur['Kloter']) atur['Kloter'] = k.kode;
     if (!atur['Embarkasi']) atur['Embarkasi'] = k.embarkasi;
     if (!atur['Gelombang'] && k.gelombang) atur['Gelombang'] = String(k.gelombang);
     if (!atur['Nama PPIH'] && p.nama) atur['Nama PPIH'] = p.nama;
     return {
-      ok: true, waktu: new Date().toISOString(), sumber: 'supabase', kloter: { id: k.id, kode: k.kode },
+      ok: true, waktu: new Date().toISOString(), sumber: 'supabase', kloter: { id: k.id, kode: k.kode }, centangSampai: terakhir(ct),
       jamaah: jm.map(j => ({ 'Nomor Porsi': j.porsi, 'Nama': j.nama, 'Rombongan': j.rombongan ?? '', 'Regu': j.regu ?? '', 'Peran': j.jabatan || 'Jamaah',
         'Nomor HP': j.hp || '', 'Risti': j.resti ? 'Ya' : '', 'Udzur': yt(j.udzur), 'Catatan': j.catatan || '', 'Jenis Kelamin': j.jk || '',
         'Lansia': j.lansia ? 'Ya' : '', 'Kursi Roda': j.kursi_roda ? 'Ya' : '', 'Pendamping': j.pendamping || '', 'Perlu Badal': j.perlu_badal ? 'Ya' : '',
@@ -92,6 +98,28 @@ export async function ambilSemua(_url, _key, { ping = false } = {}) {
         foto: fk.filter(f => f.kejadian_id === x.id).map(f => ({ id: f.id_kirim || f.path, path: f.path })) }))
     };
   }, 'Tidak ada sinyal: server tidak menjawab dalam 20 detik.');
+}
+
+// Hanya centang yang diterima server setelah `sejak`; null bila unduhan lengkap belum pernah berjalan.
+export async function ambilCentangBaru(sejak) {
+  if (!kloterAktif || !sejak || !sb || !keadaan().sesi) return null;
+  return denganBatasWaktu(BATAS, async () => {
+    // Mundur 1 menit: transaksi yang lambat selesai bisa membawa waktu diterima sedikit lebih awal.
+    const mulai = new Date(Date.parse(sejak) - 60000).toISOString();
+    const ct = await semua('centang', KOLOM_CENTANG, 'diterima', q => q.eq('kloter_id', kloterAktif).gt('diterima', mulai));
+    return { baris: keBaris(ct), sampai: terakhir(ct, sejak) };
+  }, 'Tidak ada sinyal: server tidak menjawab dalam 20 detik.');
+}
+
+// Centang dari HP lain dikirim langsung lewat Realtime. Mengembalikan fungsi untuk berhenti mendengar.
+export function dengarCentang(saatBaru) {
+  if (!sb || !kloterAktif) return null;
+  const k = kloterAktif;
+  const ch = sb.channel('centang-' + k)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'centang', filter: 'kloter_id=eq.' + k },
+      e => { if (e.new && e.new.jamaah_id && k === kloterAktif) saatBaru(keBaris([e.new]), e.new.diterima || ''); })
+    .subscribe();
+  return () => { try { sb.removeChannel(ch); } catch (e) {} };
 }
 
 // Kirim antrean. Server melewati kiriman ganda (id) dan centang yang lebih lama, jadi aman diulang.
