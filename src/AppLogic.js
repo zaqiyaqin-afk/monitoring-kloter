@@ -175,7 +175,7 @@ export default class AppLogic extends DCLogic {
     // Saat pindah ke akun, antrean ditahan dulu supaya terkirim ke akun, bukan ke Sheet lama
     if (this.live()) { const snap = this.readSnap(); if (snap) this.build(snap); if (!this.perluPindahAkun()) this.syncNow(true); }
     // Profil akun bisa baru selesai dimuat setelah layar tampil: tawarkan pindah ke akun saat itu juga
-    this._lepasAkun = dengarAkun(() => { if (this.perluPindahAkun() && !this.state.setup) this.setState(s => ({ setup: true, locked: false, su: { ...s.su, ...this.suDariAkun(), err: '' } })); });
+    this._lepasAkun = dengarAkun(() => { if (this._tungguSesi && akunKeadaan().siap) { this._tungguSesi = false; this.syncNow(true); } if (this.perluPindahAkun() && !this.state.setup) this.setState(s => ({ setup: true, locked: false, su: { ...s.su, ...this.suDariAkun(), err: '' } })); });
     mintaPenyimpananTetap();
     this.refreshFoto().then(() => this.unggahAntre());
     bacaAntreanCadangan(items => this.mergeQueue(items, 'salinan cadangan di perangkat'));
@@ -537,6 +537,8 @@ export default class AppLogic extends DCLogic {
     // HP yang masih tercatat memakai Sheet menahan antreannya sampai pindah ke akun
     if (this._busy || !this.pakaiAkun()) return;
     if (!navigator.onLine) { this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, err: '' } })); if (!quiet) this.flash('Tidak ada sinyal · data aman di perangkat'); return; }
+    // Aplikasi tampil sebelum sesi akun selesai dimuat; sinkron menunggu sesi lalu dijalankan oleh dengarAkun.
+    if (!akunKeadaan().siap) { this._tungguSesi = true; return; }
     this._busy = true; this.setState(s => ({ sync: { ...s.sync, busy: true } }));
     const { url, key } = this.cfg;
     try {
