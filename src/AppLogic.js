@@ -170,7 +170,7 @@ export default class AppLogic extends DCLogic {
     this._onResize = () => this.forceUpdate(); window.addEventListener('resize', this._onResize);
     this._onOnline = () => this.syncNow(true); window.addEventListener('online', this._onOnline); window.addEventListener('offline', this._onResize);
     this._lk = setInterval(() => { const lu = (this.cfg && this.cfg.lockUntil) || 0; if (this.state.locked && lu && Date.now() < lu + 1500) this.forceUpdate(); }, 1000);
-    this._iv = setInterval(() => { if (this.live() && !document.hidden && (this.queue.length || Date.now() - (this._lp || 0) > 300000)) this.syncNow(true); }, 60000); this._clk = setInterval(() => { this.checkReminder(); const mn = new Date().getMinutes(); if (!document.hidden && mn !== this._lm) { this._lm = mn; this.forceUpdate(); } }, 5000); setTimeout(() => this.checkReminder(), 3000);
+    this._iv = setInterval(() => { if (this.live() && !document.hidden && (this.queue.length || Date.now() - (this._lp || 0) > 120000)) this.syncNow(true); }, 60000); this._clk = setInterval(() => { this.checkReminder(); const mn = new Date().getMinutes(); if (!document.hidden && mn !== this._lm) { this._lm = mn; this.forceUpdate(); } }, 5000); setTimeout(() => this.checkReminder(), 3000);
     Object.keys(this.data).forEach(m => { this.data[m].cur = this.curOf(m); });
     // Saat pindah ke akun, antrean ditahan dulu supaya terkirim ke akun, bukan ke Sheet lama
     if (this.live()) { const snap = this.readSnap(); if (snap) this.build(snap); if (!this.perluPindahAkun()) this.syncNow(true); }
@@ -489,7 +489,7 @@ export default class AppLogic extends DCLogic {
     if (!this.live()) { this.bump(); return; }
     items.forEach(it => { if (!it.waktu) it.waktu = new Date().toISOString(); if (!it.petugas) it.petugas = this.ppih(); if (!it.id) it.id = String((this.cfg && this.cfg.device) || 'hp').replace(/[^\w-]/g, '').slice(0, 12) + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7); if (it.jenis === 'jamaah' || it.jenis === 'dataJamaah' || it.jenis === 'kejadian') { const ex = this.queue.find(q => q.jenis === it.jenis && (it.jenis === 'kejadian' ? q.kid === it.kid : q.porsi === it.porsi) && !this._inflight.has(q)); if (ex) { Object.assign(ex, it); return; } } this.queue.push(it); });
     this.saveQueue(); this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length } }));
-    clearTimeout(this._sy); this._sy = setTimeout(() => this.syncNow(true), 1500);
+    clearTimeout(this._sy); this._sy = setTimeout(() => this.syncNow(true), 600);
   }
   item(k, id, val, pel, tgl, sus, x) { const S = this.state, m = S.mode, r = this.data[m].rites[k], j = this.jm[id], X0 = x || {};
     const key = pel !== undefined ? pel : X0.pel !== undefined ? X0.pel : r.badal ? (S.badal[m][k] || {})[id] : null;
@@ -516,7 +516,7 @@ export default class AppLogic extends DCLogic {
     while (this.queue.length) {
       const sent = this.queue.slice(0, 300);
       sent.forEach(q => this._inflight.add(q));
-      try { await kirimPerubahan(url, key, sent); }
+      try { const r = await kirimPerubahan(url, key, sent); if (r && r.diabaikan > 0) this._abaikan = true; }
       finally { sent.forEach(q => this._inflight.delete(q)); }
       this.queue = this.queue.filter(q => !sent.includes(q)); this.saveQueue();
       const snap = this.readSnap(); if (snap) { this.mergeSnap(snap, sent); simpanSnap(snap); }
@@ -532,8 +532,11 @@ export default class AppLogic extends DCLogic {
     const { url, key } = this.cfg;
     try {
       await this.flushQueue(url, key);
-      const data = await this.fetchAll(url, key);
-      simpanSnap(data); this.build(data); this._lp = Date.now();
+      // Centang sendiri sudah tercatat di HP; data lengkap diunduh saat diminta, ada yang ditolak server, atau tiap 2 menit.
+      if (!quiet || this._abaikan || Date.now() - (this._lp || 0) > 120000) {
+        const data = await this.fetchAll(url, key);
+        simpanSnap(data); this.build(data); this._lp = Date.now(); this._abaikan = false;
+      }
       this.setState(s => ({ sync: { ...s.sync, pending: this.queue.length, last: this.hhmm(new Date()), err: '', busy: false } }));
       if (!quiet) this.flash('Tersinkron dengan ' + this.namaServer());
       this.unggahAntre();

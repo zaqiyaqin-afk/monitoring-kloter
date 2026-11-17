@@ -15,18 +15,26 @@ async function denganBatasWaktu(ms, kerja, pesanHabis) {
   finally { clearTimeout(tm); }
 }
 
-// Supabase membatasi 1000 baris per permintaan; ambil per halaman.
+// Supabase membatasi 1000 baris per permintaan. Halaman pertama memberi jumlah baris,
+// lalu halaman sisanya diambil bersamaan (5 sekaligus) supaya tidak antre satu per satu.
 async function semua(tabel, kolom, urut, saring) {
-  const out = [];
-  for (let dari = 0; ; dari += 1000) {
-    let q = sb.from(tabel).select(kolom).range(dari, dari + 999);
+  const halaman = (dari, hitung) => {
+    let q = sb.from(tabel).select(kolom, hitung ? { count: 'exact' } : undefined).range(dari, dari + 999);
     if (urut) q = q.order(urut);
+    // id sebagai pengurut terakhir supaya baris dengan nilai urut sama tidak terlewat antarhalaman
+    q = q.order('id');
     if (saring) q = saring(q);
-    const { data, error } = await q;
-    if (error) throw error;
-    out.push(...data);
-    if (data.length < 1000) return out;
+    return q.then(({ data, error, count }) => { if (error) throw error; return { data, count }; });
+  };
+  const awal = await halaman(0, true), out = [...awal.data];
+  if (awal.data.length < 1000) return out;
+  const sisa = [];
+  for (let dari = 1000; dari < (awal.count || 0); dari += 1000) sisa.push(dari);
+  for (let i = 0; i < sisa.length; i += 5) {
+    const hasil = await Promise.all(sisa.slice(i, i + 5).map(d => halaman(d)));
+    hasil.forEach(h => out.push(...h.data));
   }
+  return out;
 }
 
 const tglId = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; };
