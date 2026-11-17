@@ -171,7 +171,9 @@ export default function Gerbang({ children }) {
   if (!akun.aktif) return children;
   // Hanya saat pengembangan (npm run dev): lewati gerbang untuk menguji layar di dalam.
   if (import.meta.env.DEV && localStorage.getItem('mk.lewatiAkun') === '1') return children;
-  if (!st.siap) return <div style={S.layar} />;
+  // Petugas aktif yang profilnya tersimpan langsung masuk; pemeriksaan akun berjalan di belakang.
+  const tersimpan = st.profil && st.profil.status === 'aktif';
+  if (!st.siap) return tersimpan ? children : <div style={S.layar} />;
   // Dibuka dari tautan "Lupa kata sandi": buat kata sandi baru dulu, walau sesinya sudah aktif
   if (st.pulih) return (
     <div style={S.layar}>

@@ -1,6 +1,6 @@
 // Kerangka tampilan: bingkai HP, kepala halaman, isi menu yang aktif, bilah bawah, lalu lembar dan dialog.
 // Isi tiap menu ada di folder layar/; semua data dan aksi datang dari AppLogic lewat `v`.
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { css } from './dc/runtime.js';
 import HalamanBaru from './HalamanBaru.jsx';
 import KepalaHalaman from './layar/KepalaHalaman.jsx';
@@ -16,8 +16,10 @@ import LembarKegiatan from './layar/LembarKegiatan.jsx';
 import LembarSinkron from './layar/LembarSinkron.jsx';
 import DialogUmum from './layar/DialogUmum.jsx';
 import Pengaturan from './layar/Pengaturan.jsx';
-import LayarDoa from './doa/LayarDoa.jsx';
-import LayarKultum from './doa/LayarKultum.jsx';
+// Doa dan Kultum dimuat saat dibuka supaya aplikasi lebih cepat tampil.
+const LayarDoa = lazy(() => import('./doa/LayarDoa.jsx'));
+const LayarKultum = lazy(() => import('./doa/LayarKultum.jsx'));
+const Memuat = <div style={{ padding: 24, color: 'var(--teks-3)' }}>Memuat…</div>;
 import { useTutupDenganEscape } from './layar/escape.js';
 import { GAMBAR } from './gambar.jsx';
 import { periode, kotaTersimpan } from './waktu.js';
@@ -41,8 +43,8 @@ export default function View({ v }) {
           {v.isBadal ? <MenuBadal v={v} /> : null}
           {v.isRekap ? <MenuRekap v={v} /> : null}
           {v.isCetak ? <MenuCetak v={v} /> : null}
-          {v.isDoa ? <LayarDoa /> : null}
-          {v.isKultum ? <LayarKultum k={v.kultum} /> : null}
+          {v.isDoa ? <Suspense fallback={Memuat}><LayarDoa /></Suspense> : null}
+          {v.isKultum ? <Suspense fallback={Memuat}><LayarKultum k={v.kultum} /></Suspense> : null}
         </main>
         {(v.isKejadian && v.kejadian && v.kejadian.form) || (v.isKirim && v.kirim && v.kirim.jenis) ? null : <BilahBawah v={v} />}
         <LembarJamaah v={v} />

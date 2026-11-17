@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import * as akun from './data/akun.js';
 import * as tampilan from './tampilan.js';
-import { unduhExcel, bacaExcel } from './excel.js';
 import { imporJamaah } from './data/server.js';
 import Kirim from './Kirim.jsx';
 import Kejadian from './Kejadian.jsx';
@@ -81,9 +80,9 @@ function Excel({ x }) {
   const [sibuk, setSibuk] = useState(''), [galat, setGalat] = useState(''), [pra, setPra] = useState(null), [hasil, setHasil] = useState('');
   const fileRef = React.useRef(null);
   if (!x) return null;
-  const unduh = async () => { setSibuk('unduh'); setGalat(''); try { await unduhExcel(x); } catch (e) { setGalat(e.message || String(e)); } finally { setSibuk(''); } };
+  const unduh = async () => { setSibuk('unduh'); setGalat(''); try { const { unduhExcel } = await import('./excel.js'); await unduhExcel(x); } catch (e) { setGalat(e.message || String(e)); } finally { setSibuk(''); } };
   const pilih = async e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
-    setSibuk('baca'); setGalat(''); setHasil(''); try { setPra(await bacaExcel(f, x.porsiAda())); } catch (er) { setGalat(er.message || String(er)); } finally { setSibuk(''); } };
+    setSibuk('baca'); setGalat(''); setHasil(''); try { const { bacaExcel } = await import('./excel.js'); setPra(await bacaExcel(f, x.porsiAda())); } catch (er) { setGalat(er.message || String(er)); } finally { setSibuk(''); } };
   const kirim = async () => { if (x.coba) return; setSibuk('kirim'); setGalat('');
     try { const r = await imporJamaah(pra.rows); setPra(null); setHasil(`Tersimpan: ${r.baru} jamaah baru, ${r.diubah} diperbarui${r.dilewati ? `, ${r.dilewati} dilewati` : ''}.`); x.sesudahUnggah(); }
     catch (er) { setGalat(er.message || String(er)); } finally { setSibuk(''); } };
