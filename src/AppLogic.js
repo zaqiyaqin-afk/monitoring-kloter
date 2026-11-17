@@ -1,7 +1,7 @@
 // Logika aplikasi (state, sinkron, perhitungan). Tampilan ada di View.jsx.
 import React from 'react';
 import { jalankanMundur } from './mundur.js';
-import { ikonKegiatan, TEMPAT_HAJI, tempatHaji } from './kegiatan.js';
+import { ikonKegiatan, TEMPAT_HAJI, tempatHaji, TEMPAT, tempatDari, kunciHari } from './kegiatan.js';
 import { DCLogic } from './dc/runtime.js';
 import { ambilSemua, kirimPerubahan, unggahFoto, tautanFoto, SB_URL } from './data/server.js';
 import { keadaan as akunKeadaan, dengar as dengarAkun } from './data/akun.js';
@@ -627,7 +627,8 @@ export default class AppLogic extends DCLogic {
     if (tutup) { this.setState({ [tutup]: ['syncOpen', 'tglOpen', 'galeri', 'pdf', 'wa'].includes(tutup) ? false : null }); return true; }
     if (jalankanMundur()) return true;
     if (S.tab === 'kirim' && S.kirimLayar) { this.setState({ kirimLayar: S.kirimLayar.ubah ? { ...S.kirimLayar, ubah: false } : null }); return true; }
-    if (S.tab === 'checklist' && !S.ckPilih && S.ckDariPilih) { this.setState({ ckPilih: true, ckDariPilih: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }); return true; }
+    if (S.tab === 'checklist' && !S.ckPilih && !S.ckTpt && S.ckDariTpt) { this.setState({ ckTpt: true, ckDariTpt: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }); return true; }
+    if (S.tab === 'checklist' && !S.ckPilih && S.ckDariPilih) { this.setState({ ckPilih: true, ckTpt: false, ckDariPilih: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }); return true; }
     const r = this._riwayat || [];
     if (r.length) { this._dariKembali = true; const t = r[r.length - 1]; this._riwayat = r.slice(0, -1); this.setState({ tab: t }); return true; }
     if (S.tab !== 'beranda') { this._dariKembali = true; this.setState({ tab: 'beranda' }); return true; }
@@ -824,7 +825,7 @@ export default class AppLogic extends DCLogic {
     const S = this.state, jm = this.jm, hit = f => jm.filter(f).length, kh = j => this.khOf(j.id) || {};
     const hari = this.todayKey(), besok = new Date(hari + 'T00:00:00Z'); besok.setUTCDate(besok.getUTCDate() + 1); const tglBesok = besok.toISOString().slice(0, 10);
     const keJamaah = p => () => this.setState(s => ({ tab: 'jamaah', jl: { ...s.jl, ...p } }));
-    const keCk = (m, k) => () => { this.saveCfg({ mode: m }); this.setState(s => ({ mode: m, tab: 'checklist', ckPilih: false, ck: { ...s.ck, rite: k } })); };
+    const keCk = (m, k) => () => { this.saveCfg({ mode: m }); this.setState(s => ({ mode: m, tab: 'checklist', ckPilih: false, ckTpt: false, ckDariTpt: false, ck: { ...s.ck, rite: k } })); };
     const L = hit(j => j.sex === 'L'), P = hit(j => j.sex === 'P'), lansia = hit(j => kh(j).lansia), pend = hit(j => this.pendKey(j.id));
     const ringkas = [
       { n: L, l: 'Laki-laki' }, { n: P, l: 'Perempuan' }, { n: lansia, l: 'Lansia', on: keJamaah({ v: 'kh', kf: 'lansia' }) }, { n: pend, l: 'Didampingi', on: keJamaah({ v: 'kh', kf: 'semua' }) },
@@ -873,7 +874,7 @@ export default class AppLogic extends DCLogic {
       khusus: { n: khBase.length, tanpa: khBase.filter(j => !this.pendKey(j.id)).length, on: keJamaah({ v: 'kh', kf: 'semua' }) },
       kejadian: { n: kejTerbuka, on: () => this.setState({ tab: 'kejadian' }) },
       cur: { m: S.mode, mode: this.modeLabel(S.mode), n: R.n, day: R.day || '', place: R.place || '', k: S.mode === 'madinah' ? 'Sunnah' : (R.k || ''), done: RS.done, tot: RS.tot, pct: RS.pct,
-        ket: X.deadline || '', on: () => this.setState(s => ({ tab: 'checklist', ckPilih: false, ck: { ...s.ck, rite: ci } })) },
+        ket: X.deadline || '', on: () => this.setState(s => ({ tab: 'checklist', ckPilih: false, ckTpt: false, ckDariTpt: false, ck: { ...s.ck, rite: ci } })) },
       jalan: ['haji', 'umrah', 'madinah'].map(m => this.perjalanan(m)),
       kota: S.mode === 'madinah' ? 'Madinah' : 'Makkah',
       catatanData: jm.length - L - P > 0 ? 'Jenis kelamin dan tanggal lahir bisa diisi di detail jamaah atau lewat Unggah Excel (Profil).' : '' };
@@ -895,7 +896,7 @@ export default class AppLogic extends DCLogic {
     const now = titik.find(t => t.s === 'now');
     return { m, nama: m === 'madinah' ? 'Ibadah Madinah' : 'Perjalanan ' + this.modeLabel(m), pct,
       sub: pct >= 100 ? 'Selesai semua' : now ? 'Sekarang · ' + now.l : pct > 0 ? 'Sedang berjalan' : m === 'madinah' ? 'Semua sunnah · belum dimulai' : 'Belum dimulai', titik,
-      on: () => this.gantiIbadah(m, { tab: 'checklist', ckPilih: false, ckDariPilih: false }) };
+      on: () => this.gantiIbadah(m, { tab: 'checklist', ckPilih: false, ckTpt: false, ckDariTpt: false, ckDariPilih: false }) };
   }
   // Pindah ibadah: kegiatan terpilih ikut pindah ke kegiatan berlangsung ibadah itu (seperti tombol mode lama)
   gantiIbadah(m, extra) { const c = this.data[m].cur; this.saveCfg({ mode: m }); this.setState(s => ({ mode: m, ck: { ...s.ck, rite: c }, pr: { ...s.pr, rites: [c] }, ...extra }), () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }); }
@@ -905,7 +906,7 @@ export default class AppLogic extends DCLogic {
       return { m, label: this.modeLabel(m).toUpperCase(), judul: judul[m], badge: p.pct >= 100 ? 'Selesai ✓' : ket[m], pct: p.pct,
         sub: m === 'madinah' ? 'Raudhoh per jadwal' : p.pct >= 100 ? 'Semua kegiatan selesai' : 'Sekarang: ' + (r.n || '-'), aktif: S.mode === m,
         cta: 'Buka checklist ' + (m === 'madinah' ? 'Madinah' : this.modeLabel(m).toLowerCase()),
-        on: () => { this.gantiIbadah(m, { ckPilih: false, ckDariPilih: true }); try { history.pushState({ mk: 1 }, ''); } catch (e) {} } }; });
+        on: () => { this.gantiIbadah(m, { ckPilih: false, ckTpt: true, ckDariTpt: false, ckDariPilih: true }); try { history.pushState({ mk: 1 }, ''); } catch (e) {} } }; });
   }
   hhmmWas() { return new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Riyadh', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()); }
   statusExcel() {
@@ -1152,7 +1153,7 @@ export default class AppLogic extends DCLogic {
     const K = this.kloter(), full = window.innerWidth < 900 || (window.matchMedia && matchMedia('(pointer:coarse)').matches), off = !navigator.onLine;
     const S = this.state, X = this.data[S.mode], D = S.done[S.mode], ci = X.cur, ck = S.ck, P = S.pr, J = S.jl;
     const nR = X.rites.length, udzN = S.udz.filter(Boolean).length, lockOn = ((this.cfg && this.cfg.lockUntil) || 0) > Date.now();
-    const go = (tab, extra) => () => this.setState({ tab, fokusCari: false, kirimLayar: null, ...(tab === 'checklist' ? { ckPilih: false, ckDariPilih: false } : {}), ...(extra || {}) });
+    const go = (tab, extra) => () => this.setState({ tab, fokusCari: false, kirimLayar: null, ...(tab === 'checklist' ? { ckPilih: false, ckTpt: false, ckDariTpt: false, ckDariPilih: false } : {}), ...(extra || {}) });
     const pill = a => ({ a, bg: a ? 'var(--color-accent)' : 'transparent', fg: a ? 'var(--on-isi)' : 'var(--color-text)' });
     const chip = a => ({ a, bg: a ? 'var(--color-accent)' : 'var(--color-surface)', fg: a ? 'var(--on-accent)' : 'var(--color-text)' });
     const doneCnt = k => D[k].filter(Boolean).length;
@@ -1358,7 +1359,7 @@ export default class AppLogic extends DCLogic {
     pr = { hasMore: false, more: 0, hasExtra: false, extra: 0, ...pr, ppih: PPN };
     const cirDash = (p, c) => (Math.min(100, p) * c / 100).toFixed(1) + ' ' + c;
     const remain = this.jm.filter(j => this.tgt(S.mode, ci, j, D) && !sat(ci, j)).length;
-    const toCk = (rite, scope, r, g) => () => this.setState(s => ({ tab: 'checklist', ckPilih: false, ck: { ...s.ck, rite, scope, r: r || s.ck.r, g: g || s.ck.g } }));
+    const toCk = (rite, scope, r, g) => () => this.setState(s => ({ tab: 'checklist', ckPilih: false, ckTpt: false, ckDariTpt: false, ck: { ...s.ck, rite, scope, r: r || s.ck.r, g: g || s.ck.g } }));
     const rgCol = p => p < 70 ? 'var(--red-600)' : 'var(--color-accent)', rgFg = p => p < 70 ? 'var(--red-700)' : 'var(--color-accent)';
     const rg = RS.rombs.map(o => ({ l: 'R' + o.r, name: 'Rombongan ' + o.r, sub: 'Ketua ' + o.ketua, dn: o.d + '/' + o.n, soft: o.pct < 70 ? 'var(--red-100)' : 'var(--color-accent-100)', pct: o.pct + '%', col: rgCol(o.pct), fg: rgFg(o.pct), dash: cirDash(o.pct, 144.5), aria: 'Rombongan ' + o.r + ' ' + o.pct + ' persen', on: toCk(ci, 'rombongan', o.r) }));
     const jrSt = (() => { if (S.mode === 'madinah') return null; const idx = re => X.rites.map((r, k) => re.test(r.n) ? k : -1).filter(k => k >= 0), span = (a, b) => Array.from({ length: Math.max(0, b - a) }, (_, i) => a + i);
@@ -1491,9 +1492,10 @@ export default class AppLogic extends DCLogic {
       prIsRaud: (P.sheet || 'armuzna') === 'raudhoh', prSheets: [['umrah', 'Umrah wajib', 'Potret'], ['armuzna', 'Haji · Armuzna', '7–10 Dzh · lanskap'], ['tasyrik', 'Haji · Hari Tasyrik', '11–13 Dzh · lanskap'], ['makkah', "Haji · Ifadzoh–Wada'", "Thawaf, Sa'i, Tahallul Tsani · potret"], ['raudhoh', 'Raudhoh per jadwal', 'Potret'], ['harian', 'Rekap harian', 'Per rombongan'], ['khusus', 'Jamaah khusus', 'Risti · lansia · kursi roda · pendamping'], ['badal', 'Badal per pelaksana', '10–13 Dzh · potret']].map(([k, l, sub]) => { const a = (P.sheet || 'armuzna') === k; return { l, sub, bg: a ? 'var(--color-accent-100)' : 'var(--color-surface)', fg: 'var(--color-text)', ring: a ? 'var(--color-accent)' : 'var(--color-divider)', on: () => this.patch('pr', { sheet: k }) }; }),
       prSlots: (P.sheet || 'armuzna') === 'raudhoh' ? [{ l: 'Semua', a: P.slot == null, i: null }].concat(this.jadwal.map((s, i) => ({ l: s.tgl + ' ' + s.jam + ' ' + (s.sex || ''), a: P.slot === i, i }))).map(o => ({ l: o.l, ...chip(o.a), on: () => this.patch('pr', { slot: o.i }) })) : [],
       ckNotCur: !isMad && ck.rite !== ci, ckSetCur: () => this.setCur(ck.rite), modes, rites, riteGroups: riteGroupsT, stats,
-      ckTempat: S.mode !== 'haji' ? null : TEMPAT_HAJI.map(T => { const idx = X.rites.map((r, i) => tempatHaji(r) === T.k ? i : -1).filter(i => i >= 0); if (!idx.length) return null;
+      ckTempat: (TEMPAT[S.mode] || []).map(T => { const idx = X.rites.map((r, i) => tempatDari(S.mode, r) === T.k ? i : -1).filter(i => i >= 0); if (!idx.length) return null;
         const beres = idx.every(i => i < ci);
-        return { l: T.l, sub: T.sub, ikon: T.ikon, a: tempatHaji(X.rites[ck.rite]) === T.k, kini: idx.includes(ci), beres, on: () => this.patch('ck', { rite: idx.includes(ci) ? ci : idx[0] }) }; }).filter(Boolean),
+        return { l: T.l, sub: T.sub, ikon: T.ikon, n: idx.length, kini: idx.includes(ci), beres, on: () => { this.setState(s => ({ ck: { ...s.ck, rite: idx.includes(ci) ? ci : idx[0] }, ckTpt: false, ckDariTpt: true }), () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }); try { history.pushState({ mk: 1 }, ''); } catch (e) {} } }; }).filter(Boolean),
+      ckTpt: !!S.ckTpt,
       cur: { ...X.rites[ci], susTxt: (n => n ? ' · ' + n + ' susulan' : '')(this.susN(S.mode, ci, D)), done: RS.done, tot: RS.tot, pct: RS.pct + '%', dash: cirDash(RS.pct, 339.3), btn: remain ? 'Buka checklist · ' + remain + ' jamaah lagi' : 'Buka checklist · semua selesai' }, total: this.jm.length, rg, jr, hasJr: !!jrSt, rkp, ss: susSheet, jk: jkV, khSum, sk: skV, pp: ppV, hasPp: !!S.pp, closePp: () => this.setState({ pp: null }), savePp: () => this.savePp(), delPp: () => this.delPp(), bd: bdV, isBadal: S.tab === 'badal', ckQ: S.ck.q || '', onCkQ: e => this.patch('ck', { q: e.target.value }), isRekap: S.tab === 'rekap', shareCard: () => this.shareCard(),
       logoBox: this.logoBox,
       hasSaf: !!S.safDlg, sf, closeSaf: () => this.setState({ safDlg: null }), saveSaf: () => this.saveSaf(), safCat: e => this.patch('safDlg', { cat: e.target.value }),
@@ -1518,9 +1520,11 @@ export default class AppLogic extends DCLogic {
         status: () => this.statusExcel(), kloter: this.klLabel(), bisaUnggah: this.pakaiAkun() || this.coba(), coba: this.coba(), porsiAda: () => new Set(this.jm.map(j => j.porsi)),
         sesudahUnggah: () => this.syncNow() },
       hasSel: S.sel != null, sel, onNote: e => { const v = e.target.value, id = S.sel; this.setState(s => ({ notes: { ...s.notes, [id]: v } })); this.push([{ jenis: 'jamaah', porsi: this.jm[id].porsi, catatan: v }]); }, hasPelNote: !!sel.pelNote, closeSel: () => this.setState({ sel: null }), stop: e => e.stopPropagation(),
-      ckDays: days.map((day, di) => ({ day, di })).filter(o => S.mode !== 'haji' || X.rites.some(r => r.day === o.day && tempatHaji(r) === tempatHaji(X.rites[ck.rite]))).map(({ day, di }) => { const sel = X.rites[ck.rite].day === day, td = this.hariIni(X, day, ci), fut = this.hariNanti(X, day, di, days, ci); return { l: day.replace(' Dzulhijjah', ' Dzh').replace(' Dzulqa’dah', ' Dzq'), today: td ? 'y' : '', sel, td, dot: 'none', dotBg: 'transparent', rw: sel ? '3px' : '1.5px', bg: td ? 'var(--color-accent)' : fut ? 'var(--color-neutral-100)' : 'var(--color-surface)', fg: td ? 'var(--on-isi)' : fut ? 'var(--teks-3)' : 'var(--color-text)', ring: sel ? (td ? 'var(--color-accent)' : 'var(--color-accent)') : fut ? 'var(--color-neutral-300)' : 'var(--color-divider)', on: () => this.patch('ck', { rite: X.rites.findIndex(r => r.day === day) }) }; }),
-      ckPills: X.rites.map((r, i) => ({ r, i })).filter(o => o.r.day === X.rites[ck.rite].day).map(({ r, i }) => { const a = ck.rite === i;
-        const t = !!r.tgl, lk = t ? this.belumTiba(r) : i > ci; return { l: r.p, ikon: ikonKegiatan(r), a, locked: lk, now: t ? r.tgl === this.defTgl(r) : !this.adaHariIni(X) && i === ci, done: t ? !lk && r.tgl !== this.defTgl(r) : i < ci, on: () => this.patch('ck', { rite: i }), bg: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-100)' : 'transparent', fg: a ? 'var(--on-isi)' : lk ? 'var(--teks-3)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-300)' : 'var(--color-divider)' }; }),
+      ckDays: (() => { const R = X.rites[ck.rite], tk = tempatDari(S.mode, R), hk = kunciHari(R), g = [];
+        X.rites.forEach((r, i) => { if (tempatDari(S.mode, r) !== tk) return; const k = kunciHari(r); let o = g.find(x => x.k === k); if (!o) g.push(o = { k, idx: [] }); o.idx.push(i); });
+        return g.map(o => ({ besar: /^\d+$/.test(o.k) ? o.k : '', l: /^\d+$/.test(o.k) ? o.k + ' Dzulhijjah' : o.k, a: o.k === hk, kini: o.idx.includes(ci), on: () => this.patch('ck', { rite: o.idx.includes(ci) ? ci : o.idx[0] }) })); })(),
+      ckPills: X.rites.map((r, i) => ({ r, i })).filter(o => tempatDari(S.mode, o.r) === tempatDari(S.mode, X.rites[ck.rite]) && kunciHari(o.r) === kunciHari(X.rites[ck.rite])).map(({ r, i }) => { const a = ck.rite === i;
+        const t = !!r.tgl, lk = t ? this.belumTiba(r) : i > ci; return { l: r.p.replace(/ \d+ Dzh$/, ''), malam: !!r.malam, ikon: ikonKegiatan(r), a, locked: lk, now: t ? r.tgl === this.defTgl(r) : !this.adaHariIni(X) && i === ci, done: t ? !lk && r.tgl !== this.defTgl(r) : i < ci, on: () => this.patch('ck', { rite: i }), bg: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-100)' : 'transparent', fg: a ? 'var(--on-isi)' : lk ? 'var(--teks-3)' : 'var(--color-text)', ring: a ? 'var(--color-accent)' : lk ? 'var(--color-neutral-300)' : 'var(--color-divider)' }; }),
       ckScopes: scopes(ck, 'ck'), ckRs: rombPills, ckGs: gs(ck, 'ck'), ckShowR: ck.scope !== 'kloter', ckShowG: ck.scope === 'regu', ckRows, ckSum,
       ckEmpty: ckRows.length + ckPeople.length === 0, ckHasRows: ckRows.length > 0, ckPeople, ckHasPeople: ckPeople.length > 0, hasPel: pelGroups.length > 0, pelGroups,
       hasPicker: !!S.picker, pk, closePicker: () => this.setState({ picker: null }), applyPicker: () => this.applyPicker(),
@@ -1639,7 +1643,7 @@ export default class AppLogic extends DCLogic {
         ['rekap', 'Rekap', 'M4 20V10M10 20V4M16 20v-7M22 20H2'],
         ['cetak', 'Cetak', 'M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z']].map(([k, l, d]) => ({ l, d, on: go(k) })),
       keProfil: go('profil'), cariJamaah: () => this.setState({ tab: 'jamaah', fokusCari: true }), fokusCari: !!S.fokusCari,
-      judulLayar: S.tab === 'checklist' && !S.ckPilih ? 'Checklist ' + this.modeLabel(S.mode) : S.kejForm && S.tab === 'kejadian' ? (S.kejForm.baru ? 'Catat kejadian' : 'Ubah catatan')
+      judulLayar: S.tab === 'checklist' && !S.ckPilih ? (S.ckTpt ? 'Pilih tempat · ' + this.modeLabel(S.mode) : this.modeLabel(S.mode) + ' · ' + (((TEMPAT[S.mode] || []).find(T => T.k === tempatDari(S.mode, this.data[S.mode].rites[S.ck.rite])) || {}).l || 'Massal')) : S.kejForm && S.tab === 'kejadian' ? (S.kejForm.baru ? 'Catat kejadian' : 'Ubah catatan')
         : S.kirimLayar && S.tab === 'kirim' ? (S.kirimLayar.ubah ? 'Ubah templat' : ({ katering: 'Jadwal katering', pengingat: 'Pengingat ibadah', karom: 'Undangan karom', pengajian: 'Undangan pengajian', kesehatan: 'Cek kesehatan' })[S.kirimLayar.jenis] || 'Kirim') : ({ jamaah: 'Jamaah', checklist: 'Massal', badal: 'Badal', rekap: 'Rekap', cetak: 'Cetak', kirim: 'Kirim', profil: 'Profil', kejadian: 'Kejadian', doa: 'Doa', kultum: 'Kultum', menu: 'Menu' })[S.tab] || '',
       ckPilih: S.tab === 'checklist' && !!S.ckPilih, pilihIbadah: S.tab === 'checklist' && S.ckPilih ? this.pilihIbadah() : [],
       kePilihIbadah: () => this.setState({ ckPilih: true, ckDariPilih: false }, () => { if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; }), labelIbadah: this.modeLabel(S.mode),

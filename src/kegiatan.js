@@ -51,6 +51,31 @@ export const TEMPAT_HAJI = [
   { k: 'makkah', l: 'Makkah', sub: 'Ifadzoh · Wada’', ikon: I.kabah }
 ];
 
+export const TEMPAT = {
+  haji: TEMPAT_HAJI,
+  umrah: [
+    { k: 'miqat', l: 'Miqat', sub: 'Niat · ihram', ikon: I.miqat },
+    { k: 'haram', l: 'Masjidil Haram', sub: "Thawaf · sa'i", ikon: I.kabah },
+    { k: 'tahallul', l: 'Tahallul', sub: 'Penutup umrah', ikon: I.gunting }
+  ],
+  madinah: [{ k: 'raudhoh', l: 'Raudhoh', sub: 'Masjid Nabawi', ikon: I.kubah }]
+};
+
+export function tempatDari(mode, r) {
+  if (mode === 'haji') return tempatHaji(r);
+  if (mode === 'madinah') return 'raudhoh';
+  const n = String((r && r.n) || '');
+  if (/Tahallul/.test(n)) return 'tahallul';
+  if (/Thawaf|Sa'i/.test(n)) return 'haram';
+  return 'miqat';
+}
+
+// Malam 11 dan 11 Dzulhijjah satu kelompok hari; hari tanpa tanggal memakai labelnya sendiri.
+export function kunciHari(r) {
+  const d = String((r && ((r._o && r._o.day) || r.day)) || ''), m = d.match(/(\d+)\s+Dzulhijjah/);
+  return m ? m[1] : d;
+}
+
 // Memakai hari bawaan kegiatan, bukan label hari yang bisa diubah petugas.
 export function tempatHaji(r) {
   const d = String((r && ((r._o && r._o.day) || r.day)) || '');

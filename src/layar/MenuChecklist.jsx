@@ -1,5 +1,5 @@
 // Menu Massal: pilih ibadah, lalu centang per kloter/rombongan/regu/jamaah, dan daftar kegiatan per hari.
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { txt, arr } from '../dc/runtime.js';
 import PilihIbadah from '../PilihIbadah.jsx';
 import { Ikon, Avatar, SEGITIGA } from './MenuJamaah.jsx';
@@ -8,7 +8,6 @@ const fs = n => `calc(${n}px*var(--fs,1))`;
 const kartu = { background: 'var(--color-surface)', borderRadius: 20, padding: 16, display: 'grid', gap: 12, minWidth: 0 };
 const label = { fontSize: fs(13.5), fontWeight: 500 };
 const kecil = { fontSize: fs(12.5), color: 'var(--teks-3)', lineHeight: 1.45 };
-const geser = { display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px', padding: '0 16px', scrollbarWidth: 'none' };
 const pil = (a, lain) => ({ flex: 'none', minHeight: 44, padding: '0 14px', borderRadius: 22, border: '1px solid ' + (a ? 'var(--color-accent)' : 'var(--m-tepi)'), background: a ? 'var(--color-accent)' : 'var(--color-surface)',
   color: a ? 'var(--on-accent)' : 'var(--color-text)', font: `${a ? 600 : 400} ${fs(13)} var(--font-body)`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', ...lain });
 const wadah = n => ({ display: 'grid', gridTemplateColumns: `repeat(${n}, minmax(0,1fr))`, gap: 4, padding: 4, borderRadius: 26, border: '1px solid var(--m-tepi)' });
@@ -26,47 +25,54 @@ const Centang = ({ c, onClick, nama }) => (
     {c.mark === '✓' ? <Ikon d={CENTANG} s={22} w={2.2} /> : c.mark === '–' ? <Ikon d="M7 12h10" s={20} /> : txt(c.mark)}
   </button>
 );
+const ubin = (a, lain) => ({ borderRadius: 16, cursor: 'pointer', display: 'grid', justifyItems: 'center', alignContent: 'center', textAlign: 'center', font: 'inherit', minWidth: 0,
+  border: '1px solid ' + (a ? 'var(--color-accent)' : 'var(--m-tepi)'), background: a ? 'var(--color-accent)' : 'var(--color-surface)', color: a ? 'var(--on-accent)' : 'var(--color-text)', ...lain });
+// Langkah 2: pilih tempat, bentuknya sama untuk Haji, Umrah, dan Madinah.
+const PilihTempat = ({ v }) => (
+  <div style={{ padding: '12px 12px 24px', display: 'grid', gap: 12 }}>
+    <div style={{ ...label, padding: '0 4px' }}>Pilih tempat</div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
+      {arr(v.ckTempat).map((t, i, L) => (
+        <button key={i} type="button" className="pc0" onClick={t?.on} aria-label={t?.l + ', ' + t?.n + ' kegiatan' + (t?.beres ? ', selesai' : t?.kini ? ', sedang berlangsung' : '')}
+          style={ubin(false, { minHeight: 136, padding: '14px 8px', gap: 4, borderRadius: 20, borderColor: t?.kini ? 'var(--color-accent)' : 'var(--m-tepi)', borderWidth: t?.kini ? 2 : 1, gridColumn: L.length % 2 && i === L.length - 1 ? '1 / -1' : undefined })}>
+          <span style={{ display: 'grid', color: 'var(--color-accent)' }}><Ikon d={t?.ikon} s={32} w={1.6} /></span>
+          <span style={{ fontSize: fs(15), fontWeight: 600, lineHeight: 1.2 }}>{txt(t?.l)}</span>
+          <span style={kecil}>{txt(t?.sub)}</span>
+          <span style={{ ...kecil, fontWeight: t?.kini ? 600 : 400, color: t?.kini ? 'var(--color-accent)' : 'var(--teks-3)' }}>{t?.beres ? 'Selesai' : t?.kini ? 'Berlangsung' : t?.n + ' kegiatan'}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+);
 const merah = t => /red/.test(String(t?.bg || ''));
 
 export default function MenuChecklist({ v }) {
   const [buka, setBuka] = useState({});
-  const tempatRef = useRef(null), tempatAktif = arr(v.ckTempat).findIndex(t => t?.a);
-  // Ubin tempat yang dipilih digeser ke tengah supaya tidak tersembunyi di tepi layar
-  useEffect(() => { const c = tempatRef.current, el = c && c.querySelector(':scope > [aria-pressed="true"]'); if (el) c.scrollLeft = el.offsetLeft - (c.clientWidth - el.offsetWidth) / 2; }, [tempatAktif]);
   if (v.ckPilih) return <PilihIbadah v={v} />;
-  const s = v.ckSum || {};
+  if (v.ckTpt) return <PilihTempat v={v} />;
+  const s = v.ckSum || {}, hari = arr(v.ckDays), hAktif = hari.find(h => h?.a);
   return (
     <div style={{ padding: '12px 12px 24px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gridAutoRows: 'max-content', gap: 12 }}>
       <div style={kartu}>
         <div style={kecil}>{txt(v.kloterLabel)} · {txt(v.d?.day)}</div>
-        {v.ckTempat ? (<>
-          <div style={label}>Tempat</div>
-          <div ref={tempatRef} style={{ ...geser, paddingBottom: 2, position: 'relative' }}>
-            {arr(v.ckTempat).map((t, i) => (
-              <button key={i} type="button" onClick={t?.on} aria-pressed={!!t?.a} aria-label={t?.l + ', ' + t?.sub + (t?.beres ? ', selesai' : t?.kini ? ', sedang berlangsung' : '')}
-                style={{ flex: 'none', width: 92, minHeight: 92, borderRadius: 18, padding: '10px 6px 8px', cursor: 'pointer', display: 'grid', justifyItems: 'center', alignContent: 'center', gap: 6, font: 'inherit', position: 'relative',
-                  border: '1px solid ' + (t?.a ? 'var(--color-accent)' : 'var(--m-tepi)'), background: t?.a ? 'var(--color-accent)' : 'var(--color-surface)', color: t?.a ? 'var(--on-accent)' : 'var(--color-text)' }}>
-                <Ikon d={t?.ikon} s={28} w={1.6} />
-                <span style={{ fontSize: fs(13), fontWeight: t?.a ? 600 : 500, lineHeight: 1.15 }}>{txt(t?.l)}</span>
-                <span style={{ fontSize: fs(11), lineHeight: 1.2, opacity: 0.8 }}>{t?.beres ? 'Selesai' : t?.kini ? 'Berlangsung' : txt(t?.sub)}</span>
+        {hari.length > 1 ? (<>
+          <div style={label}>Hari</div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${hari.length}, minmax(0,1fr))`, gap: 6 }}>
+            {hari.map((h, i) => (
+              <button key={i} type="button" className="pc0" onClick={h?.on} aria-pressed={!!h?.a} aria-label={h?.l + (h?.kini ? ', sedang berlangsung' : '')} style={ubin(h?.a, { minHeight: 64, padding: '6px 4px', gap: 2 })}>
+                {h?.besar ? <span style={{ fontSize: fs(24), fontWeight: 600, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{h.besar}</span> : <span style={{ fontSize: fs(13), fontWeight: 600, lineHeight: 1.15 }}>{txt(h?.l)}</span>}
+                <span style={{ fontSize: fs(11), opacity: 0.8, lineHeight: 1.2 }}>{h?.kini ? 'Berlangsung' : h?.besar ? 'Dzulhijjah' : ''}</span>
               </button>
             ))}
           </div>
         </>) : null}
-        {arr(v.ckDays).length > 1 ? <div style={label}>Hari</div> : null}
-        <div ref={v.daysRef} style={{ ...geser, scrollSnapType: 'x proximity', display: arr(v.ckDays).length > 1 ? 'flex' : 'none' }}>
-          {arr(v.ckDays).map((c, i) => (
-            <button key={i} type="button" data-today={c?.today} onClick={c?.on} aria-pressed={!!c?.sel} style={pil(c?.sel, { scrollSnapAlign: 'center' })}>
-              {txt(c?.l)}{c?.td ? <span style={{ fontWeight: 400 }}>· hari ini</span> : null}
-            </button>
-          ))}
-        </div>
-        <div style={label}>Kegiatan</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div style={label}>Kegiatan{hari.length > 1 && hAktif ? ' · ' + hAktif.l : ''}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 8 }}>
           {arr(v.ckPills).map((p, i) => (
-            <button key={i} type="button" onClick={p?.on} aria-pressed={!!p?.a} style={pil(p?.a, { whiteSpace: 'normal', textAlign: 'left', padding: '6px 14px' })}>
-              {p?.locked ? <Ikon d={GEMBOK} s={16} /> : p?.done ? <Ikon d={CENTANG} s={16} w={2.2} /> : p?.ikon ? <Ikon d={p.ikon} s={18} /> : null}
-              {txt(p?.l)}{p?.now ? <span style={{ fontWeight: 400 }}>· berjalan</span> : null}
+            <button key={i} type="button" className="pc0" onClick={p?.on} aria-pressed={!!p?.a} style={ubin(p?.a, { minHeight: 84, padding: '8px 4px', gap: 4, color: p?.a ? 'var(--on-accent)' : p?.locked ? 'var(--teks-3)' : 'var(--color-text)' })}>
+              <span style={{ display: 'grid', color: p?.a ? 'inherit' : 'var(--color-accent)' }}>{p?.locked ? <Ikon d={GEMBOK} s={22} /> : p?.done ? <Ikon d={CENTANG} s={22} w={2.2} /> : <Ikon d={p?.ikon} s={22} />}</span>
+              <span style={{ fontSize: fs(13), fontWeight: p?.a ? 600 : 500, lineHeight: 1.2 }}>{txt(p?.l)}</span>
+              {p?.now || p?.malam ? <span style={{ fontSize: fs(11), opacity: 0.8 }}>{p?.now ? 'berjalan' : 'malam'}</span> : null}
             </button>
           ))}
         </div>
@@ -80,8 +86,8 @@ export default function MenuChecklist({ v }) {
             <span style={label}>Jadwal Raudhoh</span><span style={kecil}>{txt(v.sexSplit)}</span>
           </div>
           {v.noSlots ? <div style={kecil}>Belum ada jadwal. Ketuk Tambah jadwal.</div> : null}
-          <div style={geser}>
-            {arr(v.mdDays).map((c, i) => { const a = c?.bg === 'var(--color-accent)'; return <button key={i} type="button" onClick={c?.on} aria-pressed={a} style={pil(a)}>{txt(c?.l)}</button>; })}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(104px, 1fr))', gap: 8 }}>
+            {arr(v.mdDays).map((c, i) => { const a = c?.bg === 'var(--color-accent)'; return <button key={i} type="button" className="pc0" onClick={c?.on} aria-pressed={a} style={pil(a, { minWidth: 0, whiteSpace: 'normal' })}>{txt(c?.l)}</button>; })}
           </div>
           <Segmen list={v.mdSexBtns} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -102,9 +108,9 @@ export default function MenuChecklist({ v }) {
         <div style={label}>Cakupan</div>
         <Segmen list={v.ckScopes} />
         {v.ckShowR ? (
-          <div style={geser}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 8 }}>
             {arr(v.ckRs).map((c, i) => (
-              <button key={i} type="button" onClick={c?.on} aria-pressed={!!c?.a} aria-label={'Rombongan ' + c?.r + ', ' + c?.pct} style={pil(c?.a, { gap: 8 })}>
+              <button key={i} type="button" className="pc0" onClick={c?.on} aria-pressed={!!c?.a} aria-label={'Rombongan ' + c?.r + ', ' + c?.pct} style={pil(c?.a, { gap: 2, padding: '4px 2px', minWidth: 0, flexDirection: 'column', minHeight: 52, borderRadius: 14 })}>
                 {c?.low && !c?.a ? <span style={{ color: 'var(--red-600)', display: 'grid' }}><Ikon d={SEGITIGA} s={16} /></span> : null}
                 <span>{txt(c?.l)}</span><span style={{ fontWeight: 500, color: c?.low && !c?.a ? 'var(--red-700)' : 'inherit' }}>{txt(c?.pct)}</span>
               </button>
